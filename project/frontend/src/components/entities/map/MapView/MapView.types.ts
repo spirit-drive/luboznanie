@@ -1,6 +1,6 @@
-import {Point, PointID, Connection} from "../../../../../../packages/types/entities/point/point.types";
-import {MapBackground} from "../../../../../../packages/types/entities/map/map.types";
-import * as PIXI from "pixi.js";
+import { Point, PointID, Connection } from '../../../../../../packages/types/entities/point/point.types';
+import { MapBackground } from '../../../../../../packages/types/entities/map/map.types';
+import * as PIXI from 'pixi.js';
 
 export type MapViewProps = {
   className?: string;
@@ -11,14 +11,13 @@ export type MapViewProps = {
   onPointClick: (pointId: PointID) => void;
 };
 
-export type { Point, PointID, MapBackground, Connection }
+export type { Point, PointID, MapBackground, Connection };
 
-
-export type PointVisuals  = {
+export type PointVisuals = {
   container: PIXI.Container;
   graphics: PIXI.Graphics;
-}
+};
 
-export type PointsManagerOptions =  {
+export type PointsManagerOptions = {
   onPointClick?: (point: Point) => void;
-}
+};

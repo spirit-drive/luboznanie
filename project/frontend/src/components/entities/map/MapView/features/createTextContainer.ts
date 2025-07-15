@@ -1,6 +1,6 @@
-import {createInfoBlockContainer} from "./createInfoBlockContainer";
-import * as PIXI from "pixi.js";
-import {Point} from "@/types/entities/point/point.types";
+import { createInfoBlockContainer } from './createInfoBlockContainer';
+import * as PIXI from 'pixi.js';
+import { Point } from '@/types/entities/point/point.types';
 
 const TITLE_FONT_SIZE = 16;
 const TEXT_COLOR = '#000000'; // Черный цвет для текста
@@ -27,6 +27,5 @@ export const createTextContainer = (point: Point) => {
   titleText.position.y = infoBlockContainer.height ? infoBlockContainer.height + ICON_BLOCK_TITLE_SPACING : 0;
   textContainer.addChild(titleText);
 
-  return { textContainer, infoBlockContainer }
-
+  return { textContainer, infoBlockContainer };
 };

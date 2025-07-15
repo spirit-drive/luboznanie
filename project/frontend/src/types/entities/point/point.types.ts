@@ -1,4 +1,4 @@
-import {EntityType, ID} from "../../shared";
+import { EntityType, ID } from '../../shared';
 
 export type PointID = ID;
 
@@ -7,7 +7,7 @@ export type Connection = {
   pointId: PointID;
   width?: number;
   color?: string;
-}
+};
 
 export type Point = {
   id: PointID;
@@ -25,6 +25,6 @@ export type Point = {
   progress?: number;
   entity: {
     id: ID;
-    type: EntityType
-  }
-}
+    type: EntityType;
+  };
+};

@@ -71,7 +71,6 @@ export const useMapView = ({ background, width, height, items, onPointClick }: U
         pointsManagerRef.current?.destroy();
         mapController.destroy();
 
-
         if (typeof window !== 'undefined') {
           window.removeEventListener('blur', onBlur);
           window.removeEventListener('focus', onFocus);
@@ -89,7 +88,7 @@ export const useMapView = ({ background, width, height, items, onPointClick }: U
     };
 
     let cleanup: (() => void) | undefined;
-    init().then(cleanupFn => {
+    init().then((cleanupFn) => {
       cleanup = cleanupFn;
     });
 

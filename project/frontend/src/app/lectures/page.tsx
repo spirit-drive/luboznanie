@@ -1,9 +1,5 @@
-import s from "./page.module.scss";
+import s from './page.module.scss';
 
 export default function Page() {
-  return (
-    <div className={s.page}>
-      Lectures
-    </div>
-  );
+  return <div className={s.page}>Lectures</div>;
 }

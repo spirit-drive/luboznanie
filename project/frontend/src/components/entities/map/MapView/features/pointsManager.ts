@@ -1,6 +1,6 @@
 import * as PIXI from 'pixi.js';
 import { Point, PointID, PointsManagerOptions, PointVisuals } from '../MapView.types';
-import { createPointVisual } from "./createPointVisual";
+import { createPointVisual } from './createPointVisual';
 
 // --- Типы для менеджера ---
 
@@ -29,7 +29,7 @@ export const createPointsManager = (world: PIXI.Container, options: PointsManage
    */
   const update = (items: Point[]) => {
     const currentIds = new Set(renderedPoints.keys());
-    const newIds = new Set(items.map(item => item.id));
+    const newIds = new Set(items.map((item) => item.id));
 
     // 1. Удаление старых точек, которых нет в новом массиве
     for (const id of currentIds) {
@@ -94,10 +94,10 @@ export const createPointsManager = (world: PIXI.Container, options: PointsManage
 
   const destroy = () => {
     world.removeChild(connectionsContainer, pointsContainer);
-    connectionsContainer.destroy({children: true});
-    pointsContainer.destroy({children: true});
+    connectionsContainer.destroy({ children: true });
+    pointsContainer.destroy({ children: true });
     renderedPoints.clear();
-  }
+  };
 
   return { update, destroy };
 };

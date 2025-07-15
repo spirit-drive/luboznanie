@@ -1,9 +1,9 @@
-import * as PIXI from "pixi.js";
-import {Point} from "../../../../../../../packages/types/entities/point/point.types";
-import {PointsManagerOptions, PointVisuals} from "../MapView.types";
+import * as PIXI from 'pixi.js';
+import { Point } from '../../../../../../../packages/types/entities/point/point.types';
+import { PointsManagerOptions, PointVisuals } from '../MapView.types';
 import { gsap } from 'gsap';
-import {createTextContainer} from "./createTextContainer";
-import {Graphics} from "pixi.js";
+import { createTextContainer } from './createTextContainer';
+import { Graphics } from 'pixi.js';
 
 const PRACTICE_SVG_CODE = `
   <svg viewBox="0 0 22 22" xmlns="http://www.w3.org/2000/svg">
@@ -17,7 +17,6 @@ const PRACTICE_SVG_CODE = `
 `;
 
 const SVG_ICON_SIZE = 60;
-
 
 const INNER_CIRCLE_RADIUS = 50; // Диаметр 100px
 const PROGRESS_BAR_RADIUS = 68; // Диаметр 136px
@@ -83,7 +82,6 @@ export const createPointVisual = (point: Point, options: PointsManagerOptions): 
   textContainer.position.y = -textContainer.height / 2;
   pointContainer.addChild(textContainer);
 
-
   // --- Интерактивность ---
   pointContainer.on('pointertap', () => {
     options.onPointClick?.(point);
@@ -91,11 +89,11 @@ export const createPointVisual = (point: Point, options: PointsManagerOptions): 
 
   pointContainer.on('pointerover', () => {
     pointContainer.parent.addChild(pointContainer);
-    gsap.to(pointContainer.scale, { x: POINT_HOVER_SCALE, y: POINT_HOVER_SCALE, duration: 0.2, ease: "power2.out" });
+    gsap.to(pointContainer.scale, { x: POINT_HOVER_SCALE, y: POINT_HOVER_SCALE, duration: 0.2, ease: 'power2.out' });
   });
 
   pointContainer.on('pointerout', () => {
-    gsap.to(pointContainer.scale, { x: 1.0, y: 1.0, duration: 0.2, ease: "power2.out" });
+    gsap.to(pointContainer.scale, { x: 1.0, y: 1.0, duration: 0.2, ease: 'power2.out' });
   });
 
   return { container: pointContainer, graphics };

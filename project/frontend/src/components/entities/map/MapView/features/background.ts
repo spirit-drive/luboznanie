@@ -11,10 +11,7 @@ interface BackgroundOptions {
  * @param world - Контейнер PIXI, в который будет добавлен фон.
  * @param options - Опции для фона (URL изображения, ширина, высота).
  */
-export const setupBackground = async (
-  world: PIXI.Container,
-  options: BackgroundOptions,
-): Promise<void> => {
+export const setupBackground = async (world: PIXI.Container, options: BackgroundOptions): Promise<void> => {
   if (!options.image) return;
 
   try {
@@ -29,6 +26,6 @@ export const setupBackground = async (
     //addChildAt(..., 0) помещает спрайт на самый задний план.
     world.addChildAt(tilingSprite, 0);
   } catch (error) {
-    console.error("Не удалось загрузить текстуру фона:", error);
+    console.error('Не удалось загрузить текстуру фона:', error);
   }
 };

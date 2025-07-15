@@ -1,8 +1,8 @@
 'use client';
 
-import s from "./page.module.scss";
-import {MapView} from "@/components/entities/map/MapView/MapView";
-import {Point} from "@/types/entities/point/point.types";
+import s from './page.module.scss';
+import { MapView } from '@/components/entities/map/MapView/MapView';
+import { Point } from '@/types/entities/point/point.types';
 
 const onPointClick = () => {};
 
@@ -31,9 +31,7 @@ export const items: Point[] = [
     position: { x: 300, y: 200 },
     entity: { id: 'practice-201', type: 'practice' },
     progress: 50, // В процессе выполнения
-    connections: [
-      { id: 'conn-2-4', pointId: 'point-4' },
-    ],
+    connections: [{ id: 'conn-2-4', pointId: 'point-4' }],
   },
   // 3. Дополнительная лекция
   {
@@ -42,9 +40,7 @@ export const items: Point[] = [
     position: { x: 300, y: 400 },
     entity: { id: 'lecture-102', type: 'lecture' },
     locked: false, // Доступна
-    connections: [
-      { id: 'conn-3-4', pointId: 'point-4' },
-    ],
+    connections: [{ id: 'conn-3-4', pointId: 'point-4' }],
   },
   // 4. Точка слияния - карта
   {
@@ -66,9 +62,7 @@ export const items: Point[] = [
     entity: { id: 'practice-202', type: 'practice' },
     required: false, // Необязательная
     locked: true,
-    connections: [
-      { id: 'conn-5-7', pointId: 'point-7' },
-    ],
+    connections: [{ id: 'conn-5-7', pointId: 'point-7' }],
   },
   // 6. Основная ветка
   {
@@ -77,9 +71,7 @@ export const items: Point[] = [
     position: { x: 700, y: 400 },
     entity: { id: 'lecture-103', type: 'lecture' },
     locked: true,
-    connections: [
-      { id: 'conn-6-7', pointId: 'point-7' },
-    ],
+    connections: [{ id: 'conn-6-7', pointId: 'point-7' }],
   },
   // 7. Финальная точка слияния
   {
@@ -91,7 +83,7 @@ export const items: Point[] = [
     locked: true,
     connections: [
       // Соединение ведет к несуществующей точке для теста
-      { id: 'conn-7-99', pointId: 'point-99' }
+      { id: 'conn-7-99', pointId: 'point-99' },
     ],
   },
   // 8. Изолированная точка
@@ -108,9 +100,7 @@ export const items: Point[] = [
     name: 'Секретный путь',
     position: { x: 300, y: 550 },
     entity: { id: 'map-302', type: 'map' },
-    connections: [
-      { id: 'conn-9-8', pointId: 'point-8', width: 1, color: '#888888' },
-    ],
+    connections: [{ id: 'conn-9-8', pointId: 'point-8', width: 1, color: '#888888' }],
   },
   // 10. Точка, ссылающаяся сама на себя
   {
@@ -118,9 +108,7 @@ export const items: Point[] = [
     name: 'Бесконечный цикл',
     position: { x: 500, y: 100 },
     entity: { id: 'practice-204', type: 'practice' },
-    connections: [
-      { id: 'conn-10-10', pointId: 'point-10', color: '#ff4081' },
-    ],
+    connections: [{ id: 'conn-10-10', pointId: 'point-10', color: '#ff4081' }],
   },
 ];
 

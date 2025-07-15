@@ -81,7 +81,6 @@ export const createMapController = (app: PIXI.Application, world: PIXI.Container
     clampWorldPosition();
   };
 
-
   // --- Обработчики событий ---
 
   const onPointerDown = (event: PIXI.FederatedPointerEvent) => {
@@ -116,7 +115,6 @@ export const createMapController = (app: PIXI.Application, world: PIXI.Container
 
       const pinchCenter = getCenter(pointers[0], pointers[1]);
       applyZoom(newScale, pinchCenter);
-
     } else if (isDragging && lastPosition) {
       // Логика перемещения
       const currentPosition = event.global;

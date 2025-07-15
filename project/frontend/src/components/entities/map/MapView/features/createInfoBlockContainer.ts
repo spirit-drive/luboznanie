@@ -1,5 +1,5 @@
-import * as PIXI from "pixi.js";
-import {Point} from "@/types/entities/point/point.types";
+import * as PIXI from 'pixi.js';
+import { Point } from '@/types/entities/point/point.types';
 
 const PROGRESS_TEXT_FONT_SIZE = 12;
 const ICON_SIZE = 22;
@@ -116,7 +116,7 @@ export const createInfoBlockContainer = (point: Point) => {
       fontSize: PROGRESS_TEXT_FONT_SIZE,
       fontWeight: 'normal', // Regular
       fill: TEXT_COLOR,
-      align: 'left'
+      align: 'left',
     });
 
     const progressText = new PIXI.Text({ style: textStyle, text: `${point.progress}% ${currentValue}/${totalValue}` });
@@ -126,5 +126,5 @@ export const createInfoBlockContainer = (point: Point) => {
     infoBlockContainer.addChild(progressText);
   }
 
-  return { infoBlockContainer }
+  return { infoBlockContainer };
 };
