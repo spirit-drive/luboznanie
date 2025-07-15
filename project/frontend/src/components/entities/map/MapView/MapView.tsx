@@ -1,13 +1,18 @@
 import React from 'react';
 import clsx from 'clsx';
 import s from './MapView.module.scss';
-import {MapViewProps} from "./MapView.types";
-import {useMapView} from "./hooks/useMapView";
+import { MapViewProps } from './MapView.types';
+import { useMapView } from './hooks/useMapView';
 import image from './assets/img.png';
 
-export const MapView = ({ className, width, height, background = { image: image.src }, items, onPointClick }: MapViewProps) => {
+export const MapView = ({
+  className,
+  width,
+  height,
+  background = { image: image.src },
+  items,
+  onPointClick,
+}: MapViewProps) => {
   const { containerRef } = useMapView({ onPointClick, items, width, height, background });
-  return (
-    <div ref={containerRef} className={clsx(s.root, className)} />
-  )
+  return <div ref={containerRef} className={clsx(s.root, className)} />;
 };
