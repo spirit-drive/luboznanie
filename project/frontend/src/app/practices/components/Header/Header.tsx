@@ -1,6 +1,7 @@
 import { Icon } from '../Icon/Icon';
 import s from './Header.module.scss';
 import Image from 'next/image';
+import Dropdown from 'antd/es/dropdown';
 
 export const Header = () => {
   return (
@@ -11,14 +12,14 @@ export const Header = () => {
           <span className={s.task}>Задача</span>
         </div>
         <div className={s.right}>
-          <div>list</div>
+          <div>dropdown</div>
           <Image className={s.book_svg} src="/icons/book_key.svg" alt="book-icon" width={22} height={22} />
         </div>
       </div>
       <div className={s.line}></div>
       <div className={s.editable_title}>contentEditable</div>
       <div>
-        <Icon name='' />
+        <Icon name='create' />
         <span>TAGS COMPONENT</span>
       </div>
     </header>
