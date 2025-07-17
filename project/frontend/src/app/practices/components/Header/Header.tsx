@@ -17,7 +17,10 @@ export const Header = () => {
       </div>
       <div className={s.line}></div>
       <div className={s.editable_title}>contentEditable</div>
-      <div>TAgs</div>
+      <div>
+        <Icon name='' />
+        <span>TAGS COMPONENT</span>
+      </div>
     </header>
   );
 };
