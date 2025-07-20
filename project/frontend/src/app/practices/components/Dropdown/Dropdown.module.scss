@@ -1,0 +1,22 @@
+@import '../../../../styles/_fonts.scss';
+@import '../../../../styles/_variables.scss';
+
+.button {
+  background-color: transparent;
+  padding: 2px 8px 4px 8px;
+  border: 1px solid $font_task_color;
+  border-radius: 6px;
+}
+
+.link {
+  font-family: $font-montserrat-regular;
+  font-size: 12px;
+  line-height: 16px;
+  text-decoration: underline;
+}
+
+.dropdownMenu{
+  font-family: $font-montserrat-regular;
+  font-size: 12px;
+  line-height: 16px;
+}
