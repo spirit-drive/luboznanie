@@ -45,6 +45,7 @@ export const IDropdown = ({ className, items: initialItemsFromProps }: DropDownM
   const [error, setError] = useState<string | null>(null);
   const [currentSelectedValue, setCurrentSelectedValue] = useState<string | undefined>(undefined);
   const [allVersions, setAllVersions] = useState<DropDownMenuItem[]>([]);
+  const [displayedVersions, setDisplayedVersions] = useState<DropDownMenuItem[]>([]);
 
   useEffect(() => {
     const getVersions = async () => {
@@ -52,6 +53,7 @@ export const IDropdown = ({ className, items: initialItemsFromProps }: DropDownM
       try {
         const data: DropDownMenuItem[] = initialItemsFromProps || (await promiseVersions());
         setAllVersions(data);
+        setDisplayedVersions(data);
         if (data.length > 0) {
           setCurrentSelectedValue(data[0].value);
         } else {
@@ -72,63 +74,18 @@ export const IDropdown = ({ className, items: initialItemsFromProps }: DropDownM
     setCurrentSelectedValue(value);
   };
 
-  const handleSearch = async (searchText: string): Promise<void> => {
-    console.log('handleSearch вызван');
-
-    setError(null);
-    try {
-      const searchResults: DropDownMenuItem[] = await mockSearchFunction(searchText);
-      console.log('Содержимое searchResults при поиске:', searchResults);
-      setAllVersions(searchResults);
-    } catch (err) {
-      setError('Ошибка при поиске');
-      setAllVersions([]);
+  const handleSearch = (searchText: string): void => {
+    if (!searchText) {
+      setDisplayedVersions(allVersions);
+      return;
     }
-  };
-
-  const mockSearchFunction = async (searchText: string): Promise<DropDownMenuItem[]> => {
-    console.log(`Выполняется mockSearchFunction с текстом: "${searchText}"`);
-    const data = await promiseVersions();
-    console.log(data);
-    // setAllVersions(data)
-    console.log('sssssssssssssssssssssssssssssssssss');
-    //const filteredData = data.filter((item: DropDownMenuItem) => item.label.includes(searchText));
-    const filteredData = data.filter((item) => {
-      return item.label.includes(searchText);
-    });
-    console.log('filtered===================');
-    console.log(filteredData);
-    return filteredData.map((item) => ({
-      label: <span>{item.label}</span>,
-      key: item.key,
-      value: item.key,
-      text: item.label,
-    }));
     
+    const filtered = allVersions.filter(item => 
+      item.text.toLowerCase().includes(searchText.toLowerCase())
+    );
+    setDisplayedVersions(filtered);
   };
 
-  const clientFilterOption = (
-    input: string,
-    option?: { label: React.ReactNode; value: string; text: string },
-  ): boolean => {
-    if (!option || !option.label) {
-      return false;
-    }
-
-    let labelText = '';
-    if (typeof option.label === 'string') {
-      labelText = option.label;
-    } else if (typeof option.label === 'number') {
-      labelText = String(option.label);
-    } else if (typeof option.label === 'object' && option.label !== null) {
-      const props = (option.label as any).props;
-      if (props && 'children' in props) {
-        labelText = String(props.children);
-      }
-    }
-    return labelText.toLowerCase().includes(input.toLowerCase());
-  };
-  console.log(error, allVersions) ;
   return (
     <Select
       popupMatchSelectWidth={false}
@@ -136,12 +93,11 @@ export const IDropdown = ({ className, items: initialItemsFromProps }: DropDownM
       showSearch
       value={currentSelectedValue}
       onChange={handleSelectChange}
-      // onSearch={onSearch ? handleSearch : undefined}
       onSearch={handleSearch}
-      //filterOption={onSearch ? false : clientFilterOption}
-      // disabled={!!error}
+      filterOption={false} 
+      notFoundContent={displayedVersions.length === 0 ? "Таких версий нет" : null}
       suffixIcon={false}
-      options={allVersions.map((item) => ({
+      options={displayedVersions.map((item) => ({
         label: item.label,
         value: item.value,
         key: item.key,
