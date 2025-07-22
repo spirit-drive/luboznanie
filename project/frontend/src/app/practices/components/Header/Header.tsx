@@ -2,6 +2,7 @@ import { Icon } from '../Icon/Icon';
 import s from './Header.module.scss';
 import Image from 'next/image';
 import { IDropdown } from '../Dropdown/Dropdown';
+import { EditableText } from '../EditableText/EditableText';
 
 export const Header = () => {
   return (
@@ -18,6 +19,7 @@ export const Header = () => {
       </div>
       <div className={s.line}></div>
       <div className={s.editable_title}>contentEditable</div>
+      <EditableText as="span" />
       <div>
         <Icon name="create" />
         <span>TAGS COMPONENT</span>
