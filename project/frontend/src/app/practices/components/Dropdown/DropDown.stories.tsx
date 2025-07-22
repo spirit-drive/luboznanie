@@ -58,6 +58,10 @@ const meta: Meta<typeof IDropdown> = {
     className: {
       description: 'позволяет добавить дополнителыный класс для стилизации',
     },
+
+    onSearch: {
+      description: 'позволяет добавить функцию для поиска из выпадающего меню',
+    }
   },
 };
 

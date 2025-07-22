@@ -14,7 +14,7 @@ export type DropDownMenuItem = {
 export type DropDownMenuItemProps = {
   items?: DropDownMenuItem[];
   className?: string;
-  onSearch?: (text: string) => Promise<DropDownMenuItem[]>;
+  onSearch?: (textSearch: string) => void;
 };
 
 export type responseVersions = {
