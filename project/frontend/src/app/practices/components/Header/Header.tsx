@@ -2,7 +2,6 @@ import { Icon } from '../Icon/Icon';
 import s from './Header.module.scss';
 import Image from 'next/image';
 import { IDropdown } from '../Dropdown/Dropdown';
-import { itemsObj } from '../Dropdown/Dropdown';
 
 export const Header = () => {
   return (
@@ -13,7 +12,6 @@ export const Header = () => {
           <span className={s.task}>Задача</span>
         </div>
         <div className={s.right}>
-          {/* <div className={s.dropdown}>dropdown</div> */}
           <IDropdown />
           <Image className={s.book_svg} src="/icons/book_key.svg" alt="book-icon" width={22} height={22} />
         </div>
