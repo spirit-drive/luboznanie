@@ -2,7 +2,7 @@
 import '@ant-design/v5-patch-for-react-19';
 import { Select } from 'antd';
 import s from './Dropdown.module.scss';
-import { useState, useEffect, ReactNode } from 'react';
+import { useState, useEffect } from 'react';
 
 export type DropDownMenuItem = {
   label: React.ReactNode;
@@ -80,7 +80,7 @@ export const IDropdown = ({ className, items: initialItemsFromProps }: DropDownM
       return;
     }
     
-    const filtered = allVersions.filter(item => 
+    const filtered: DropDownMenuItem[] = allVersions.filter(item => 
       item.text.toLowerCase().includes(searchText.toLowerCase())
     );
     setDisplayedVersions(filtered);

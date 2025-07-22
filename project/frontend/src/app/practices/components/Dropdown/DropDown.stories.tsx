@@ -1,23 +1,23 @@
 import type { Meta, StoryObj } from '@storybook/nextjs';
-import { IDropdown } from './Dropdown';
-
-export type DropDownMenuItem = {
-  label: React.ReactNode;
-  key: string;
-};
+import { DropDownMenuItem, IDropdown } from './Dropdown';
 
 export const items: DropDownMenuItem[] = [
   {
+    value: '0',
+    text: '1st menu item',
     label: <span>1st menu item</span>,
     key: '0',
   },
   {
+    value: '1',
+    text: '2nd menu item',
     label: <span>2nd menu item</span>,
     key: '1',
   },
-
   {
-    label: <span>3nd menu item</span>,
+    value: '3',
+    text: '3rd menu item',
+    label: <span>3rd menu item</span>,
     key: '3',
   },
 ];
@@ -37,53 +37,30 @@ const meta: Meta<typeof IDropdown> = {
 
   args: {
     items: items,
-    trigger: ['click'],
-    placement: 'bottom',
   },
 
   argTypes: {
     items: {
       control: 'object',
-      description: 'Массив элементов меню в формате { label: string, key: string }',
+      description: 'Массив элементов меню в формате { label: React.ReactNode, key: string, tex: string, value: string  }',
       table: {
         type: {
           summary: 'DropDownMenuItem[]',
           detail: `Массив объектов с полями 
             label: ReactNode, 
-            key: string`,
+            key: string,
+            value: string,
+            text: string`,
         },
       },
     },
 
-    trigger: {
-      options: [['click'], ['hover'], ['click', 'hover']],
-      control: 'select',
-      description: 'Способ открытия меню (массив: click/hover)',
-      table: {
-        type: { summary: "('click' | 'hover')[]" },
-        defaultValue: { summary: "['click']" },
-      },
-    },
-
-    placement: {
-      options: ['bottom', 'bottomLeft', 'bottomRight', 'top', 'topLeft', 'topRight'],
-      control: 'select',
-      description: 'Позиция выпадающего меню относительно кнопки',
-      table: {
-        type: { summary: "'bottom' | 'bottomLeft' | 'bottomRight' | 'top' | 'topLeft' | 'topRight'" },
-        defaultValue: { summary: '"bottom"' },
-      },
-    },
-    overlayClassName: {
-      description: 'добавит класс "class_css" к самому внешнему контейнеру выпадающего списка, позволяя вам применить к нему свои стили через CSS',
-    },
     className: {
-      description: 'позволяет добавить дополнителыный класс для стилизации'
-    }
+      description: 'позволяет добавить дополнителыный класс для стилизации',
+    },
   },
 };
 
 export default meta;
 
 type Story = StoryObj<typeof IDropdown>;
-
