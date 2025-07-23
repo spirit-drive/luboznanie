@@ -6,12 +6,11 @@ import DOMPurify from 'dompurify';
 type EditableTextProps = {
   as?: ElementType;
   className?: string;
-  initialValue?: string;
 };
 
-export const EditableText = ({ as: Tag = 'div',className = '' }: EditableTextProps) => {
+export const EditableText = ({ as: Tag = 'div', className = '' }: EditableTextProps) => {
   const [cleanText, setCleanText] = useState<string>('');
-  const editableRef = useRef(null);
+  const editableRef = useRef<HTMLElement>(null);
 
   const handleInput = (): void => {
     if (!editableRef.current) return;

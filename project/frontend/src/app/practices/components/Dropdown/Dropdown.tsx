@@ -79,9 +79,9 @@ export const IDropdown = ({ className, items: initialItemsFromProps }: DropDownM
       setDisplayedVersions(allVersions);
       return;
     }
-    
-    const filtered: DropDownMenuItem[] = allVersions.filter(item => 
-      item.text.toLowerCase().includes(searchText.toLowerCase())
+
+    const filtered: DropDownMenuItem[] = allVersions.filter((item) =>
+      item.text.toLowerCase().includes(searchText.toLowerCase()),
     );
     setDisplayedVersions(filtered);
   };
@@ -94,8 +94,8 @@ export const IDropdown = ({ className, items: initialItemsFromProps }: DropDownM
       value={currentSelectedValue}
       onChange={handleSelectChange}
       onSearch={handleSearch}
-      filterOption={false} 
-      notFoundContent={displayedVersions.length === 0 ? "Таких версий нет" : null}
+      filterOption={false}
+      notFoundContent={displayedVersions.length === 0 ? 'Таких версий нет' : null}
       suffixIcon={false}
       options={displayedVersions.map((item) => ({
         label: item.label,

@@ -1,4 +1,10 @@
-@import '../../../../styles/_variables.scss';
+//@import '../../../../styles/_variables.scss';
+
+// @import '../../../../styles/_fonts.scss';
+// @import '../../../../styles/_variables.scss';
+
+@use '../../../../styles/fonts' as *;    
+@use '../../../../styles/variables' as *;
 
 .header {
   max-width: 594px;
