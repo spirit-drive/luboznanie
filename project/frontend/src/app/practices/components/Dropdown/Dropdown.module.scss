@@ -1,0 +1,36 @@
+@import '../../../../styles/_fonts.scss';
+@import '../../../../styles/_variables.scss';
+
+.select {
+  height: 20px;
+
+  :global(.ant-select-selector) {
+    color: $font_color_tag;
+    font-size: 12px;
+    line-height: 16px;
+    font-family: $font-montserrat-regular;
+    border-radius: 6px;
+    border: 1px solid $font_task_color;
+    text-decoration: underline;
+  }
+
+  :global(.ant-select-selector .ant-select-selection-item),
+  :global(.ant-select-selector .ant-select-selection-search) {
+    padding-inline-end: 0;
+    display: flex;
+    align-items: anchor-center;
+    height: inherit;
+  }
+
+  :global(.ant-select-selector.ant-select-selector) {
+    padding: 2px 8px 4px 8px;
+  }
+
+  :global(.ant-select-selector .ant-select-selection-wrap) {
+    height: inherit;
+  }
+
+  span {
+    line-height: initial;
+  }
+}

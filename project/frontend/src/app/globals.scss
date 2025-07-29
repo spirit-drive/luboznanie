@@ -1,4 +1,5 @@
-@import '/src/styles/fonts.scss';
+@use "fonts";
+@use "variables" as *;
 
 :root {
   --background: #ffffff;
