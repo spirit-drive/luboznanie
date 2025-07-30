@@ -1,9 +1,13 @@
+'use client';
+
 import { useEffect, useRef } from 'react';
 import * as PIXI from 'pixi.js';
 import { MapViewProps } from '../MapView.types';
 import { setupBackground } from '../features/background';
 import { createMapController } from '../features/mapController';
 import { createPointsManager } from '../features/pointsManager';
+import pointSprite from '../assets/point.sprite.svg';
+import {LoadedSvg} from "@/types/entities/map/map.types";
 
 type UseMapViewOptions = Pick<MapViewProps, 'background' | 'width' | 'height' | 'items' | 'onPointClick'>;
 
@@ -39,6 +43,13 @@ export const useMapView = ({ background, width, height, items, onPointClick }: U
       world.height = height;
       app.stage.addChild(world);
 
+      const pointTypeIcon = await PIXI.Assets.load({
+        src: pointSprite.src,
+        data: {
+          resolution: 4,
+        },
+      }) as LoadedSvg;
+
       // Начальное центрирование мира на экране
       world.x = app.screen.width / 2 - width / 2;
       world.y = app.screen.height / 2 - height / 2;
@@ -50,7 +61,7 @@ export const useMapView = ({ background, width, height, items, onPointClick }: U
       const mapController = createMapController(app, world);
 
       // Создаем и сохраняем экземпляр менеджера точек
-      pointsManagerRef.current = createPointsManager(world, { onPointClick });
+      pointsManagerRef.current = createPointsManager(world, { onPointClick, pointTypeIcon });
       pointsManagerRef.current.update(items);
 
       const onBlur = () => {
@@ -61,20 +72,16 @@ export const useMapView = ({ background, width, height, items, onPointClick }: U
         app.ticker.start();
       };
 
-      if (typeof window !== 'undefined') {
-        window.addEventListener('blur', onBlur);
-        window.addEventListener('focus', onFocus);
-      }
+      window.addEventListener('blur', onBlur);
+      window.addEventListener('focus', onFocus);
 
       return () => {
         // Очищаем все менеджеры
         pointsManagerRef.current?.destroy();
         mapController.destroy();
 
-        if (typeof window !== 'undefined') {
-          window.removeEventListener('blur', onBlur);
-          window.removeEventListener('focus', onFocus);
-        }
+        window.removeEventListener('blur', onBlur);
+        window.removeEventListener('focus', onFocus);
 
         if (appRef.current) {
           appRef.current.destroy(true, { children: true, texture: true, baseTexture: true });

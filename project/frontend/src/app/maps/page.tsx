@@ -11,8 +11,8 @@ export const items: Point[] = [
   {
     id: 'point-1',
     name: 'Введение в курс',
-    position: { x: 0, y: 0 },
-    entity: { id: 'lecture-101', type: 'lecture' },
+    position: { x: 100, y: 100 },
+    entity: { id: 'article-101', type: 'article' },
     required: true,
     color: '#ff8f00',
     progress: 87,
@@ -38,7 +38,7 @@ export const items: Point[] = [
     id: 'point-3',
     name: 'Углубленная тема',
     position: { x: 300, y: 400 },
-    entity: { id: 'lecture-102', type: 'lecture' },
+    entity: { id: 'article-102', type: 'article' },
     locked: false, // Доступна
     connections: [{ id: 'conn-3-4', pointId: 'point-4' }],
   },
@@ -69,7 +69,7 @@ export const items: Point[] = [
     id: 'point-6',
     name: 'Основная лекция',
     position: { x: 700, y: 400 },
-    entity: { id: 'lecture-103', type: 'lecture' },
+    entity: { id: 'article-103', type: 'article' },
     locked: true,
     connections: [{ id: 'conn-6-7', pointId: 'point-7' }],
   },
@@ -91,7 +91,7 @@ export const items: Point[] = [
     id: 'point-8',
     name: 'Бонусный материал',
     position: { x: 100, y: 550 },
-    entity: { id: 'lecture-104', type: 'lecture' },
+    entity: { id: 'article-104', type: 'article' },
     connections: [], // Нет исходящих соединений
   },
   // 9. Точка, ведущая к изолированной

@@ -1,5 +1,5 @@
-import { Point, PointID, Connection } from '../../../../../../packages/types/entities/point/point.types';
-import { MapBackground } from '../../../../../../packages/types/entities/map/map.types';
+import { Point, PointID, Connection } from '@/types/entities/point/point.types';
+import { LoadedSvg, MapBackground } from '@/types/entities/map/map.types';
 import * as PIXI from 'pixi.js';
 
 export type MapViewProps = {
@@ -19,5 +19,6 @@ export type PointVisuals = {
 };
 
 export type PointsManagerOptions = {
+  pointTypeIcon: LoadedSvg;
   onPointClick?: (point: Point) => void;
 };
