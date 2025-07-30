@@ -3,14 +3,18 @@ import { Icon } from '../Icon/Icon';
 import s from './Header.module.scss';
 import { IDropdown } from '../Dropdown/Dropdown';
 import { EditableText } from '../../../../shared/components/EditableText/EditableText';
-import { useState } from 'react';
 
 export type HeaderProps = {
   title: string;
   onTitleChange: (newTitle: string) => void;
+  bookIcon?: React.ReactNode;
 };
 
-export const Header = ({ title, onTitleChange }: HeaderProps) => {
+export const Header = ({
+  title,
+  onTitleChange,
+  bookIcon = <img className={s.book_svg} src="/icons/book_key.svg" alt="book-icon" />,
+}: HeaderProps) => {
   return (
     <header className={s.header}>
       <div className={s.top_part}>
@@ -20,7 +24,7 @@ export const Header = ({ title, onTitleChange }: HeaderProps) => {
         </div>
         <div className={s.right}>
           <IDropdown />
-          <img className={s.book_svg} src="/icons/book_key.svg" alt="book-icon" />
+          {bookIcon}
         </div>
       </div>
       <div className={s.line}></div>
