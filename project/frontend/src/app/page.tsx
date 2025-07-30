@@ -1,12 +1,16 @@
+'use client';
 import Image from 'next/image';
 import styles from './page.module.css';
 import { Header } from './practices/components/Header/Header';
+import { useState } from 'react';
 
 export default function Home() {
+  const [title, setTitle] = useState('Ведите текст');
+
   return (
     <>
       <div id="root">
-        <Header/>
+        <Header title={title} onTitleChange={setTitle} />
       </div>
       <div className={styles.page}>
         <main className={styles.main}>

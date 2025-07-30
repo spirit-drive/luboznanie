@@ -15,7 +15,6 @@ export const EditableText = ({ as: Component = 'div', className = '', value, onC
   const rootRef = useRef<HTMLElement>(null);
 
   const handleInput = (e: FormEvent<HTMLElement>): void => {
-    if (!rootRef.current) return;
     const target = e.target as HTMLElement;
     const clean = DOMPurify.sanitize(target.innerText);
     onChange(clean);
