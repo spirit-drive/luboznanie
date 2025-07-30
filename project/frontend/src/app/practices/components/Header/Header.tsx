@@ -1,15 +1,19 @@
+'use client';
 import { Icon } from '../Icon/Icon';
 import s from './Header.module.scss';
 import Image from 'next/image';
 import { IDropdown } from '../Dropdown/Dropdown';
-import { EditableText } from '../EditableText/EditableText';
+import { EditableText } from '../../../../shared/components/EditableText/EditableText';
+import { useState } from 'react';
 
 export const Header = () => {
+  const [title, setTitle] = useState('Введите текст');
+
   return (
     <header className={s.header}>
       <div className={s.top_part}>
         <div className={s.left}>
-          <Icon className={s.icon} name="document" />
+          <Icon name="document" />
           <span className={s.task}>Задача</span>
         </div>
         <div className={s.right}>
@@ -18,11 +22,7 @@ export const Header = () => {
         </div>
       </div>
       <div className={s.line}></div>
-      <EditableText as="span" />
-      <div>
-        <Icon name="create" />
-        <span>TAGS COMPONENT</span>
-      </div>
+      <EditableText as="span" value={title} onChange={setTitle} />
     </header>
   );
 };
