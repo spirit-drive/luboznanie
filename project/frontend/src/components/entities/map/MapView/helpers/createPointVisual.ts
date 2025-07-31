@@ -2,8 +2,8 @@ import * as PIXI from 'pixi.js';
 import { PointsManagerOptions, PointVisuals } from '../MapView.types';
 import { gsap } from 'gsap';
 import { createTextContainer } from './createTextContainer';
-import { Point } from "@/types/entities/point/point.types";
-import { EntityType } from "@/types/shared";
+import { Point } from '@/types/entities/point/point.types';
+import { EntityType } from '@/types/shared';
 
 const SVG_ICON_SIZE = 60;
 
@@ -20,8 +20,6 @@ const iconShiftMap: Record<EntityType, number> = {
   article: 1,
   map: 2,
 };
-
-
 
 /**
  * Создает визуальное представление для одной точки.
@@ -51,7 +49,12 @@ export const createPointVisual = (point: Point, options: PointsManagerOptions): 
   pointContainer.addChild(graphics);
 
   // Определяем область обрезки для нужной иконки
-  const frame = new PIXI.Rectangle(options.pointTypeIcon.frame.height * iconShiftMap[point.entity.type], 0, options.pointTypeIcon.frame.height, options.pointTypeIcon.frame.height);
+  const frame = new PIXI.Rectangle(
+    options.pointTypeIcon.frame.height * iconShiftMap[point.entity.type],
+    0,
+    options.pointTypeIcon.frame.height,
+    options.pointTypeIcon.frame.height,
+  );
 
   // Создаем новую текстуру с обрезанной областью
   const croppedTexture = new PIXI.Texture({ source: options.pointTypeIcon.source, frame });
@@ -81,7 +84,7 @@ export const createPointVisual = (point: Point, options: PointsManagerOptions): 
   }
 
   // --- Текстовый блок ---
-  const { textContainer } = createTextContainer(point);
+  const { textContainer } = createTextContainer(point, options);
 
   textContainer.position.x = TEXT_BLOCK_OFFSET_X;
   textContainer.position.y = -textContainer.height / 2;

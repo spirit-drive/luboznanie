@@ -1,6 +1,7 @@
 import { Point, PointID, Connection } from '@/types/entities/point/point.types';
 import { LoadedSvg, MapBackground } from '@/types/entities/map/map.types';
 import * as PIXI from 'pixi.js';
+import { ContainerChild } from 'pixi.js/lib/scene/container/Container';
 
 export type MapViewProps = {
   className?: string;
@@ -14,11 +15,12 @@ export type MapViewProps = {
 export type { Point, PointID, MapBackground, Connection };
 
 export type PointVisuals = {
-  container: PIXI.Container;
+  container: PIXI.Container<ContainerChild>;
   graphics: PIXI.Graphics;
 };
 
 export type PointsManagerOptions = {
   pointTypeIcon: LoadedSvg;
+  pointPropsIcon: LoadedSvg;
   onPointClick?: (point: Point) => void;
 };

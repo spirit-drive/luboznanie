@@ -3,11 +3,13 @@
 import { useEffect, useRef } from 'react';
 import * as PIXI from 'pixi.js';
 import { MapViewProps } from '../MapView.types';
-import { setupBackground } from '../features/background';
-import { createMapController } from '../features/mapController';
-import { createPointsManager } from '../features/pointsManager';
+import { setupBackground } from '@/components/entities/map/MapView/helpers/background';
+import { createMapController } from '@/components/entities/map/MapView/helpers/mapController';
+import { createPointsManager } from '@/components/entities/map/MapView/helpers/pointsManager';
 import pointSprite from '../assets/point.sprite.svg';
-import {LoadedSvg} from "@/types/entities/map/map.types";
+import pointPropsSprite from '../assets/point.props.sprite.svg';
+import { LoadedSvg } from '@/types/entities/map/map.types';
+import { loadingAssets } from '@/components/entities/map/MapView/helpers/loadingAssets';
 
 type UseMapViewOptions = Pick<MapViewProps, 'background' | 'width' | 'height' | 'items' | 'onPointClick'>;
 
@@ -43,12 +45,7 @@ export const useMapView = ({ background, width, height, items, onPointClick }: U
       world.height = height;
       app.stage.addChild(world);
 
-      const pointTypeIcon = await PIXI.Assets.load({
-        src: pointSprite.src,
-        data: {
-          resolution: 4,
-        },
-      }) as LoadedSvg;
+      const { pointTypeIcon, pointPropsIcon } = await loadingAssets();
 
       // Начальное центрирование мира на экране
       world.x = app.screen.width / 2 - width / 2;
@@ -61,7 +58,7 @@ export const useMapView = ({ background, width, height, items, onPointClick }: U
       const mapController = createMapController(app, world);
 
       // Создаем и сохраняем экземпляр менеджера точек
-      pointsManagerRef.current = createPointsManager(world, { onPointClick, pointTypeIcon });
+      pointsManagerRef.current = createPointsManager(world, { onPointClick, pointTypeIcon, pointPropsIcon });
       pointsManagerRef.current.update(items);
 
       const onBlur = () => {
