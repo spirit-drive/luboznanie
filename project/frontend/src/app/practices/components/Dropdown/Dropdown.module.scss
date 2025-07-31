@@ -1,39 +1,13 @@
-// @import '../../../../styles/_fonts.scss';
-// @import '../../../../styles/_variables.scss';
-
-@use '../../../../styles/fonts' as *;    
+@use '../../../../styles/fonts' as *;
 @use '../../../../styles/variables' as *;
 
-.select {
-  height: 20px;
-
-  :global(.ant-select-selector) {
-    color: $font_color_tag;
-    font-size: 12px;
-    line-height: 16px;
-    font-family: $font-montserrat-regular;
-    border-radius: 6px;
-    border: 1px solid $font_task_color;
-    text-decoration: underline;
-  }
-
-  :global(.ant-select-selector .ant-select-selection-item),
-  :global(.ant-select-selector .ant-select-selection-search) {
-    padding-inline-end: 0;
-    display: flex;
-    align-items: anchor-center;
-    height: inherit;
-  }
-
-  :global(.ant-select-selector.ant-select-selector) {
-    padding: 2px 8px 4px 8px;
-  }
-
-  :global(.ant-select-selector .ant-select-selection-wrap) {
-    height: inherit;
-  }
-
-  span {
-    line-height: initial;
-  }
+.button {
+  padding: 2px 8px 4px 8px;
+  border-radius: 6px;
+  border-color: $font_task_color;
+  color: $font_color_tag;
+  font-family: $font-montserrat-regular;
+  font-size: 12px;
+  text-decoration: underline;
+  background-color: transparent;
 }
