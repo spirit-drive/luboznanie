@@ -1,0 +1,27 @@
+.root {
+  height: 22px;
+  border-radius: 6px;
+  border: 1px solid black;
+  padding-top: 2px;
+  padding-bottom: 3px;
+  padding-inline: 8px;
+  font-size: 12px;
+  line-height: 16px;
+
+  &.withIcon {
+    padding-right: 0;
+    display: inline-flex;
+    align-items: center;
+    height: 22px;
+    background-color: #cc1c14;
+    color: #fff;
+  }
+}
+
+.icon {
+  margin-right: 4px;
+  padding-left: 5px;
+  width: 1.2em;
+  aspect-ratio: 1/1;
+  cursor: pointer;
+}
