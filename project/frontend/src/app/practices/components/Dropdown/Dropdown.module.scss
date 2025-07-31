@@ -1,0 +1,13 @@
+@use '../../../../styles/fonts' as *;
+@use '../../../../styles/variables' as *;
+
+.button {
+  padding: 2px 8px 4px 8px;
+  border-radius: 6px;
+  border-color: $font_task_color;
+  color: $font_color_tag;
+  font-family: $font-montserrat-regular;
+  font-size: 12px;
+  text-decoration: underline;
+  background-color: transparent;
+}
