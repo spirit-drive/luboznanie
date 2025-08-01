@@ -10,9 +10,9 @@ export const MapView = ({
   width,
   height,
   background = { image: image.src },
-  items,
+  points,
   onPointClick,
 }: MapViewProps) => {
-  const { containerRef } = useMapView({ onPointClick, items, width, height, background });
+  const { containerRef } = useMapView({ onPointClick, points: points, width, height, background });
   return <div ref={containerRef} className={clsx(s.root, className)} />;
 };

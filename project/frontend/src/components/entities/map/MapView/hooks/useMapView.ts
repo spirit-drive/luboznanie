@@ -6,14 +6,11 @@ import { MapViewProps } from '../MapView.types';
 import { setupBackground } from '@/components/entities/map/MapView/helpers/background';
 import { createMapController } from '@/components/entities/map/MapView/helpers/mapController';
 import { createPointsManager } from '@/components/entities/map/MapView/helpers/pointsManager';
-import pointSprite from '../assets/point.sprite.svg';
-import pointPropsSprite from '../assets/point.props.sprite.svg';
-import { LoadedSvg } from '@/types/entities/map/map.types';
 import { loadingAssets } from '@/components/entities/map/MapView/helpers/loadingAssets';
 
-type UseMapViewOptions = Pick<MapViewProps, 'background' | 'width' | 'height' | 'items' | 'onPointClick'>;
+type UseMapViewOptions = Pick<MapViewProps, 'background' | 'width' | 'height' | 'points' | 'onPointClick'>;
 
-export const useMapView = ({ background, width, height, items, onPointClick }: UseMapViewOptions) => {
+export const useMapView = ({ background, width, height, points, onPointClick }: UseMapViewOptions) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const appRef = useRef<PIXI.Application | null>(null);
   // Реф для хранения экземпляра менеджера точек
@@ -59,7 +56,7 @@ export const useMapView = ({ background, width, height, items, onPointClick }: U
 
       // Создаем и сохраняем экземпляр менеджера точек
       pointsManagerRef.current = createPointsManager(world, { onPointClick, pointTypeIcon, pointPropsIcon });
-      pointsManagerRef.current.update(items);
+      pointsManagerRef.current.update(points);
 
       const onBlur = () => {
         app.ticker.stop();
@@ -103,12 +100,12 @@ export const useMapView = ({ background, width, height, items, onPointClick }: U
   }, [background?.image, width, height, onPointClick]);
 
   // --- useEffect для обновления точек ---
-  // Этот хук будет срабатывать ТОЛЬКО при изменении массива `items`.
+  // Этот хук будет срабатывать ТОЛЬКО при изменении массива `points`.
   useEffect(() => {
-    if (pointsManagerRef.current && items) {
-      pointsManagerRef.current.update(items);
+    if (pointsManagerRef.current && points) {
+      pointsManagerRef.current.update(points);
     }
-  }, [items]); // Зависимость - массив `items`
+  }, [points]); // Зависимость - массив `points`
 
   return { containerRef };
 };

@@ -1,11 +1,12 @@
 import { Point, PointID, Connection } from '@/types/entities/point/point.types';
-import { LoadedSvg, MapBackground } from '@/types/entities/map/map.types';
+import { BackgroundItem, LoadedSvg, MapBackground } from '@/types/entities/map/map.types';
 import * as PIXI from 'pixi.js';
 import { ContainerChild } from 'pixi.js/lib/scene/container/Container';
 
 export type MapViewProps = {
   className?: string;
-  items: Point[];
+  points: Point[];
+  backgroundItems?: BackgroundItem[];
   background?: MapBackground;
   width: number;
   height: number;
