@@ -127,7 +127,7 @@ export const backgroundItems: BackgroundItem[] = [
     type: 'map-set-1/1',
     x: 250,
     y: 200,
-    hidden: true,
+    hidden: false,
     sound: true,
   },
   // Элемент с одной зависимостью
@@ -209,7 +209,7 @@ export const backgroundItems: BackgroundItem[] = [
   // Элемент с зависимостью, которую можно отменить
   {
     id: 'item5',
-    type: 'image/5',
+    type: 'map-set-1/5',
     x: 600,
     y: 500,
     deps: [

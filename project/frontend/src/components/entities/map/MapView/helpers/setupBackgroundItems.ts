@@ -19,19 +19,33 @@ export const setupBackgroundItems = (
   backgroundItems.forEach((item) => {
     // Получаем загруженный ассет по алиасу (item.type.split('/')[0])
     // Предполагается, что алиас - это часть строки до '/'
-    const alias = item.type.split('/')[0];
+    const [alias, index] = item.type.split('/');
     const asset = backgroundAssets[alias];
 
-    if (asset instanceof PIXI.Texture) {
-      const sprite = new PIXI.Sprite(asset);
+    try {
+      if (Number.isNaN(parseInt(index))) {
+        throw `Некорректный индекс изображения в спрайте ${item.type} в пункте с id ${item.id}`;
+      }
+      if (!(asset instanceof PIXI.Texture)) throw `Asset for item with id ${item.id} is not a valid Texture.`;
+
+      const size = asset.frame.height;
+      // Определяем область обрезки для нужной иконки
+      const frame = new PIXI.Rectangle(size * parseInt(index), 0, size, size);
+
+      // Создаем новую текстуру с обрезанной областью
+      const croppedTexture = new PIXI.Texture({ source: asset.source, frame });
+
+      const sprite = new PIXI.Sprite(croppedTexture);
       sprite.x = item.x;
       sprite.y = item.y;
-      sprite.name = item.id; // Устанавливаем id элемента как имя спрайта для удобного поиска
+      sprite.height = sprite.height / 2;
+      sprite.width = sprite.width / 2;
+      sprite.label = item.id; // Устанавливаем id элемента как имя спрайта для удобного поиска
       sprite.visible = !item.hidden; // Устанавливаем видимость
       container.addChild(sprite);
       itemsMap.set(item.id, sprite);
-    } else {
-      console.warn(`Asset for item with id ${item.id} is not a valid Texture.`);
+    } catch (e) {
+      console.warn(e);
     }
   });
 
