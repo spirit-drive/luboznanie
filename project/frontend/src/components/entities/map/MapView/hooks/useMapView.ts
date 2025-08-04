@@ -7,10 +7,14 @@ import { setupBackground } from '@/components/entities/map/MapView/helpers/backg
 import { createMapController } from '@/components/entities/map/MapView/helpers/mapController';
 import { createPointsManager } from '@/components/entities/map/MapView/helpers/pointsManager';
 import { loadingAssets } from '@/components/entities/map/MapView/helpers/loadingAssets';
+import { setupBackgroundItems } from '@/components/entities/map/MapView/helpers/setupBackgroundItems';
 
-type UseMapViewOptions = Pick<MapViewProps, 'background' | 'width' | 'height' | 'points' | 'onPointClick'>;
+type UseMapViewOptions = Pick<
+  MapViewProps,
+  'background' | 'width' | 'height' | 'points' | 'onPointClick' | 'backgroundItems'
+>;
 
-export const useMapView = ({ background, width, height, points, onPointClick }: UseMapViewOptions) => {
+export const useMapView = ({ background, width, height, points, onPointClick, backgroundItems }: UseMapViewOptions) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const appRef = useRef<PIXI.Application | null>(null);
   // Реф для хранения экземпляра менеджера точек
@@ -42,7 +46,7 @@ export const useMapView = ({ background, width, height, points, onPointClick }: 
       world.height = height;
       app.stage.addChild(world);
 
-      const { pointTypeIcon, pointPropsIcon } = await loadingAssets();
+      const { pointTypeIcon, pointPropsIcon, backgroundAssets } = await loadingAssets({ backgroundItems });
 
       // Начальное центрирование мира на экране
       world.x = app.screen.width / 2 - width / 2;
@@ -53,6 +57,14 @@ export const useMapView = ({ background, width, height, points, onPointClick }: 
 
       // 4. Делегирование создания контроллеров управления
       const mapController = createMapController(app, world);
+
+      const backgroundContainer = new PIXI.Container();
+
+      if (backgroundItems) {
+        setupBackgroundItems(backgroundContainer, backgroundItems, backgroundAssets);
+      }
+
+      world.addChild(backgroundContainer);
 
       // Создаем и сохраняем экземпляр менеджера точек
       pointsManagerRef.current = createPointsManager(world, { onPointClick, pointTypeIcon, pointPropsIcon });

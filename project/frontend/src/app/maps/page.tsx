@@ -113,7 +113,130 @@ export const items: Point[] = [
   },
 ];
 
-const backgroundItems: BackgroundItem[] = [];
+export const backgroundItems: BackgroundItem[] = [
+  // Простой элемент, без зависимостей
+  {
+    id: 'item1',
+    type: 'map-set-1/0',
+    x: 100,
+    y: 150,
+  },
+  // Элемент, который изначально скрыт и имеет звук
+  {
+    id: 'item2',
+    type: 'map-set-1/1',
+    x: 250,
+    y: 200,
+    hidden: true,
+    sound: true,
+  },
+  // Элемент с одной зависимостью
+  {
+    id: 'item3',
+    type: 'map-set-1/2',
+    x: 400,
+    y: 300,
+    deps: [
+      {
+        id: 'dep1',
+        conditions: [
+          {
+            _id: 'cond1',
+            points: {
+              ids: ['point1'],
+              success: true,
+            },
+            gamer: {
+              experience: 50,
+            },
+          },
+        ],
+        newValue: {
+          x: 450,
+          y: 350,
+          hidden: false, // Элемент станет видимым
+          sound: true,
+        },
+      },
+    ],
+  },
+  // Элемент с несколькими зависимостями (условие ИЛИ)
+  {
+    id: 'item4',
+    type: 'map-set-1/3',
+    x: 500,
+    y: 400,
+    deps: [
+      // Условие 1: Срабатывает, если у "point2" `hidden: true` и у игрока 100+ монет
+      {
+        id: 'dep2',
+        conditions: [
+          {
+            _id: 'cond2-1',
+            points: {
+              ids: ['point2'],
+              hidden: true,
+            },
+            gamer: {
+              coins: 100,
+            },
+          },
+        ],
+        newValue: {
+          x: 520,
+          y: 420,
+          type: 'image/4',
+        },
+      },
+      // Условие 2: Срабатывает, если у "point3" `progress: 100`
+      {
+        id: 'dep3',
+        conditions: [
+          {
+            _id: 'cond2-2',
+            points: {
+              ids: ['point3'],
+              progress: 100,
+            },
+          },
+        ],
+        newValue: {
+          hidden: true, // Элемент скроется
+        },
+      },
+    ],
+  },
+  // Элемент с зависимостью, которую можно отменить
+  {
+    id: 'item5',
+    type: 'image/5',
+    x: 600,
+    y: 500,
+    deps: [
+      {
+        id: 'dep4',
+        conditions: [
+          {
+            _id: 'cond3',
+            points: {
+              ids: ['point4'],
+              locked: true,
+            },
+            gamer: {
+              awardIds: ['award_level1'],
+            },
+            cancelable: true, // Изменения отменятся, если условия перестанут выполняться
+          },
+        ],
+        newValue: {
+          x: 650,
+          y: 550,
+          type: 'image/6',
+        },
+      },
+    ],
+  },
+];
 
 export default function Page() {
   return (

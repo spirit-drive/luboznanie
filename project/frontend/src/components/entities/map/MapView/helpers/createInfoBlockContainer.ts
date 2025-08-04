@@ -1,7 +1,7 @@
 import * as PIXI from 'pixi.js';
 import { Point } from '@/types/entities/point/point.types';
 import { PointsManagerOptions } from '@/components/entities/map/MapView/MapView.types';
-import { LoadedSvg } from '@/types/entities/map/map.types';
+import { LoadedAsset } from '@/types/entities/map/map.types';
 
 const PROGRESS_TEXT_FONT_SIZE = 12;
 const ICON_SIZE = 22;
@@ -15,7 +15,7 @@ enum IconPropsType {
   locked,
 }
 
-export const createGenIcon = (raw: LoadedSvg) => (type: IconPropsType, x: number) => {
+export const createGenIcon = (raw: LoadedAsset) => (type: IconPropsType, x: number) => {
   const frame = new PIXI.Rectangle(raw.frame.height * type, 0, raw.frame.height, raw.frame.height);
 
   // Создаем новую текстуру с обрезанной областью
