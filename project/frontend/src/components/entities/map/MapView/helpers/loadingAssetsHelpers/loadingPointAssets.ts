@@ -1,6 +1,6 @@
 import * as PIXI from 'pixi.js';
-import pointSprite from '@/components/entities/map/MapView/assets/point.sprite.svg';
-import pointPropsSprite from '@/components/entities/map/MapView/assets/point.props.sprite.svg';
+import pointSprite from '@/components/entities/map/MapView/assets/point/point.sprite.svg';
+import pointPropsSprite from '@/components/entities/map/MapView/assets/point/point.props.sprite.svg';
 import { LoadedSvg } from '@/types/entities/map/map.types';
 
 export const loadingPointAssets = async () => {
