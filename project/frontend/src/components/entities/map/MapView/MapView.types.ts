@@ -25,3 +25,8 @@ export type PointsManagerOptions = {
   pointPropsIcon: LoadedAsset;
   onPointClick?: (point: Point) => void;
 };
+
+export type UseMapViewOptions = Pick<
+  MapViewProps,
+  'background' | 'width' | 'height' | 'points' | 'onPointClick' | 'backgroundItems'
+>;
