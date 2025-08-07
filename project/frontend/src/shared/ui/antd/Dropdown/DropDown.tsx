@@ -1,3 +1,4 @@
+'use client';
 import clsx from 'clsx';
 import s from './DropDown.module.scss';
 import { Dropdown as AntDropdown } from 'antd';
