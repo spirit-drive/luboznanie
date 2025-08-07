@@ -1,3 +1,5 @@
+import { Sprite } from 'pixi.js';
+
 export type MapBackground = {
   image?: string;
 };
@@ -46,3 +48,5 @@ export type BackgroundItem = BackgroundItemBase & {
   type: string;
   deps?: BackgroundItemDep[];
 };
+
+export type MapBackgroundItem = { sprite: Sprite; backgroundItem: BackgroundItem };

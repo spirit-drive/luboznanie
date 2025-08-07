@@ -117,14 +117,14 @@ export const backgroundItems: BackgroundItem[] = [
   // Простой элемент, без зависимостей
   {
     id: 'item1',
-    type: 'map-set-1/0',
+    type: 'map-set-3/0',
     x: 100,
     y: 150,
   },
   // Элемент, который изначально скрыт и имеет звук
   {
     id: 'item2',
-    type: 'map-set-1/1',
+    type: 'map-set-2/0',
     x: 250,
     y: 200,
     hidden: false,

@@ -1,7 +1,7 @@
 // src/components/entities/map/MapView/helpers/setupBackgroundItems.ts
 
 import * as PIXI from 'pixi.js';
-import { BackgroundItem, LoadedAsset } from '@/types/entities/map/map.types';
+import { BackgroundItem, LoadedAsset, MapBackgroundItem } from '@/types/entities/map/map.types';
 
 /**
  * Создает и добавляет спрайты фоновых элементов на карту.
@@ -14,7 +14,7 @@ export const setupBackgroundItems = (
   backgroundItems: BackgroundItem[],
   backgroundAssets: Record<string, LoadedAsset>,
 ) => {
-  const itemsMap = new Map<string, PIXI.Sprite>();
+  const itemsMap = new Map<string, MapBackgroundItem>();
 
   backgroundItems.forEach((item) => {
     // Получаем загруженный ассет по алиасу (item.type.split('/')[0])
@@ -43,7 +43,7 @@ export const setupBackgroundItems = (
       sprite.label = item.id; // Устанавливаем id элемента как имя спрайта для удобного поиска
       sprite.visible = !item.hidden; // Устанавливаем видимость
       container.addChild(sprite);
-      itemsMap.set(item.id, sprite);
+      itemsMap.set(item.id, { sprite, backgroundItem: item });
     } catch (e) {
       console.warn(e);
     }

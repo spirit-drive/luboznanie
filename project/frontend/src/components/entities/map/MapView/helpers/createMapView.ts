@@ -6,6 +6,7 @@ import { setupBackgroundItems } from '@/components/entities/map/MapView/helpers/
 import { createPointsManager } from '@/components/entities/map/MapView/helpers/pointsManager';
 import { RefObject } from 'react';
 import { UseMapViewOptions } from '@/components/entities/map/MapView/MapView.types';
+import { MapBackgroundItem } from '@/types/entities/map/map.types';
 
 export const createMapView = async ({
   container,
@@ -17,10 +18,12 @@ export const createMapView = async ({
   onPointClick,
   points,
   pointsManagerRef,
+  onChangeWorld,
 }: {
   container: HTMLDivElement;
   appRef: RefObject<PIXI.Application>;
   pointsManagerRef: RefObject<ReturnType<typeof createPointsManager> | null>;
+  onChangeWorld?: (params: { visibleBackgorundItems: MapBackgroundItem[] }) => void;
 } & UseMapViewOptions) => {
   // 1. Инициализация PIXI.Application
   const app = new PIXI.Application();
@@ -49,14 +52,29 @@ export const createMapView = async ({
   // 3. Делегирование создания фона
   await setupBackground(world, { image: background!.image!, width, height });
 
-  // 4. Делегирование создания контроллеров управления
-  const mapController = createMapController(app, world);
-
   const backgroundContainer = new PIXI.Container();
 
+  let itemsMap: Map<string, MapBackgroundItem>;
   if (backgroundItems) {
-    setupBackgroundItems(backgroundContainer, backgroundItems, backgroundAssets);
+    itemsMap = setupBackgroundItems(backgroundContainer, backgroundItems, backgroundAssets).itemsMap;
   }
+
+  // 4. Делегирование создания контроллеров управления
+  const mapController = createMapController(app, world, {
+    onChangeWorld: () => {
+      const visibleBackgorundItems: Array<MapBackgroundItem> = [];
+      itemsMap.entries().forEach(([_, item]) => {
+        const { sprite } = item;
+        const bounds = sprite.getBounds();
+        if (app.screen.contains(bounds.minX, bounds.minY)) return visibleBackgorundItems.push(item);
+        if (app.screen.contains(bounds.minX, bounds.maxY)) return visibleBackgorundItems.push(item);
+        if (app.screen.contains(bounds.maxX, bounds.minY)) return visibleBackgorundItems.push(item);
+        if (app.screen.contains(bounds.maxX, bounds.maxY)) return visibleBackgorundItems.push(item);
+      });
+
+      onChangeWorld?.({ visibleBackgorundItems });
+    },
+  });
 
   world.addChild(backgroundContainer);
 

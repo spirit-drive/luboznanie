@@ -7,6 +7,7 @@ import { createPointsManager } from '../helpers/pointsManager';
 import { createMapView } from '../helpers/createMapView';
 import { Howl, Howler } from 'howler';
 import { BACKGROUND_MUSIC_PLAYLIST } from '../constants/sounds';
+import { backgroundItemsMap } from '@/components/entities/map/MapView/constants/backgroundItemsMap';
 
 export const useMapView = ({ background, width, height, points, onPointClick, backgroundItems }: UseMapViewOptions) => {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -14,6 +15,7 @@ export const useMapView = ({ background, width, height, points, onPointClick, ba
   const pointsManagerRef = useRef<ReturnType<typeof createPointsManager> | null>(null);
   const currentTrackIndexRef = useRef(0);
   const backgroundMusicRef = useRef<Howl | null>(null);
+  const backgroundItemMusicRef = useRef<Howl | null>(null);
 
   // Функция для воспроизведения следующей мелодии в плейлисте
   const playNextTrack = () => {
@@ -29,6 +31,7 @@ export const useMapView = ({ background, width, height, points, onPointClick, ba
       html5: true, // Рекомендуется для длинных файлов
       autoplay: false,
       loop: false,
+      volume: 0.7,
       onend: () => {
         // Когда трек закончится, переключаемся на следующий
         currentTrackIndexRef.current = (currentTrackIndexRef.current + 1) % BACKGROUND_MUSIC_PLAYLIST.length;
@@ -59,6 +62,8 @@ export const useMapView = ({ background, width, height, points, onPointClick, ba
       };
       document.addEventListener('click', handleUserInteraction);
 
+      let onChangeWorldTimeout;
+
       const cleanup = await createMapView({
         container,
         backgroundItems,
@@ -69,6 +74,31 @@ export const useMapView = ({ background, width, height, points, onPointClick, ba
         width,
         appRef: appRef as RefObject<PIXI.Application>,
         pointsManagerRef,
+        onChangeWorld: ({ visibleBackgorundItems }) => {
+          clearTimeout(onChangeWorldTimeout);
+          onChangeWorldTimeout = setTimeout(() => {
+            const counts: Record<string, number> = {};
+            visibleBackgorundItems.forEach((item) => {
+              const [alias] = item.backgroundItem.type.split('/');
+              const sound = backgroundItemsMap[alias]?.audio;
+              counts[sound] = counts[sound] ? counts[sound] + 1 : 1;
+            });
+
+            const max = Math.max(...Object.values(counts));
+
+            const src = Object.entries(counts).find((i) => i[1] === max)?.[0];
+
+            if (!src) return;
+
+            backgroundItemMusicRef.current?.unload();
+            backgroundItemMusicRef.current = new Howl({
+              src: [src],
+              html5: true,
+              autoplay: true,
+              loop: true,
+            });
+          }, 700);
+        },
       });
 
       return () => {
@@ -86,9 +116,8 @@ export const useMapView = ({ background, width, height, points, onPointClick, ba
       cleanup?.();
 
       // Останавливаем музыку, если она играет
-      if (backgroundMusicRef.current) {
-        backgroundMusicRef.current?.unload();
-      }
+      backgroundMusicRef.current?.unload();
+      backgroundItemMusicRef.current?.unload();
     };
   }, [background?.image, width, height, onPointClick]);
 

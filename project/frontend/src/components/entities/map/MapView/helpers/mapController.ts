@@ -7,7 +7,11 @@ import * as PIXI from 'pixi.js';
  * @param world - Основной контейнер, который будет перемещаться и масштабироваться.
  * @returns {object} - Объект с методом `destroy` для очистки всех подписчиков.
  */
-export const createMapController = (app: PIXI.Application, world: PIXI.Container) => {
+export const createMapController = (
+  app: PIXI.Application,
+  world: PIXI.Container,
+  { onChangeWorld }: { onChangeWorld?: () => void },
+) => {
   // --- Состояния контроллера ---
   let isDragging = false;
   let isPinching = false;
@@ -56,6 +60,9 @@ export const createMapController = (app: PIXI.Application, world: PIXI.Container
       world.y = maxY;
       velocity.y = 0;
     }
+
+    // console.log(world.getBounds(), world.getSize());
+    onChangeWorld?.();
   };
 
   /**
