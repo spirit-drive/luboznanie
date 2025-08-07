@@ -1,7 +1,7 @@
 import clsx from 'clsx';
 import s from './DropDown.module.scss';
 import { Dropdown as AntDropdown } from 'antd';
-import { DropDownProps } from './types';
+import { DropDownProps } from './DropDown.types';
 
 export const DropDown = ({ items, className, placement = 'bottomLeft', onClick, children }: DropDownProps) => {
   return (
