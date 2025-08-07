@@ -13,6 +13,7 @@
   "dependencies": {
     "clsx": "^2.1.1",
     "gsap": "^3.13.0",
+    "howler": "^2.2.4",
     "next": "15.3.5",
     "pixi.js": "^8.11.0",
     "react": "^19.0.0",
@@ -25,6 +26,7 @@
     "@storybook/addon-docs": "^9.0.16",
     "@storybook/addon-vitest": "^9.0.16",
     "@storybook/nextjs-vite": "^9.0.16",
+    "@types/howler": "^2.2.12",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
