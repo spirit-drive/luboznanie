@@ -5,4 +5,5 @@ export type EditableTextProps = {
   className?: string;
   value: string;
   onInput: (e: React.FormEvent<HTMLElement>) => void;
+  sanitizeFn: (text: string) => string;
 };

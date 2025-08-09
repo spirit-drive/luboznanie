@@ -2,10 +2,23 @@
 import clsx from 'clsx';
 import s from './EditableText.module.scss';
 import type { EditableTextProps } from './EditableText.types';
-import { useEditableText } from './useEditableText';
+import { useEffect, useRef } from 'react';
+import { handleInputEditableTextProps } from './handleInputEditableText.types';
 
-export const EditableText = ({ as: Component = 'div', className = '', value, onInput }: EditableTextProps) => {
-  const rootRef = useEditableText(value);
+export const EditableText = ({ as: Component = 'div', className = '', value, sanitizeFn }: EditableTextProps) => {
+  const rootRef = useRef<HTMLElement>(null);
+
+  const handleInput = ({ e, onChange }: handleInputEditableTextProps): void => {
+    const target = e.target as HTMLElement;
+    const clean = sanitizeFn(target.innerText);
+    onChange(clean);
+  };
+
+  useEffect(() => {
+    if (rootRef.current && value !== rootRef.current.innerText) {
+      rootRef.current.innerText = value;
+    }
+  }, [value]);
 
   return (
     <Component
@@ -13,7 +26,7 @@ export const EditableText = ({ as: Component = 'div', className = '', value, onI
       ref={rootRef}
       contentEditable
       suppressContentEditableWarning
-      onInput={onInput}
+      onInput={handleInput}
     />
   );
 };
