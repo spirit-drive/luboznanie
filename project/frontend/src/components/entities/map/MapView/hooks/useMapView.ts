@@ -31,7 +31,7 @@ export const useMapView = ({ background, width, height, points, onPointClick, ba
       html5: true, // Рекомендуется для длинных файлов
       autoplay: false,
       loop: false,
-      volume: 0.0,
+      volume: 0.1,
       onend: () => {
         // Когда трек закончится, переключаемся на следующий
         currentTrackIndexRef.current = (currentTrackIndexRef.current + 1) % BACKGROUND_MUSIC_PLAYLIST.length;
