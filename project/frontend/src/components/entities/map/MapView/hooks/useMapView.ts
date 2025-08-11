@@ -42,7 +42,7 @@ export const useMapView = ({ background, width, height, points, onPointClick, ba
     backgroundMusicRef.current?.play();
   };
 
-  // Метод для управления громкостью фоновой музыки
+  // Метод для управления громкостью всей музыки
   const setVolume = (volume: number) => {
     Howler.volume(volume);
   };
@@ -62,7 +62,7 @@ export const useMapView = ({ background, width, height, points, onPointClick, ba
       };
       document.addEventListener('click', handleUserInteraction);
 
-      let onChangeWorldTimeout;
+      let onChangeWorldTimeout: NodeJS.Timeout | undefined;
 
       const cleanup = await createMapView({
         container,
@@ -98,25 +98,22 @@ export const useMapView = ({ background, width, height, points, onPointClick, ba
 
             // Если есть текущая музыка, плавно уменьшаем громкость и выгружаем её
             if (currentMusic) {
-              // Длительность fade-а в миллисекундах (например, 1000ms = 1 секунда)
               const fadeDuration = 1000;
-
               currentMusic.fade(currentMusic.volume(), 0, fadeDuration);
-
-              // Выгружаем музыку после завершения fade-а
               currentMusic.once('fade', () => {
                 currentMusic.unload();
               });
             }
 
             backgroundItemMusicRef.current = new Howl({
-              src,
+              src: [src], // src должен быть массивом
               html5: true,
               autoplay: true,
               loop: true,
+              volume: 0.0, // Начинаем с 0
             });
 
-            backgroundItemMusicRef.current?.play();
+            backgroundItemMusicRef.current?.fade(0, 1, 1000);
           }, 700);
         },
       });
@@ -142,12 +139,11 @@ export const useMapView = ({ background, width, height, points, onPointClick, ba
   }, [background?.image, width, height, onPointClick]);
 
   // --- useEffect для обновления точек ---
-  // Этот хук будет срабатывать ТОЛЬКО при изменении массива `points`.
   useEffect(() => {
     if (pointsManagerRef.current && points) {
       pointsManagerRef.current?.update(points);
     }
-  }, [points]); // Зависимость - массив `points`
+  }, [points]);
 
   return { containerRef, setVolume };
 };
