@@ -31,7 +31,7 @@ export const useMapView = ({ background, width, height, points, onPointClick, ba
       html5: true, // Рекомендуется для длинных файлов
       autoplay: false,
       loop: false,
-      volume: 0.7,
+      volume: 0.0,
       onend: () => {
         // Когда трек закончится, переключаемся на следующий
         currentTrackIndexRef.current = (currentTrackIndexRef.current + 1) % BACKGROUND_MUSIC_PLAYLIST.length;
@@ -90,13 +90,33 @@ export const useMapView = ({ background, width, height, points, onPointClick, ba
 
             if (!src) return;
 
-            backgroundItemMusicRef.current?.unload();
+            const currentMusic = backgroundItemMusicRef.current;
+            // Проверяем, изменился ли источник
+            const currentSrc = (backgroundItemMusicRef.current as { _src: string | string[] })?._src;
+
+            if (currentSrc === src || (currentSrc && Array.isArray(currentSrc) && currentSrc.includes(src))) return;
+
+            // Если есть текущая музыка, плавно уменьшаем громкость и выгружаем её
+            if (currentMusic) {
+              // Длительность fade-а в миллисекундах (например, 1000ms = 1 секунда)
+              const fadeDuration = 1000;
+
+              currentMusic.fade(currentMusic.volume(), 0, fadeDuration);
+
+              // Выгружаем музыку после завершения fade-а
+              currentMusic.once('fade', () => {
+                currentMusic.unload();
+              });
+            }
+
             backgroundItemMusicRef.current = new Howl({
-              src: [src],
+              src,
               html5: true,
               autoplay: true,
               loop: true,
             });
+
+            backgroundItemMusicRef.current?.play();
           }, 700);
         },
       });
