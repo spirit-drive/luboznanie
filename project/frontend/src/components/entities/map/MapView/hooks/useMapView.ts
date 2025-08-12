@@ -34,7 +34,7 @@ export const useMapView = ({ background, width, height, points, onPointClick, ba
       volume: 0.1,
       onend: () => {
         // Когда трек закончится, переключаемся на следующий
-        currentTrackIndexRef.current = (currentTrackIndexRef.current + 1) % BACKGROUND_MUSIC_PLAYLIST.length;
+        currentTrackIndexRef.current = Math.round(Math.random() * BACKGROUND_MUSIC_PLAYLIST.length - 1);
         playNextTrack();
       },
     });
