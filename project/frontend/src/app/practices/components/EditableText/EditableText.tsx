@@ -4,9 +4,14 @@ import s from './EditableText.module.scss';
 import type { EditableTextProps } from './EditableText.types';
 import { useEffect, useRef } from 'react';
 import { handleInputEditableTextProps } from './handleInputEditableText.types';
+import DOMPurify from 'dompurify';
 
-export const EditableText = ({ as: Component = 'div', className = '', value, sanitizeFn }: EditableTextProps) => {
+export const EditableText = ({ as: Component = 'div', className = '', value }: EditableTextProps) => {
   const rootRef = useRef<HTMLElement>(null);
+
+  const sanitizeFn = (dirty: string): string => {
+    return DOMPurify.sanitize(dirty);
+  };
 
   const handleInput = ({ e, onChange }: handleInputEditableTextProps): void => {
     const target = e.target as HTMLElement;
