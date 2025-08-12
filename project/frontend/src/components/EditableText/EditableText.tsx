@@ -4,7 +4,7 @@ import s from './EditableText.module.scss';
 import type { EditableTextProps } from './EditableText.types';
 import { useEffect, useRef } from 'react';
 import { handleInputEditableTextProps } from './handleInputEditableText.types';
-import { sanitizeFn } from '../../../utils/sanitizeFn';
+import { sanitizeFn } from '../../utils/sanitizeFn';
 
 
 export const EditableText = ({ as: Component = 'div', className = '', value }: EditableTextProps) => {
