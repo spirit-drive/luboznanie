@@ -5,8 +5,8 @@ import { createMapController } from '@/components/entities/map/MapView/helpers/m
 import { setupBackgroundItems } from '@/components/entities/map/MapView/helpers/setupBackgroundItems';
 import { createPointsManager } from '@/components/entities/map/MapView/helpers/pointsManager';
 import { RefObject } from 'react';
-import { Point, UseMapViewOptions } from '@/components/entities/map/MapView/MapView.types';
-import { MapBackgroundItem } from '@/types/entities/map/map.types';
+import { UseMapViewOptions } from '@/components/entities/map/MapView/MapView.types';
+import { MapBackgroundItem, MapVisibleBackgroundItem } from '@/types/entities/map/map.types';
 import { createFog } from '@/components/entities/map/MapView/helpers/createFog';
 
 export const createMapView = async ({
@@ -24,7 +24,7 @@ export const createMapView = async ({
   container: HTMLDivElement;
   appRef: RefObject<PIXI.Application>;
   pointsManagerRef: RefObject<ReturnType<typeof createPointsManager> | null>;
-  onChangeWorld?: (params: { visibleBackgorundItems: MapBackgroundItem[] }) => void;
+  onChangeWorld?: (params: { visibleBackgorundItems: MapVisibleBackgroundItem[] }) => void;
 } & UseMapViewOptions) => {
   // 1. Инициализация PIXI.Application
   const app = new PIXI.Application();
@@ -63,14 +63,29 @@ export const createMapView = async ({
   // 4. Делегирование создания контроллеров управления
   const mapController = createMapController(app, world, {
     onChangeWorld: () => {
-      const visibleBackgorundItems: Array<MapBackgroundItem> = [];
+      const visibleBackgorundItems: Array<MapVisibleBackgroundItem> = [];
+      const screenBounds = app.screen;
+
       itemsMap.entries().forEach(([_, item]) => {
         const { sprite } = item;
-        const bounds = sprite.getBounds();
-        if (app.screen.contains(bounds.minX, bounds.minY)) return visibleBackgorundItems.push(item);
-        if (app.screen.contains(bounds.minX, bounds.maxY)) return visibleBackgorundItems.push(item);
-        if (app.screen.contains(bounds.maxX, bounds.minY)) return visibleBackgorundItems.push(item);
-        if (app.screen.contains(bounds.maxX, bounds.maxY)) return visibleBackgorundItems.push(item);
+        const spriteBounds = sprite.getBounds();
+
+        // Находим пересечение между границами спрайта и экрана
+        const intersectionX = Math.max(
+          0,
+          Math.min(spriteBounds.right, screenBounds.right) - Math.max(spriteBounds.left, screenBounds.left),
+        );
+        const intersectionY = Math.max(
+          0,
+          Math.min(spriteBounds.bottom, screenBounds.bottom) - Math.max(spriteBounds.top, screenBounds.top),
+        );
+
+        const visibleSpace = intersectionX * intersectionY;
+
+        // Если площадь пересечения больше 0, значит, спрайт виден
+        if (visibleSpace > 0) {
+          visibleBackgorundItems.push({ ...item, visibleSpace });
+        }
       });
 
       onChangeWorld?.({ visibleBackgorundItems });

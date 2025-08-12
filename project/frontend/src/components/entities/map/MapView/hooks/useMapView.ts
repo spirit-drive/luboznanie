@@ -6,14 +6,14 @@ import { UseMapViewOptions } from '../MapView.types';
 import { createPointsManager } from '../helpers/pointsManager';
 import { createMapView } from '../helpers/createMapView';
 import { Howl, Howler } from 'howler';
-import { BACKGROUND_MUSIC_PLAYLIST } from '../constants/sounds';
+import { BACKGROUND_MUSIC_PLAYLIST, getRandomPlaylistIndex } from '../constants/sounds';
 import { backgroundItemsMap } from '@/components/entities/map/MapView/constants/backgroundItemsMap';
 
 export const useMapView = ({ background, width, height, points, onPointClick, backgroundItems }: UseMapViewOptions) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const appRef = useRef<PIXI.Application | null>(null);
   const pointsManagerRef = useRef<ReturnType<typeof createPointsManager> | null>(null);
-  const currentTrackIndexRef = useRef(Math.round(Math.random() * BACKGROUND_MUSIC_PLAYLIST.length - 1));
+  const currentTrackIndexRef = useRef(getRandomPlaylistIndex());
   const backgroundMusicRef = useRef<Howl | null>(null);
   const backgroundItemMusicRef = useRef<Howl | null>(null);
 
@@ -34,7 +34,7 @@ export const useMapView = ({ background, width, height, points, onPointClick, ba
       volume: 0.1,
       onend: () => {
         // Когда трек закончится, переключаемся на следующий
-        currentTrackIndexRef.current = Math.round(Math.random() * BACKGROUND_MUSIC_PLAYLIST.length - 1);
+        currentTrackIndexRef.current = getRandomPlaylistIndex();
         playNextTrack();
       },
     });
@@ -81,7 +81,7 @@ export const useMapView = ({ background, width, height, points, onPointClick, ba
             visibleBackgorundItems.forEach((item) => {
               const [alias] = item.backgroundItem.type.split('/');
               const sound = backgroundItemsMap[alias]?.audio;
-              counts[sound] = counts[sound] ? counts[sound] + 1 : 1;
+              counts[sound] = counts[sound] ? counts[sound] + item.visibleSpace : item.visibleSpace;
             });
 
             const max = Math.max(...Object.values(counts));

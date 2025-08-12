@@ -5,7 +5,7 @@ export const createFog = (world: PIXI.Container, { width, height }: { width: num
   // Создаем графический объект, который будет представлять сам туман.
   // Заполняем его полупрозрачным цветом.
   const fog = new PIXI.Graphics();
-  fog.rect(0, 0, width, height).fill(0xcccccc, 0.9);
+  fog.rect(0, 0, width, height).fill({ color: 0xcccccc, alpha: 0.9 });
   world.addChild(fog);
 
   // Создаем графический объект, который будет использоваться как маска

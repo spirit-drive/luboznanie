@@ -50,3 +50,4 @@ export type BackgroundItem = BackgroundItemBase & {
 };
 
 export type MapBackgroundItem = { sprite: Sprite; backgroundItem: BackgroundItem };
+export type MapVisibleBackgroundItem = MapBackgroundItem & { visibleSpace: number };
