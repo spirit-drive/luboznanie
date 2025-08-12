@@ -41,6 +41,7 @@ export const items: Point[] = [
     position: { x: 300, y: 400 },
     entity: { id: 'article-102', type: 'article' },
     locked: false, // Доступна
+    success: true, // Эта точка уже пройдена
     connections: [{ id: 'conn-3-4', pointId: 'point-4' }],
   },
   // 4. Точка слияния - карта

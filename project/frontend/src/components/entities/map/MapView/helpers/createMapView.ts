@@ -5,8 +5,9 @@ import { createMapController } from '@/components/entities/map/MapView/helpers/m
 import { setupBackgroundItems } from '@/components/entities/map/MapView/helpers/setupBackgroundItems';
 import { createPointsManager } from '@/components/entities/map/MapView/helpers/pointsManager';
 import { RefObject } from 'react';
-import { UseMapViewOptions } from '@/components/entities/map/MapView/MapView.types';
+import { Point, UseMapViewOptions } from '@/components/entities/map/MapView/MapView.types';
 import { MapBackgroundItem } from '@/types/entities/map/map.types';
+import { createFog } from '@/components/entities/map/MapView/helpers/createFog';
 
 export const createMapView = async ({
   container,
@@ -78,9 +79,13 @@ export const createMapView = async ({
 
   world.addChild(backgroundContainer);
 
+  const { updateFogMask } = createFog(world, { width, height });
+
   // Создаем и сохраняем экземпляр менеджера точек
   pointsManagerRef.current = createPointsManager(world, { onPointClick, pointTypeIcon, pointPropsIcon });
-  pointsManagerRef.current.update(points);
+  pointsManagerRef.current!.update(points);
+
+  updateFogMask(points);
 
   const onBlur = () => {
     app.ticker.stop();

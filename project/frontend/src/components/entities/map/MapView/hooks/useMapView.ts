@@ -13,7 +13,7 @@ export const useMapView = ({ background, width, height, points, onPointClick, ba
   const containerRef = useRef<HTMLDivElement>(null);
   const appRef = useRef<PIXI.Application | null>(null);
   const pointsManagerRef = useRef<ReturnType<typeof createPointsManager> | null>(null);
-  const currentTrackIndexRef = useRef(0);
+  const currentTrackIndexRef = useRef(Math.round(Math.random() * BACKGROUND_MUSIC_PLAYLIST.length - 1));
   const backgroundMusicRef = useRef<Howl | null>(null);
   const backgroundItemMusicRef = useRef<Howl | null>(null);
 
