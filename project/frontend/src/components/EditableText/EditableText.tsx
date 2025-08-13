@@ -6,13 +6,13 @@ import { useEffect, useRef } from 'react';
 import { sanitizeFn } from '../../utils/sanitizeFn';
 import type { FormEvent } from 'react';
 
-export const EditableText = ({ as: Component = 'div', className = '', value, onChange }: EditableTextProps) => {
+export const EditableText = ({ as: Component = 'div', className = '', value, onSetChange, ...props }: EditableTextProps) => {
   const rootRef = useRef<HTMLElement>(null);
 
   const handleInput = (e: FormEvent): void => {
     const target = e.target as HTMLElement;
     const clean = sanitizeFn(target.innerText);
-    onChange(clean);
+    onSetChange(clean);
   };
 
   useEffect(() => {
@@ -23,6 +23,7 @@ export const EditableText = ({ as: Component = 'div', className = '', value, onC
 
   return (
     <Component
+      {...props}
       className={clsx(s.root, className)}
       ref={rootRef}
       contentEditable

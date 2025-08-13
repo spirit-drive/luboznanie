@@ -1,8 +1,8 @@
-import type { ElementType, ReactNode } from 'react';
+import type { Dispatch, ElementType, HTMLAttributes, ReactNode, SetStateAction } from 'react';
 
-export type EditableTextProps = {
+export type EditableTextProps = HTMLAttributes<HTMLElement> & {
   as?: ElementType;
   className?: string;
   value: string;
-  onChange: (value: string) => void;
+  onSetChange: (value: string) => void;
 };

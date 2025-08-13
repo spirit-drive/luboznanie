@@ -6,7 +6,7 @@ export default function Home() {
   const [text, setText] = useState<string>('initial text');
   return (
     <div id="root">
-      <EditableText onChange={setText} value={text} />
+      <EditableText onSetChange={setText} value={text} />
     </div>
   );
 }
