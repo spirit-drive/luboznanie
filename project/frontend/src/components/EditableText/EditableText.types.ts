@@ -1,10 +1,8 @@
-import type { ElementType } from 'react';
+import type { ElementType, ReactNode } from 'react';
 
 export type EditableTextProps = {
   as?: ElementType;
   className?: string;
   value: string;
-  onInput: (e: React.FormEvent<HTMLElement>) => void;
-  sanitizeFn: (text: string) => string;
   onChange: (value: string) => void;
 };

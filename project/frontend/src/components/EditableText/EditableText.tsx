@@ -3,14 +3,13 @@ import clsx from 'clsx';
 import s from './EditableText.module.scss';
 import type { EditableTextProps } from './EditableText.types';
 import { useEffect, useRef } from 'react';
-import { handleInputEditableTextProps } from './handleInputEditableText.types';
 import { sanitizeFn } from '../../utils/sanitizeFn';
+import type { FormEvent } from 'react';
 
-
-export const EditableText = ({ as: Component = 'div', className = '', value }: EditableTextProps) => {
+export const EditableText = ({ as: Component = 'div', className = '', value, onChange }: EditableTextProps) => {
   const rootRef = useRef<HTMLElement>(null);
 
-  const handleInput = ({ e, onChange }: handleInputEditableTextProps): void => {
+  const handleInput = (e: FormEvent): void => {
     const target = e.target as HTMLElement;
     const clean = sanitizeFn(target.innerText);
     onChange(clean);
