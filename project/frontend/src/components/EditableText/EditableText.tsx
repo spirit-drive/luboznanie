@@ -10,7 +10,7 @@ export const EditableText = ({
   as: Component = 'div',
   className = '',
   value,
-  onSetChange,
+  onChange,
   ...props
 }: EditableTextProps) => {
   const rootRef = useRef<HTMLElement>(null);
@@ -18,7 +18,7 @@ export const EditableText = ({
   const handleInput = (e: FormEvent): void => {
     const target = e.target as HTMLElement;
     const clean = sanitizeFn(target.innerText);
-    onSetChange(clean);
+    onChange(clean);
   };
 
   useEffect(() => {
