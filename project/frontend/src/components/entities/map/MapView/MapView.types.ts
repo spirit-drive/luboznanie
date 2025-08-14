@@ -5,6 +5,10 @@ import { ContainerChild } from 'pixi.js/lib/scene/container/Container';
 import { RefObject } from 'react';
 import { createPointsManager } from '@/components/entities/map/MapView/helpers/pointsManager';
 
+export type MapEditableType = 'none' | 'points' | 'backgrounds';
+export type PointEditableState = 'default' | 'selected' | 'hover';
+export type MapPoint = Point & { state: PointEditableState };
+
 export type MapViewProps = {
   className?: string;
   points: Point[];
@@ -13,6 +17,9 @@ export type MapViewProps = {
   width: number;
   height: number;
   onPointClick: (pointId: PointID) => void;
+  editableType?: MapEditableType;
+  onSelectPoints?: (selectedPoints: Point[]) => void;
+  onChangePoints?: (points: Point[]) => void;
 };
 
 export type { Point, PointID, MapBackground, Connection };
@@ -30,7 +37,15 @@ export type PointsManagerOptions = {
 
 export type UseMapViewOptions = Pick<
   MapViewProps,
-  'background' | 'width' | 'height' | 'points' | 'onPointClick' | 'backgroundItems'
+  | 'background'
+  | 'width'
+  | 'height'
+  | 'points'
+  | 'onPointClick'
+  | 'backgroundItems'
+  | 'editableType'
+  | 'onSelectPoints'
+  | 'onChangePoints'
 >;
 
 export type CreateMapOptions = {
