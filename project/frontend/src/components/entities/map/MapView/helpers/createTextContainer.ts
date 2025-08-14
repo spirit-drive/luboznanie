@@ -21,6 +21,8 @@ export const createTextContainer = (point: Point, options: PointsManagerOptions)
     align: 'left', // Выравнивание по левому краю внутри текстового блока
     wordWrap: true, // Включаем перенос слов
     wordWrapWidth: 200, // Устанавливаем максимальную ширину в 200px
+    stroke: '#cccccc', // Белый цвет обводки
+    strokeThickness: 4, // Толщина обводки в 4px
   });
 
   const titleText = new PIXI.Text({ style: textStyle, text: point.name });
