@@ -6,13 +6,7 @@ import { useEffect, useRef } from 'react';
 import { sanitizeFn } from '../../utils/sanitizeFn';
 import type { FormEvent } from 'react';
 
-export const EditableText = ({
-  as: Component = 'div',
-  className = '',
-  value,
-  onChange,
-  ...props
-}: EditableTextProps) => {
+export const EditableText = ({ as: Component = 'div', className, value, onChange, ...props }: EditableTextProps) => {
   const rootRef = useRef<HTMLElement>(null);
 
   const handleInput = (e: FormEvent): void => {
