@@ -1,3 +1,1 @@
-export default function Home() {
-  return <div id="root"></div>;
-}
+export default function Home() {}
