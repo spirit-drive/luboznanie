@@ -1,53 +1,17 @@
-import type { InputRef, MenuProps } from "antd";
-import type { Dispatch, SetStateAction } from "react";
+import type { InputRef, MenuProps } from 'antd';
+import type { Dispatch, SetStateAction } from 'react';
 
-// export const handleMenuClick =
-//   (
-//     setSelectedTagsKeys: Dispatch<SetStateAction<string[]>>,
-//     setMenuOpened: Dispatch<SetStateAction<boolean>>,
-//     data: MenuProps["items"]
-//   ): MenuProps["onClick"] =>
-//   ({ key }: { key: string }) => {
-//     if (!key.startsWith("search")) {
-//       const selectedItem = data?.find((item) => item?.key === key);
-//       if (selectedItem && "nonDeletable" in selectedItem && selectedItem.nonDeletable) {
-//         return;
-//       }
-//       setSelectedTagsKeys((prev) => [...prev, key]);
-//       setMenuOpened(false);
-//     }
-//   };
-
-// export const handleMenuClick = (
-//   setSelectedTagsKeys: Dispatch<SetStateAction<string[]>>,
-//   setMenuOpened: Dispatch<SetStateAction<boolean>>,
-//   data: MenuProps["items"] // Добавляем параметр data
-// ): MenuProps["onClick"] => ({ key }: { key: string }) => {
-//   if (!key.startsWith("search")) {
-//     const selectedItem = data?.find(item => item?.key === key);
-    
-//     // Проверяем, является ли тег nonDeletable
-//     const isNonDeletable = selectedItem && "nonDeletable" in selectedItem 
-//       ? Boolean(selectedItem.nonDeletable)
-//       : false;
-
-//     if (!isNonDeletable) {
-//       setSelectedTagsKeys((prev) => [...prev, key]);
-//       setMenuOpened(false);
-//     }
-//   }
-// };
-
-export const handleMenuClick = (
-  setSelectedTagsKeys: Dispatch<SetStateAction<string[]>>,
-  setMenuOpened: Dispatch<SetStateAction<boolean>>
-): MenuProps["onClick"] => ({ key }: { key: string }) => {
-  if (!key.startsWith("search")) {
-    // Разрешаем выбирать ВСЕ теги, включая nonDeletable
-    setSelectedTagsKeys((prev) => [...prev, key]);
-    setMenuOpened(false);
-  }
-};
+export const handleMenuClick =
+  (
+    setSelectedTagsKeys: Dispatch<SetStateAction<string[]>>,
+    setMenuOpened: Dispatch<SetStateAction<boolean>>,
+  ): MenuProps['onClick'] =>
+  ({ key }: { key: string }) => {
+    if (!key.startsWith('search')) {
+      setSelectedTagsKeys((prev) => [...prev, key]);
+      setMenuOpened(false);
+    }
+  };
 
 export const handleTagRemove =
   (setSelectedTagsKeys: Dispatch<SetStateAction<string[]>>): ((keyToRemove: string) => void) =>
@@ -59,12 +23,12 @@ export const handleOpenChange =
   (
     setMenuOpened: Dispatch<SetStateAction<boolean>>,
     setSearchText: Dispatch<SetStateAction<string>>,
-    searchRef: React.RefObject<InputRef | null>
+    searchRef: React.RefObject<InputRef | null>,
   ): ((visible: boolean) => void) =>
   (visible: boolean) => {
     setMenuOpened(visible);
     if (!visible) {
-      setSearchText("");
+      setSearchText('');
     } else {
       setTimeout(() => {
         searchRef.current?.focus();
@@ -72,40 +36,19 @@ export const handleOpenChange =
     }
   };
 
-// export const getMenuProps = (
-//   menuItems: MenuProps["items"],
-//   setSelectedTagsKeys: Dispatch<SetStateAction<string[]>>,
-//   setMenuOpened: Dispatch<SetStateAction<boolean>>,
-//   data: MenuProps["items"]
-// ): MenuProps => ({
-//   items: menuItems,
-//   onClick: handleMenuClick(setSelectedTagsKeys, setMenuOpened, data),
-//   style: {
-//     maxHeight: 160,
-//     overflow: "auto",
-//     width: 100,
-//     padding: 4,
-//     fontSize: "14px",
-//   },
-//   onMouseDown: (e) => {
-//     if (e.target === e.currentTarget) {
-//       e.preventDefault();
-//     }
-//   },
-// });
 export const getMenuProps = (
-  menuItems: MenuProps["items"],
+  menuItems: MenuProps['items'],
   setSelectedTagsKeys: Dispatch<SetStateAction<string[]>>,
-  setMenuOpened: Dispatch<SetStateAction<boolean>>
+  setMenuOpened: Dispatch<SetStateAction<boolean>>,
 ): MenuProps => ({
   items: menuItems,
   onClick: handleMenuClick(setSelectedTagsKeys, setMenuOpened), // Без проверки nonDeletable
   style: {
     maxHeight: 160,
-    overflow: "auto",
+    overflow: 'auto',
     width: 100,
     padding: 4,
-    fontSize: "14px",
+    fontSize: '14px',
   },
   onMouseDown: (e) => {
     if (e.target === e.currentTarget) {

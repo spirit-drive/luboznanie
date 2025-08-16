@@ -13,7 +13,7 @@ export type TagWithIconProps = {
   classNameSvg?: string;
   onDelete?: (value: string) => void;
   onClick?: (event: MouseEvent) => void;
-} ;
+};
 
 export const TagWithIcon = ({
   text,

@@ -6,7 +6,7 @@ const meta: Meta<typeof TagOrigin> = {
   title: 'Components/TagOrigin',
   component: TagOrigin,
   tags: ['autodocs'],
-   parameters: {
+  parameters: {
     docs: {
       description: {
         component: `Компонент тэг самый базовый`,
