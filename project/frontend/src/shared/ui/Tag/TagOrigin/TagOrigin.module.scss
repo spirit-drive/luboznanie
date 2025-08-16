@@ -1,4 +1,7 @@
+@use '../../../../styles/variables.scss' as *; 
+
 .root {
+  font-family: $font-montserrat-regular;
   height: 24px;
   padding: 4px 8px;
   border: 1px solid #999999;
@@ -11,5 +14,5 @@
   font-size: 12px;
   line-height: 16px;
   white-space: nowrap;
-  color: #5f6369;
+  color: $font_color_tag;
 }

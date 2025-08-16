@@ -1,9 +1,11 @@
-.i {
+.root {
   font-size: 16px;
   color: #8a8a8a;
+  display: inline-flex;
+  align-items: center;
 }
 
-.i:hover {
+.root:hover {
   color: red;
 }
 

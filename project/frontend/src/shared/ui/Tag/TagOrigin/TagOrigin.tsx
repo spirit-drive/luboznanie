@@ -1,15 +1,16 @@
 'use client';
 import clsx from 'clsx';
-import type { ElementType, HTMLAttributes, ReactNode } from 'react';
+import type { ElementType, ReactNode, ComponentPropsWithoutRef } from 'react';
 import s from './TagOrigin.module.scss';
 
-export type TagOriginProps<T extends ElementType = 'span'> = {
+export type TagOriginProps<T extends ElementType> = {
   as?: T;
   className?: string;
   children?: ReactNode;
-} & HTMLAttributes<HTMLElement>;
+} & ComponentPropsWithoutRef<T>;
 
-export const TagOrigin = ({ as: Component = 'span', className, children, ...props }: TagOriginProps) => {
+export const TagOrigin = <T extends ElementType = 'span'>({ as, className, children, ...props }: TagOriginProps<T>) => {
+  const Component = as || 'span';
   return (
     <Component className={clsx(s.root, className)} {...props}>
       {children}

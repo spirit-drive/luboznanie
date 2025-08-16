@@ -2,17 +2,21 @@
 import clsx from 'clsx';
 import s from './TagText.module.scss';
 import { TagOrigin, TagOriginProps } from '../TagOrigin/TagOrigin';
+import { ComponentPropsWithoutRef, ElementType, ReactNode } from 'react';
 
-export type TagTextProps = {
+export type BaseTagTextProps = {
   text: string;
+  children?: ReactNode;
   ref?: React.Ref<HTMLElement>;
-} & TagOriginProps;
+};
 
-export const TagText = ({ text, className, children, ...props }: TagTextProps) => {
+export type TagTextProps<T extends ElementType = 'span'> = BaseTagTextProps & Omit<TagOriginProps<T>, 'children'>;
+
+export function TagText<T extends ElementType = 'span'>({ text, className, children, ...props }: TagTextProps<T>) {
   return (
-    <TagOrigin {...props} className={clsx(s.root, className)}>
+    <TagOrigin<T> {...(props as ComponentPropsWithoutRef<T>)} className={clsx(s.root, className)}>
       {text}
       {children}
     </TagOrigin>
   );
-};
+}
