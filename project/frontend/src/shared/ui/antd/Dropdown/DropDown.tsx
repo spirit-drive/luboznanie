@@ -1,12 +1,25 @@
-'use client';
-import clsx from 'clsx';
-import s from './DropDown.module.scss';
-import { Dropdown as AntDropdown } from 'antd';
-import { DropDownProps } from './DropDown.types';
+"use client";
+import clsx from "clsx";
+import s from "./DropDown.module.scss";
+import { Dropdown as AntDropdown } from "antd";
+import type { DropDownProps } from "./DropDown.types";
 
-export const DropDown = ({ items, className, placement = 'bottomLeft', onClick, children }: DropDownProps) => {
+export const DropDown = ({
+  className,
+  placement = "bottomLeft",
+  menuProps,
+  children,
+  trigger = ["click"],
+  ...props
+}: DropDownProps) => {
   return (
-    <AntDropdown className={clsx(s.root, className)} menu={{ items, onClick }} placement={placement}>
+    <AntDropdown
+      {...props}
+      className={clsx(s.root, className)}
+      menu={menuProps}
+      placement={placement}
+      trigger={trigger}
+    >
       {children}
     </AntDropdown>
   );
