@@ -4,12 +4,16 @@ import { gsap } from 'gsap';
 import { createTextContainer } from './createTextContainer';
 import { Point } from '@/types/entities/point/point.types';
 import { EntityType } from '@/types/shared';
+import { SELECT_COLOR } from '@/components/entities/map/MapView/constants/style';
 
 const SVG_ICON_SIZE = 60;
 
 const INNER_CIRCLE_RADIUS = 50; // Диаметр 100px
 const PROGRESS_BAR_RADIUS = 68; // Диаметр 136px
 const PROGRESS_BAR_THICKNESS = 8;
+
+const HOVER_CIRCLE_RADIUS = 54; // Радиус голубого круга при наведении
+const HOVER_CIRCLE_WIDTH = 4;
 
 const TEXT_BLOCK_OFFSET_X = INNER_CIRCLE_RADIUS + PROGRESS_BAR_THICKNESS / 2 + 34; // Расстояние от центра круга до начала текстового блока
 
@@ -97,23 +101,32 @@ export const createPointVisual = (point: Point, options: PointsManagerOptions): 
     options.onPointClick?.(point);
   });
 
+  // Голубой круг для выделения при наведении
+  const hoverCircle = new PIXI.Graphics();
+  hoverCircle.circle(0, 0, HOVER_CIRCLE_RADIUS);
+  hoverCircle.stroke({ color: SELECT_COLOR, width: HOVER_CIRCLE_WIDTH });
+  hoverCircle.visible = false; // Скрываем по умолчанию
+  pointContainer.addChildAt(hoverCircle, 0); // Размещаем под остальными элементами
+
   pointContainer.on('pointerover', () => {
     if (editableMode === 'none') {
       pointContainer.parent.addChild(pointContainer);
-      if (editableMode === 'none') {
-        gsap.to(pointContainer.scale, {
-          x: POINT_HOVER_SCALE,
-          y: POINT_HOVER_SCALE,
-          duration: 0.2,
-          ease: 'power2.out',
-        });
-      }
+      gsap.to(pointContainer.scale, {
+        x: POINT_HOVER_SCALE,
+        y: POINT_HOVER_SCALE,
+        duration: 0.2,
+        ease: 'power2.out',
+      });
+    } else {
+      hoverCircle.visible = true;
     }
   });
 
   pointContainer.on('pointerout', () => {
     if (editableMode === 'none') {
       gsap.to(pointContainer.scale, { x: 1.0, y: 1.0, duration: 0.2, ease: 'power2.out' });
+    } else {
+      hoverCircle.visible = false;
     }
   });
 

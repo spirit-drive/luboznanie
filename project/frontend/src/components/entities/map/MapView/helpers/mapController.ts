@@ -1,5 +1,6 @@
 import * as PIXI from 'pixi.js';
 import { MapEditableMode } from '@/components/entities/map/MapView/MapView.types';
+import { SELECT_COLOR } from '@/components/entities/map/MapView/constants/style';
 
 /**
  * Создает контроллер для управления картой (перемещение, масштабирование, инерция).
@@ -142,8 +143,8 @@ export const createMapController = (
 
       selectRect.clear();
       selectRect.rect(x, y, width, height);
-      selectRect.stroke({ width: 2, color: '#00BFFF' });
-      selectRect.fill({ alpha: 0.2, color: '#00BFFF' });
+      selectRect.stroke({ width: 2, color: SELECT_COLOR });
+      selectRect.fill({ alpha: 0.2, color: SELECT_COLOR });
 
       const worldPosition = world.getBounds();
       const minY = y - worldPosition.minY;
