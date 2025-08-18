@@ -15,7 +15,7 @@ export type MapViewProps = {
   background?: MapBackground;
   width: number;
   height: number;
-  onPointClick: (pointId: PointID) => void;
+  onPointClick: (point: Point) => void;
   editableMode?: MapEditableMode;
   onSelectPoints?: (selectedPoints: Point[]) => void;
   onChangePoints?: (points: Point[]) => void;
@@ -27,6 +27,7 @@ export type PointVisuals = {
   container: PIXI.Container<ContainerChild>;
   graphics: PIXI.Graphics;
   setEditableMode: (editableMode: MapEditableMode) => void;
+  setActive: (active: boolean) => void;
 };
 
 export type PointsManagerOptions = {
@@ -38,6 +39,7 @@ export type PointsManager = {
   setEditableMode: (editableMode: MapEditableMode) => void;
   destroy: () => void;
   updatePoints: (points: Point[]) => void;
+  resetPointsSelecting: () => void;
 };
 
 export type UseMapViewOptions = Pick<

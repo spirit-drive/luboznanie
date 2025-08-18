@@ -14,6 +14,8 @@ const DEFAULT_CONNECTION_COLOR = '#ccc';
  * @returns Объект с методами `update` и `destroy`.
  */
 export const createPointsManager = (world: PIXI.Container, options: PointsManagerOptions): PointsManager => {
+  let editableMode: MapEditableMode = 'points';
+
   // Контейнеры для раздельной отрисовки линий и точек
   const connectionsContainer = new PIXI.Container();
   const pointsContainer = new PIXI.Container();
@@ -22,6 +24,7 @@ export const createPointsManager = (world: PIXI.Container, options: PointsManage
   // Словарь для хранения созданных визуальных представлений точек.
   // Ключ - point.id, значение - PIXI-объект. Это нужно для быстрого доступа и обновления.
   const renderedPoints = new Map<PointID, PointVisuals>();
+  const selectedPoints = new Map<PointID, PointVisuals>();
 
   /**
    * Основная функция обновления. Сравнивает новые данные с отрисованными и применяет изменения.
@@ -56,7 +59,21 @@ export const createPointsManager = (world: PIXI.Container, options: PointsManage
       } else {
         // --- Логика создания ---
         // Точки еще нет, создаем ее.
-        const newVisual = createPointVisual(pointData, options);
+        const newVisual = createPointVisual(pointData, {
+          ...options,
+          onPointClick: (point) => {
+            options.onPointClick?.(point);
+            if (editableMode === 'points') {
+              if (selectedPoints.has(point.id)) {
+                selectedPoints.get(point.id)?.setActive(false);
+                selectedPoints.delete(point.id);
+              } else {
+                selectedPoints.set(point.id, newVisual);
+                newVisual.setActive(true);
+              }
+            }
+          },
+        });
         renderedPoints.set(pointData.id, newVisual);
         pointsContainer.addChild(newVisual.container);
       }
@@ -97,13 +114,25 @@ export const createPointsManager = (world: PIXI.Container, options: PointsManage
     connectionsContainer.destroy({ children: true });
     pointsContainer.destroy({ children: true });
     renderedPoints.clear();
+    selectedPoints.clear();
   };
 
   const setEditableMode = (mode: MapEditableMode) => {
     renderedPoints.forEach((item) => {
       item.setEditableMode(mode);
     });
+    editableMode = mode;
   };
 
-  return { updatePoints, destroy, setEditableMode };
+  return {
+    updatePoints,
+    destroy,
+    setEditableMode,
+    resetPointsSelecting: () => {
+      selectedPoints.forEach((item) => {
+        item.setActive(false);
+      });
+      selectedPoints.clear();
+    },
+  };
 };

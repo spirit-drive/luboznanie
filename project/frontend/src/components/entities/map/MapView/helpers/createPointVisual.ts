@@ -4,7 +4,7 @@ import { gsap } from 'gsap';
 import { createTextContainer } from './createTextContainer';
 import { Point } from '@/types/entities/point/point.types';
 import { EntityType } from '@/types/shared';
-import { SELECT_COLOR } from '@/components/entities/map/MapView/constants/style';
+import { ACTIVE_COLOR, SELECT_COLOR } from '@/components/entities/map/MapView/constants/style';
 
 const SVG_ICON_SIZE = 60;
 
@@ -14,6 +14,9 @@ const PROGRESS_BAR_THICKNESS = 8;
 
 const HOVER_CIRCLE_RADIUS = 54; // Радиус голубого круга при наведении
 const HOVER_CIRCLE_WIDTH = 4;
+
+const ACTIVE_CIRCLE_RADIUS = 60; // Радиус голубого круга при наведении
+const ACTIVE_CIRCLE_WIDTH = 6;
 
 const TEXT_BLOCK_OFFSET_X = INNER_CIRCLE_RADIUS + PROGRESS_BAR_THICKNESS / 2 + 34; // Расстояние от центра круга до начала текстового блока
 
@@ -108,6 +111,12 @@ export const createPointVisual = (point: Point, options: PointsManagerOptions): 
   hoverCircle.visible = false; // Скрываем по умолчанию
   pointContainer.addChildAt(hoverCircle, 0); // Размещаем под остальными элементами
 
+  const activeCircle = new PIXI.Graphics();
+  activeCircle.circle(0, 0, ACTIVE_CIRCLE_RADIUS);
+  activeCircle.stroke({ color: ACTIVE_COLOR, width: ACTIVE_CIRCLE_WIDTH });
+  activeCircle.visible = false; // Скрываем по умолчанию
+  pointContainer.addChildAt(activeCircle, 0); // Размещаем под остальными элементами
+
   pointContainer.on('pointerover', () => {
     if (editableMode === 'none') {
       pointContainer.parent.addChild(pointContainer);
@@ -134,5 +143,9 @@ export const createPointVisual = (point: Point, options: PointsManagerOptions): 
     editableMode = mode;
   };
 
-  return { container: pointContainer, graphics, setEditableMode };
+  const setActive = (active: boolean) => {
+    activeCircle.visible = active;
+  };
+
+  return { container: pointContainer, graphics, setEditableMode, setActive };
 };

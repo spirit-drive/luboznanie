@@ -16,12 +16,17 @@ export type MapControllerOptions = {
     event: PIXI.FederatedPointerEvent,
     action: 'move' | 'end',
   ) => void;
+  shouldStartSelecting?: (editableMode: MapEditableMode, event: PIXI.FederatedPointerEvent) => boolean;
 };
 
 export const createMapController = (
   app: PIXI.Application,
   world: PIXI.Container,
-  { onChangeWorld, onSelectedSpace }: MapControllerOptions,
+  {
+    onChangeWorld,
+    onSelectedSpace,
+    shouldStartSelecting = (editableMode, event) => editableMode === 'points' && event.shiftKey,
+  }: MapControllerOptions,
 ) => {
   // --- Состояния контроллера ---
   let editableMode: MapEditableMode = 'points';
@@ -110,7 +115,7 @@ export const createMapController = (
     activePointers.set(event.pointerId, event.global.clone());
 
     // Логика выделения рамкой для режима редактирования
-    if (editableMode === 'points' && event.shiftKey) {
+    if (shouldStartSelecting(editableMode, event)) {
       isSelecting = true;
       startSelectPosition = event.global.clone();
       event.stopPropagation();

@@ -56,21 +56,21 @@ export const createMapApp = async ({
     itemsMap = setupBackgroundItems(backgroundContainer, backgroundItems, backgroundAssets).itemsMap;
   }
 
-  // 4. Делегирование создания контроллеров управления
-  const mapController = createMapController(app, world, {
-    onChangeWorld: createOnChangeWorld({ onChangeWorld, app, itemsMap }),
-    onSelectedSpace: console.log,
-  });
-
   world.addChild(backgroundContainer);
 
   const { updateFogMask } = createFog(world, { width, height });
 
   // Создаем и сохраняем экземпляр менеджера точек
-  const pointsManager = createPointsManager(world, { onPointClick, pointTypeIcon, pointPropsIcon });
+  const pointsManager = createPointsManager(world, { onPointClick, pointTypeIcon, pointPropsIcon, onSelectPoints });
   pointsManager.updatePoints(points);
 
   updateFogMask(points);
+
+  // 4. Делегирование создания контроллеров управления
+  const mapController = createMapController(app, world, {
+    onChangeWorld: createOnChangeWorld({ onChangeWorld, app, itemsMap }),
+    onSelectedSpace: console.log,
+  });
 
   const onBlur = () => {
     app.ticker.stop();
