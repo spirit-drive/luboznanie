@@ -86,6 +86,7 @@ export const createMapApp = async ({
   return {
     setEditableMode: (mode: MapEditableMode) => {
       mapController.setEditableMode(mode);
+      pointsManager.setEditableMode(mode);
     },
     updatePoints: (points) => {
       pointsManager.updatePoints(points);

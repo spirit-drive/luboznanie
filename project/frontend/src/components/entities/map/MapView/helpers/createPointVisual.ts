@@ -1,5 +1,5 @@
 import * as PIXI from 'pixi.js';
-import { PointsManagerOptions, PointVisuals } from '../MapView.types';
+import { MapEditableMode, PointsManagerOptions, PointVisuals } from '../MapView.types';
 import { gsap } from 'gsap';
 import { createTextContainer } from './createTextContainer';
 import { Point } from '@/types/entities/point/point.types';
@@ -29,6 +29,8 @@ const iconShiftMap: Record<EntityType, number> = {
  * @returns {PointVisuals} - Объект с контейнером и графикой точки.
  */
 export const createPointVisual = (point: Point, options: PointsManagerOptions): PointVisuals => {
+  let editableMode: MapEditableMode = 'points';
+
   // Главный контейнер для точки. Все элементы (круг, текст, иконки) будут в нем.
   const pointContainer = new PIXI.Container();
   // point.position указывает на центр круга, поэтому контейнер располагаем по этим координатам
@@ -96,13 +98,28 @@ export const createPointVisual = (point: Point, options: PointsManagerOptions): 
   });
 
   pointContainer.on('pointerover', () => {
-    pointContainer.parent.addChild(pointContainer);
-    gsap.to(pointContainer.scale, { x: POINT_HOVER_SCALE, y: POINT_HOVER_SCALE, duration: 0.2, ease: 'power2.out' });
+    if (editableMode === 'none') {
+      pointContainer.parent.addChild(pointContainer);
+      if (editableMode === 'none') {
+        gsap.to(pointContainer.scale, {
+          x: POINT_HOVER_SCALE,
+          y: POINT_HOVER_SCALE,
+          duration: 0.2,
+          ease: 'power2.out',
+        });
+      }
+    }
   });
 
   pointContainer.on('pointerout', () => {
-    gsap.to(pointContainer.scale, { x: 1.0, y: 1.0, duration: 0.2, ease: 'power2.out' });
+    if (editableMode === 'none') {
+      gsap.to(pointContainer.scale, { x: 1.0, y: 1.0, duration: 0.2, ease: 'power2.out' });
+    }
   });
 
-  return { container: pointContainer, graphics };
+  const setEditableMode = (mode: MapEditableMode) => {
+    editableMode = mode;
+  };
+
+  return { container: pointContainer, graphics, setEditableMode };
 };

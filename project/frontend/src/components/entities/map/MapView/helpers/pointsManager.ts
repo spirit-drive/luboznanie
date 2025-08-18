@@ -1,5 +1,5 @@
 import * as PIXI from 'pixi.js';
-import { Point, PointID, PointsManager, PointsManagerOptions, PointVisuals } from '../MapView.types';
+import { MapEditableMode, Point, PointID, PointsManager, PointsManagerOptions, PointVisuals } from '../MapView.types';
 import { createPointVisual } from './createPointVisual';
 
 // --- Типы для менеджера ---
@@ -99,5 +99,11 @@ export const createPointsManager = (world: PIXI.Container, options: PointsManage
     renderedPoints.clear();
   };
 
-  return { updatePoints, destroy };
+  const setEditableMode = (mode: MapEditableMode) => {
+    renderedPoints.forEach((item) => {
+      item.setEditableMode(mode);
+    });
+  };
+
+  return { updatePoints, destroy, setEditableMode };
 };
