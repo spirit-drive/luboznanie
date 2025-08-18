@@ -77,7 +77,6 @@ export const createMapController = (
       velocity.y = 0;
     }
 
-    // console.log(world.getBounds(), world.getSize());
     onChangeWorld?.();
   };
 
@@ -108,8 +107,6 @@ export const createMapController = (
 
   const onPointerDown = (event: PIXI.FederatedPointerEvent) => {
     activePointers.set(event.pointerId, event.global.clone());
-
-    console.log(editableMode);
 
     // Логика выделения рамкой для режима редактирования
     if (editableMode === 'points' && event.shiftKey) {
@@ -209,7 +206,7 @@ export const createMapController = (
 
       const currentPosition = event.global;
       const worldPosition = world.getBounds();
-      const x = Math.min(startSelectPosition.x, currentPosition.x) - worldPosition.minY;
+      const x = Math.min(startSelectPosition.x, currentPosition.x) - worldPosition.minX;
       const y = Math.min(startSelectPosition.y, currentPosition.y) - worldPosition.minY;
       const width = Math.abs(currentPosition.x - startSelectPosition.x);
       const height = Math.abs(currentPosition.y - startSelectPosition.y);
@@ -277,7 +274,6 @@ export const createMapController = (
   };
 
   const setEditableMode = (mode: MapEditableMode) => {
-    console.log('setEditableMode', mode);
     editableMode = mode;
   };
 
