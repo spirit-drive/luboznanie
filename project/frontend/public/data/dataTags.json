@@ -1,0 +1,17 @@
+[
+  { "key": "1", "label": "tag1", "nonDeletable": true },
+  { "key": "2", "label": "tag2", "nonDeletable": true },
+  { "key": "3", "label": "tag3", "nonDeletable": false },
+  { "key": "4", "label": "tag4", "nonDeletable": false },
+  { "key": "5", "label": "tag5", "nonDeletable": false },
+  { "key": "6", "label": "tag6", "nonDeletable": false },
+  { "key": "7", "label": "tag7", "nonDeletable": false },
+  { "key": "8", "label": "tag8", "nonDeletable": false },
+  { "key": "9", "label": "tag9", "nonDeletable": false },
+  { "key": "10", "label": "tag10", "nonDeletable": false },
+  { "key": "11", "label": "tag11", "nonDeletable": false },
+  { "key": "12", "label": "tag12", "nonDeletable": false },
+  { "key": "13", "label": "tag13", "nonDeletable": false },
+  { "key": "14", "label": "tag14", "nonDeletable": false },
+  { "key": "15", "label": "tag15", "nonDeletable": false }
+]

@@ -1,10 +1,5 @@
-import { DropdownProps, MenuProps } from 'antd';
-import { ReactNode } from 'react';
+import type { DropdownProps as AntDropdownProps, MenuProps } from 'antd';
 
-export type DropDownProps = {
-  items: MenuProps['items'];
-  className?: string;
-  placement?: DropdownProps['placement'];
-  onClick: MenuProps['onClick'];
-  children: ReactNode;
+export type DropDownProps =AntDropdownProps & {
+  menuProps: MenuProps;
 };
