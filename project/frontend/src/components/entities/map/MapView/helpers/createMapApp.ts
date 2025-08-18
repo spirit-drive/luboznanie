@@ -4,12 +4,12 @@ import { setupBackground } from '@/components/entities/map/MapView/helpers/backg
 import { createMapController } from '@/components/entities/map/MapView/helpers/mapController';
 import { setupBackgroundItems } from '@/components/entities/map/MapView/helpers/setupBackgroundItems';
 import { createPointsManager } from '@/components/entities/map/MapView/helpers/pointsManager';
-import { CreateMapOptions } from '@/components/entities/map/MapView/MapView.types';
+import { MapViewOptions, MapApp, MapEditableMode } from '@/components/entities/map/MapView/MapView.types';
 import { MapBackgroundItem } from '@/types/entities/map/map.types';
 import { createFog } from '@/components/entities/map/MapView/helpers/createFog';
 import { createOnChangeWorld } from '@/components/entities/map/MapView/helpers/createOnChangeWorld';
 
-export const createMapView = async ({
+export const createMapApp = async ({
   container,
   appRef,
   width,
@@ -18,9 +18,10 @@ export const createMapView = async ({
   background,
   onPointClick,
   points,
-  pointsManagerRef,
   onChangeWorld,
-}: CreateMapOptions) => {
+  onSelectPoints,
+  onChangePoints,
+}: MapViewOptions): Promise<MapApp> => {
   // 1. Инициализация PIXI.Application
   const app = new PIXI.Application();
   await app.init({
@@ -58,6 +59,7 @@ export const createMapView = async ({
   // 4. Делегирование создания контроллеров управления
   const mapController = createMapController(app, world, {
     onChangeWorld: createOnChangeWorld({ onChangeWorld, app, itemsMap }),
+    onSelectedSpace: console.log,
   });
 
   world.addChild(backgroundContainer);
@@ -65,8 +67,8 @@ export const createMapView = async ({
   const { updateFogMask } = createFog(world, { width, height });
 
   // Создаем и сохраняем экземпляр менеджера точек
-  pointsManagerRef.current = createPointsManager(world, { onPointClick, pointTypeIcon, pointPropsIcon });
-  pointsManagerRef.current!.update(points);
+  const pointsManager = createPointsManager(world, { onPointClick, pointTypeIcon, pointPropsIcon });
+  pointsManager.updatePoints(points);
 
   updateFogMask(points);
 
@@ -81,21 +83,29 @@ export const createMapView = async ({
   window.addEventListener('blur', onBlur);
   window.addEventListener('focus', onFocus);
 
-  return () => {
-    // Очищаем все менеджеры
-    pointsManagerRef.current?.destroy();
-    mapController.destroy();
+  return {
+    setEditableMode: (mode: MapEditableMode) => {
+      mapController.setEditableMode(mode);
+    },
+    updatePoints: (points) => {
+      pointsManager.updatePoints(points);
+    },
+    cleanup: () => {
+      // Очищаем все менеджеры
+      pointsManager.destroy();
+      mapController.destroy();
 
-    window.removeEventListener('blur', onBlur);
-    window.removeEventListener('focus', onFocus);
+      window.removeEventListener('blur', onBlur);
+      window.removeEventListener('focus', onFocus);
 
-    if (appRef.current) {
-      appRef.current.destroy(true, { children: true, texture: true, baseTexture: true });
-      appRef.current = null;
-    }
-    // Убедимся, что canvas удален из DOM
-    if (container.contains(app.canvas)) {
-      container.removeChild(app.canvas);
-    }
+      if (appRef.current) {
+        appRef.current.destroy(true, { children: true, texture: true, baseTexture: true });
+        appRef.current = null;
+      }
+      // Убедимся, что canvas удален из DOM
+      if (container.contains(app.canvas)) {
+        container.removeChild(app.canvas);
+      }
+    },
   };
 };

@@ -1,16 +1,23 @@
-'use client';
-
 import { RefObject, useEffect, useRef } from 'react';
 import * as PIXI from 'pixi.js';
-import { UseMapViewOptions } from '../MapView.types';
-import { createPointsManager } from '../helpers/pointsManager';
-import { createMapView } from '../helpers/createMapView';
+import { MapApp, UseMapViewOptions } from '../MapView.types';
+import { createMapApp } from '../helpers/createMapApp';
 import { useSounds } from '@/components/entities/map/MapView/helpers/useSounds';
 
-export const useMapView = ({ background, width, height, points, onPointClick, backgroundItems }: UseMapViewOptions) => {
+export const useMapView = ({
+  background,
+  width,
+  height,
+  points,
+  onPointClick,
+  backgroundItems,
+  editableMode,
+  onSelectPoints,
+  onChangePoints,
+}: UseMapViewOptions) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const appRef = useRef<PIXI.Application | null>(null);
-  const pointsManagerRef = useRef<ReturnType<typeof createPointsManager> | null>(null);
+  const mapController = useRef<MapApp | null>(null);
 
   const { playBackgroundMusic, updateBackgroundItemMusic, setVolume } = useSounds();
 
@@ -22,7 +29,7 @@ export const useMapView = ({ background, width, height, points, onPointClick, ba
         return;
       }
 
-      const cleanup = await createMapView({
+      mapController.current = await createMapApp({
         container,
         backgroundItems,
         height,
@@ -31,14 +38,15 @@ export const useMapView = ({ background, width, height, points, onPointClick, ba
         background,
         width,
         appRef: appRef as RefObject<PIXI.Application>,
-        pointsManagerRef,
         onChangeWorld: ({ visibleBackgorundItems }) => {
           updateBackgroundItemMusic(visibleBackgorundItems);
         },
+        onSelectPoints,
+        onChangePoints,
       });
 
       return () => {
-        cleanup?.();
+        mapController.current?.cleanup?.();
       };
     };
 
@@ -50,14 +58,28 @@ export const useMapView = ({ background, width, height, points, onPointClick, ba
     return () => {
       cleanup?.();
     };
-  }, [background?.image, width, height, onPointClick, playBackgroundMusic, updateBackgroundItemMusic]);
+  }, [
+    background?.image,
+    width,
+    height,
+    onPointClick,
+    playBackgroundMusic,
+    updateBackgroundItemMusic,
+    onSelectPoints,
+    onChangePoints,
+  ]);
 
   // --- useEffect для обновления точек ---
   useEffect(() => {
-    if (pointsManagerRef.current && points) {
-      pointsManagerRef.current?.update(points);
+    if (mapController.current && points) {
+      mapController.current?.updatePoints(points);
     }
   }, [points]);
+
+  useEffect(() => {
+    console.log('editableMode', editableMode);
+    mapController.current?.setEditableMode(editableMode!);
+  }, [editableMode]);
 
   return { containerRef, setVolume };
 };

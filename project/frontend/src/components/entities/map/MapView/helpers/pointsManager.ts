@@ -1,5 +1,5 @@
 import * as PIXI from 'pixi.js';
-import { Point, PointID, PointsManagerOptions, PointVisuals } from '../MapView.types';
+import { Point, PointID, PointsManager, PointsManagerOptions, PointVisuals } from '../MapView.types';
 import { createPointVisual } from './createPointVisual';
 
 // --- Типы для менеджера ---
@@ -13,7 +13,7 @@ const DEFAULT_CONNECTION_COLOR = '#ccc';
  * @param options - Конфигурация менеджера (например, обработчики событий).
  * @returns Объект с методами `update` и `destroy`.
  */
-export const createPointsManager = (world: PIXI.Container, options: PointsManagerOptions) => {
+export const createPointsManager = (world: PIXI.Container, options: PointsManagerOptions): PointsManager => {
   // Контейнеры для раздельной отрисовки линий и точек
   const connectionsContainer = new PIXI.Container();
   const pointsContainer = new PIXI.Container();
@@ -25,11 +25,11 @@ export const createPointsManager = (world: PIXI.Container, options: PointsManage
 
   /**
    * Основная функция обновления. Сравнивает новые данные с отрисованными и применяет изменения.
-   * @param items - Новый массив точек для отображения.
+   * @param points - Новый массив точек для отображения.
    */
-  const update = (items: Point[]) => {
+  const updatePoints = (points: Point[]) => {
     const currentIds = new Set(renderedPoints.keys());
-    const newIds = new Set(items.map((item) => item.id));
+    const newIds = new Set(points.map((item) => item.id));
 
     // 1. Удаление старых точек, которых нет в новом массиве
     for (const id of currentIds) {
@@ -44,7 +44,7 @@ export const createPointsManager = (world: PIXI.Container, options: PointsManage
     }
 
     // 2. Добавление и обновление существующих точек
-    for (const pointData of items) {
+    for (const pointData of points) {
       const existingVisual = renderedPoints.get(pointData.id);
 
       if (existingVisual) {
@@ -68,7 +68,7 @@ export const createPointsManager = (world: PIXI.Container, options: PointsManage
     const lineGraphics = new PIXI.Graphics();
     connectionsContainer.addChild(lineGraphics);
 
-    for (const pointData of items) {
+    for (const pointData of points) {
       const startPointVisual = renderedPoints.get(pointData.id);
       if (!startPointVisual) continue; // Пропускаем, если начальная точка не найдена
 
@@ -99,5 +99,5 @@ export const createPointsManager = (world: PIXI.Container, options: PointsManage
     renderedPoints.clear();
   };
 
-  return { update, destroy };
+  return { updatePoints, destroy };
 };

@@ -13,7 +13,16 @@ export const MapView = ({
   points,
   onPointClick,
   backgroundItems,
+  editableMode = 'points',
 }: MapViewProps) => {
-  const { containerRef } = useMapView({ onPointClick, points, backgroundItems, width, height, background });
+  const { containerRef } = useMapView({
+    editableMode,
+    onPointClick,
+    points,
+    backgroundItems,
+    width,
+    height,
+    background,
+  });
   return <div ref={containerRef} className={clsx(s.root, className)} />;
 };

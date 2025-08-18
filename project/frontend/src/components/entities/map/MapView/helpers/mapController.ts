@@ -1,4 +1,5 @@
 import * as PIXI from 'pixi.js';
+import { MapEditableMode } from '@/components/entities/map/MapView/MapView.types';
 
 /**
  * Создает контроллер для управления картой (перемещение, масштабирование, инерция).
@@ -7,12 +8,22 @@ import * as PIXI from 'pixi.js';
  * @param world - Основной контейнер, который будет перемещаться и масштабироваться.
  * @returns {object} - Объект с методом `destroy` для очистки всех подписчиков.
  */
+export type MapControllerOptions = {
+  onChangeWorld?: () => void;
+  onSelectedSpace?: (
+    coords: { minX: number; minY: number; maxX: number; maxY: number },
+    event: PIXI.FederatedPointerEvent,
+    action: 'move' | 'end',
+  ) => void;
+};
+
 export const createMapController = (
   app: PIXI.Application,
   world: PIXI.Container,
-  { onChangeWorld }: { onChangeWorld?: () => void },
+  { onChangeWorld, onSelectedSpace }: MapControllerOptions,
 ) => {
   // --- Состояния контроллера ---
+  let editableMode: MapEditableMode = 'points';
   let isDragging = false;
   let isPinching = false;
   let lastPosition: PIXI.Point | null = null;
@@ -26,6 +37,11 @@ export const createMapController = (
   const MIN_SCALE = 0.2;
   const MAX_SCALE = 3.0;
 
+  // Состояние для выделения рамкой
+  let isSelecting = false;
+  let startSelectPosition: PIXI.Point | null = null;
+  const selectRect = new PIXI.Graphics();
+  app.stage.addChild(selectRect);
   // --- Основные функции ---
 
   /**
@@ -93,6 +109,16 @@ export const createMapController = (
   const onPointerDown = (event: PIXI.FederatedPointerEvent) => {
     activePointers.set(event.pointerId, event.global.clone());
 
+    console.log(editableMode);
+
+    // Логика выделения рамкой для режима редактирования
+    if (editableMode === 'points' && event.shiftKey) {
+      isSelecting = true;
+      startSelectPosition = event.global.clone();
+      event.stopPropagation();
+      return;
+    }
+
     if (activePointers.size === 1) {
       // Первое касание: начинаем перетаскивание
       isDragging = true;
@@ -110,6 +136,28 @@ export const createMapController = (
   };
 
   const onPointerMove = (event: PIXI.FederatedPointerEvent) => {
+    if (isSelecting && startSelectPosition) {
+      const currentPosition = event.global;
+      const x = Math.min(startSelectPosition.x, currentPosition.x);
+      const y = Math.min(startSelectPosition.y, currentPosition.y);
+      const width = Math.abs(currentPosition.x - startSelectPosition.x);
+      const height = Math.abs(currentPosition.y - startSelectPosition.y);
+
+      selectRect.clear();
+      selectRect.rect(x, y, width, height);
+      selectRect.stroke({ width: 2, color: '#00BFFF' });
+      selectRect.fill({ alpha: 0.2, color: '#00BFFF' });
+
+      const worldPosition = world.getBounds();
+      const minY = y - worldPosition.minY;
+      const minX = x - worldPosition.minX;
+      const maxX = minX + width;
+      const maxY = minY + height;
+
+      onSelectedSpace?.({ minX, minY, maxY, maxX }, event, 'move');
+      return;
+    }
+
     if (!activePointers.has(event.pointerId)) return;
     activePointers.set(event.pointerId, event.global.clone());
 
@@ -153,6 +201,22 @@ export const createMapController = (
       // чтобы избежать "прыжка" карты.
       isDragging = true;
       lastPosition = Array.from(activePointers.values())[0].clone();
+    }
+
+    if (isSelecting) {
+      selectRect.clear();
+      isSelecting = false;
+
+      const currentPosition = event.global;
+      const worldPosition = world.getBounds();
+      const x = Math.min(startSelectPosition.x, currentPosition.x) - worldPosition.minY;
+      const y = Math.min(startSelectPosition.y, currentPosition.y) - worldPosition.minY;
+      const width = Math.abs(currentPosition.x - startSelectPosition.x);
+      const height = Math.abs(currentPosition.y - startSelectPosition.y);
+
+      startSelectPosition = null;
+
+      onSelectedSpace?.({ minX: x, minY: y, maxY: y + height, maxX: x + width }, event, 'end');
     }
   };
 
@@ -212,5 +276,10 @@ export const createMapController = (
     app.ticker.remove(tickerCallback);
   };
 
-  return { destroy };
+  const setEditableMode = (mode: MapEditableMode) => {
+    console.log('setEditableMode', mode);
+    editableMode = mode;
+  };
+
+  return { destroy, setEditableMode };
 };

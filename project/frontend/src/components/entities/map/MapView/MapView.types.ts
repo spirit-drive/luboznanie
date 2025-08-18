@@ -3,9 +3,8 @@ import { BackgroundItem, LoadedAsset, MapBackground, MapVisibleBackgroundItem } 
 import * as PIXI from 'pixi.js';
 import { ContainerChild } from 'pixi.js/lib/scene/container/Container';
 import { RefObject } from 'react';
-import { createPointsManager } from '@/components/entities/map/MapView/helpers/pointsManager';
 
-export type MapEditableType = 'none' | 'points' | 'backgrounds';
+export type MapEditableMode = 'none' | 'points' | 'backgrounds';
 export type PointEditableState = 'default' | 'selected' | 'hover';
 export type MapPoint = Point & { state: PointEditableState };
 
@@ -17,7 +16,7 @@ export type MapViewProps = {
   width: number;
   height: number;
   onPointClick: (pointId: PointID) => void;
-  editableType?: MapEditableType;
+  editableMode?: MapEditableMode;
   onSelectPoints?: (selectedPoints: Point[]) => void;
   onChangePoints?: (points: Point[]) => void;
 };
@@ -32,7 +31,11 @@ export type PointVisuals = {
 export type PointsManagerOptions = {
   pointTypeIcon: LoadedAsset;
   pointPropsIcon: LoadedAsset;
-  onPointClick?: (point: Point) => void;
+} & Pick<MapViewProps, 'onPointClick' | 'backgroundItems' | 'editableMode' | 'onSelectPoints' | 'onChangePoints'>;
+
+export type PointsManager = {
+  destroy: () => void;
+  updatePoints: (points: Point[]) => void;
 };
 
 export type UseMapViewOptions = Pick<
@@ -43,14 +46,18 @@ export type UseMapViewOptions = Pick<
   | 'points'
   | 'onPointClick'
   | 'backgroundItems'
-  | 'editableType'
+  | 'editableMode'
   | 'onSelectPoints'
   | 'onChangePoints'
 >;
 
-export type CreateMapOptions = {
+export type MapViewOptions = {
   container: HTMLDivElement;
   appRef: RefObject<PIXI.Application>;
-  pointsManagerRef: RefObject<ReturnType<typeof createPointsManager> | null>;
   onChangeWorld?: (params: { visibleBackgorundItems: MapVisibleBackgroundItem[] }) => void;
 } & UseMapViewOptions;
+
+export type MapApp = {
+  cleanup: () => void;
+  setEditableMode: (editableMode: MapEditableMode) => void;
+} & Pick<PointsManager, 'updatePoints'>;

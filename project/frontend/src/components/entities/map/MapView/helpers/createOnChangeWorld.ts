@@ -1,4 +1,4 @@
-import { CreateMapOptions } from '@/components/entities/map/MapView/MapView.types';
+import { MapViewOptions } from '@/components/entities/map/MapView/MapView.types';
 import { MapBackgroundItem, MapVisibleBackgroundItem } from '@/types/entities/map/map.types';
 import * as PIXI from 'pixi.js';
 
@@ -6,7 +6,7 @@ export const createOnChangeWorld = ({
   onChangeWorld,
   itemsMap,
   app,
-}: Pick<CreateMapOptions, 'onChangeWorld'> & { itemsMap: Map<string, MapBackgroundItem>; app: PIXI.Application }) => {
+}: Pick<MapViewOptions, 'onChangeWorld'> & { itemsMap: Map<string, MapBackgroundItem>; app: PIXI.Application }) => {
   return () => {
     const visibleBackgorundItems: Array<MapVisibleBackgroundItem> = [];
     const screenBounds = app.screen;
