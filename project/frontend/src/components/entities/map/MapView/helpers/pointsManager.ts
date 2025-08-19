@@ -9,11 +9,7 @@ import {
   PointVisuals,
 } from '../MapView.types';
 import { createPointVisual } from './createPointVisual';
-
-// --- Типы для менеджера ---
-
-const DEFAULT_CONNECTION_WIDTH = 3;
-const DEFAULT_CONNECTION_COLOR = '#ccc';
+import { updateConnections } from '@/components/entities/map/MapView/helpers/updateConnections';
 
 /**
  * Создает менеджер для управления точками и соединениями на карте.
@@ -29,8 +25,6 @@ export const createPointsManager = (world: PIXI.Container, options: PointsManage
   const pointsContainer = new PIXI.Container();
   world.addChild(connectionsContainer, pointsContainer); // Линии будут под точками
 
-  // Словарь для хранения созданных визуальных представлений точек.
-  // Ключ - point.id, значение - PIXI-объект. Это нужно для быстрого доступа и обновления.
   const renderedPoints = new Map<PointID, PointVisuals>();
   const selectedPoints = new Map<PointID, PointVisuals>();
 
@@ -60,13 +54,9 @@ export const createPointsManager = (world: PIXI.Container, options: PointsManage
 
       if (existingVisual) {
         // --- Логика обновления ---
-        // Точка уже существует. В будущем здесь будет код для обновления ее вида
-        // (например, смена цвета, статуса locked/success).
-        // Пока что просто убедимся, что позиция актуальна (для режима редактирования).
         existingVisual.container.position.set(pointData.position.x, pointData.position.y);
       } else {
         // --- Логика создания ---
-        // Точки еще нет, создаем ее.
         const newVisual = createPointVisual(pointData, {
           ...options,
           onPointClick: (point) => {
@@ -87,34 +77,8 @@ export const createPointsManager = (world: PIXI.Container, options: PointsManage
       }
     }
 
-    // 3. Перерисовка всех соединений
-    // Проще и надежнее перерисовывать линии каждый раз, чем пытаться их "сверять".
-    connectionsContainer.removeChildren();
-    const lineGraphics = new PIXI.Graphics();
-    connectionsContainer.addChild(lineGraphics);
-
-    for (const pointData of points) {
-      const startPointVisual = renderedPoints.get(pointData.id);
-      if (!startPointVisual) continue; // Пропускаем, если начальная точка не найдена
-
-      for (const connection of pointData.connections) {
-        const endPointVisual = renderedPoints.get(connection.pointId);
-
-        // Проверка целостности данных
-        if (!endPointVisual) {
-          console.warn(`Не найдена точка с id=${connection.pointId} для создания соединения.`);
-          continue;
-        }
-
-        lineGraphics
-          .moveTo(startPointVisual.container.x, startPointVisual.container.y)
-          .lineTo(endPointVisual.container.x, endPointVisual.container.y)
-          .stroke({
-            width: connection.width ?? DEFAULT_CONNECTION_WIDTH,
-            color: connection.color ?? DEFAULT_CONNECTION_COLOR,
-          });
-      }
-    }
+    // 3. Вызов новой функции для обновления связей
+    updateConnections(connectionsContainer, renderedPoints)(points);
   };
 
   const destroy = () => {
