@@ -59,6 +59,9 @@ export const createPointsManager = (world: PIXI.Container, options: PointsManage
         // --- Логика создания ---
         const newVisual = createPointVisual(pointData, {
           ...options,
+          onPointDown: (point, event) => {
+            event.stopPropagation();
+          },
           onPointClick: (point) => {
             options.onPointClick?.(point);
             if (editableMode === 'points') {

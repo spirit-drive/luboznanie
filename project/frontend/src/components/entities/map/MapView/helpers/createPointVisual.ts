@@ -1,5 +1,5 @@
 import * as PIXI from 'pixi.js';
-import { MapEditableMode, PointsManagerOptions, PointVisuals } from '../MapView.types';
+import { MapEditableMode, PointVisualOptions, PointVisuals } from '../MapView.types';
 import { gsap } from 'gsap';
 import { createTextContainer } from './createTextContainer';
 import { Point } from '@/types/entities/point/point.types';
@@ -35,7 +35,7 @@ const iconShiftMap: Record<EntityType, number> = {
  * @param options - Опции, включая коллбэк клика.
  * @returns {PointVisuals} - Объект с контейнером и графикой точки.
  */
-export const createPointVisual = (point: Point, options: PointsManagerOptions): PointVisuals => {
+export const createPointVisual = (point: Point, options: PointVisualOptions): PointVisuals => {
   let editableMode: MapEditableMode = 'points';
 
   // Главный контейнер для точки. Все элементы (круг, текст, иконки) будут в нем.
@@ -100,8 +100,12 @@ export const createPointVisual = (point: Point, options: PointsManagerOptions): 
   pointContainer.addChild(textContainer);
 
   // --- Интерактивность ---
-  pointContainer.on('pointertap', () => {
-    options.onPointClick?.(point);
+  pointContainer.on('pointertap', (event) => {
+    options.onPointClick?.(point, event);
+  });
+  // --- Интерактивность ---
+  pointContainer.on('pointerdown', (event) => {
+    options.onPointDown?.(point, event);
   });
 
   // Голубой круг для выделения при наведении

@@ -98,7 +98,7 @@ export const createMapController = (
     activePointers.set(event.pointerId, event.global.clone());
 
     // Логика выделения рамкой для режима редактирования
-    if (shouldStartSelecting(editableMode, event)) {
+    if (shouldStartSelecting!(editableMode, event)) {
       isSelecting = true;
       startSelectPosition = event.global.clone();
       event.stopPropagation();

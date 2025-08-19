@@ -46,6 +46,11 @@ export type PointsManagerOptions = {
   pointPropsIcon: LoadedAsset;
 } & Pick<MapViewProps, 'onPointClick' | 'backgroundItems' | 'editableMode' | 'onSelectPoints' | 'onChangePoints'>;
 
+export type PointVisualOptions = {
+  onPointClick?: (point: Point, event: PIXI.FederatedPointerEvent) => void;
+  onPointDown?: (point: Point, event: PIXI.FederatedPointerEvent) => void;
+} & Omit<PointsManagerOptions, 'onPointClick'>;
+
 export type PointsManager = {
   selectPiintsBySpace: OnSelectedSpace;
   setEditableMode: (editableMode: MapEditableMode) => void;
