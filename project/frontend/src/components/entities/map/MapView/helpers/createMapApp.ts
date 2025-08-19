@@ -61,7 +61,12 @@ export const createMapApp = async ({
   const { updateFogMask } = createFog(world, { width, height });
 
   // Создаем и сохраняем экземпляр менеджера точек
-  const pointsManager = createPointsManager(world, { onPointClick, pointTypeIcon, pointPropsIcon, onSelectPoints });
+  const pointsManager = createPointsManager(app, world, {
+    onPointClick,
+    pointTypeIcon,
+    pointPropsIcon,
+    onSelectPoints,
+  });
   pointsManager.updatePoints(points);
 
   updateFogMask(points);

@@ -101,10 +101,12 @@ export const createPointVisual = (point: Point, options: PointVisualOptions): Po
 
   // --- Интерактивность ---
   pointContainer.on('pointertap', (event) => {
+    pointContainer.parent.addChild(pointContainer);
     options.onPointClick?.(point, event);
   });
   // --- Интерактивность ---
   pointContainer.on('pointerdown', (event) => {
+    pointContainer.parent.addChild(pointContainer);
     options.onPointDown?.(point, event);
   });
 

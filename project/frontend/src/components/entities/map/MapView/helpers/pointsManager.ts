@@ -11,13 +11,11 @@ import {
 import { createPointVisual } from './createPointVisual';
 import { updateConnections } from '@/components/entities/map/MapView/helpers/updateConnections';
 
-/**
- * Создает менеджер для управления точками и соединениями на карте.
- * @param world - Главный PIXI-контейнер карты.
- * @param options - Конфигурация менеджера (например, обработчики событий).
- * @returns Объект с методами `update` и `destroy`.
- */
-export const createPointsManager = (world: PIXI.Container, options: PointsManagerOptions): PointsManager => {
+export const createPointsManager = (
+  app: PIXI.Application,
+  world: PIXI.Container,
+  options: PointsManagerOptions,
+): PointsManager => {
   let editableMode: MapEditableMode = 'points';
 
   // Контейнеры для раздельной отрисовки линий и точек
@@ -27,6 +25,10 @@ export const createPointsManager = (world: PIXI.Container, options: PointsManage
 
   const renderedPoints = new Map<PointID, PointVisuals>();
   const selectedPoints = new Map<PointID, PointVisuals>();
+
+  let isDragging = false;
+  let startPosition: PIXI.Point | null = null;
+  let dragOffset: PIXI.Point | null = null;
 
   /**
    * Основная функция обновления. Сравнивает новые данные с отрисованными и применяет изменения.
@@ -61,8 +63,19 @@ export const createPointsManager = (world: PIXI.Container, options: PointsManage
           ...options,
           onPointDown: (point, event) => {
             event.stopPropagation();
+            if (editableMode === 'points' && selectedPoints.has(point.id)) {
+              console.log('onPointDown');
+              isDragging = true;
+              startPosition = event.global.clone();
+              dragOffset = new PIXI.Point(event.global.x - point.position.x, event.global.y - point.position.y);
+              // Добавляем слушателя на движение и отпускание мыши на весь world,
+              // чтобы перетаскивание работало даже если курсор ушел с точки
+              app.stage.on('pointermove', onMouseMove);
+              app.stage.on('pointerup', onMouseUp);
+            }
           },
           onPointClick: (point) => {
+            if (isDragging) return;
             options.onPointClick?.(point);
             if (editableMode === 'points') {
               if (selectedPoints.has(point.id)) {
@@ -82,6 +95,38 @@ export const createPointsManager = (world: PIXI.Container, options: PointsManage
 
     // 3. Вызов новой функции для обновления связей
     updateConnections(connectionsContainer, renderedPoints)(points);
+  };
+
+  const onMouseMove = (event: PIXI.FederatedMouseEvent) => {
+    if (isDragging && startPosition && dragOffset) {
+      event.stopPropagation();
+      const newPositionX = event.global.x - dragOffset.x;
+      const newPositionY = event.global.y - dragOffset.y;
+
+      // Вычисляем смещение от начальной позиции
+      const deltaX = newPositionX - selectedPoints.values().next().value.container.position.x;
+      const deltaY = newPositionY - selectedPoints.values().next().value.container.position.y;
+
+      // Обновляем позиции всех выделенных точек
+      selectedPoints.forEach((pointVisual) => {
+        pointVisual.container.position.x += deltaX;
+        pointVisual.container.position.y += deltaY;
+        // ... здесь также можно вызвать callback для сохранения данных
+      });
+    }
+  };
+
+  const onMouseUp = () => {
+    if (isDragging) {
+      setTimeout(() => {
+        isDragging = false;
+        startPosition = null;
+        dragOffset = null;
+      });
+      // Удаляем слушатели, чтобы не засорять память
+      app.stage.off('pointermove', onMouseMove);
+      app.stage.off('pointerup', onMouseUp);
+    }
   };
 
   const destroy = () => {
