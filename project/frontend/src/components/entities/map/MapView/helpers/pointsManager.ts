@@ -67,9 +67,13 @@ export const createPointsManager = (
               console.log('onPointDown');
               isDragging = true;
               startPosition = event.global.clone();
-              dragOffset = new PIXI.Point(event.global.x - point.position.x, event.global.y - point.position.y);
-              // Добавляем слушателя на движение и отпускание мыши на весь world,
-              // чтобы перетаскивание работало даже если курсор ушел с точки
+
+              const localMousePosition = world.toLocal(event.global);
+              dragOffset = new PIXI.Point(
+                localMousePosition.x - point.position.x,
+                localMousePosition.y - point.position.y,
+              );
+
               app.stage.on('pointermove', onMouseMove);
               app.stage.on('pointerup', onMouseUp);
             }
@@ -100,22 +104,21 @@ export const createPointsManager = (
   const onMouseMove = (event: PIXI.FederatedMouseEvent) => {
     if (isDragging && startPosition && dragOffset) {
       event.stopPropagation();
-      const newPositionX = event.global.x - dragOffset.x;
-      const newPositionY = event.global.y - dragOffset.y;
 
-      // Вычисляем смещение от начальной позиции
+      const newLocalPosition = world.toLocal(event.global);
+
+      const newPositionX = newLocalPosition.x - dragOffset.x;
+      const newPositionY = newLocalPosition.y - dragOffset.y;
+
       const deltaX = newPositionX - selectedPoints.values().next().value.container.position.x;
       const deltaY = newPositionY - selectedPoints.values().next().value.container.position.y;
 
-      // Обновляем позиции всех выделенных точек
       selectedPoints.forEach((pointVisual) => {
         pointVisual.container.position.x += deltaX;
         pointVisual.container.position.y += deltaY;
-        // ... здесь также можно вызвать callback для сохранения данных
       });
     }
   };
-
   const onMouseUp = () => {
     if (isDragging) {
       setTimeout(() => {
