@@ -1,5 +1,13 @@
 import * as PIXI from 'pixi.js';
-import { MapEditableMode, Point, PointID, PointsManager, PointsManagerOptions, PointVisuals } from '../MapView.types';
+import {
+  MapEditableMode,
+  OnSelectedSpace,
+  Point,
+  PointID,
+  PointsManager,
+  PointsManagerOptions,
+  PointVisuals,
+} from '../MapView.types';
 import { createPointVisual } from './createPointVisual';
 
 // --- Типы для менеджера ---
@@ -124,6 +132,29 @@ export const createPointsManager = (world: PIXI.Container, options: PointsManage
     editableMode = mode;
   };
 
+  const selectPiintsBySpace: OnSelectedSpace = (space, phase, event) => {
+    if (phase === 'end') {
+      const selected = renderedPoints.entries().reduce<{ id: PointID; point: PointVisuals }[]>((acc, [id, point]) => {
+        const { x, y } = point.container.position;
+        if (x < space.minX || x > space.maxX || y < space.minY || y > space.maxY) return acc;
+        acc.push({ id, point });
+        return acc;
+      }, []);
+
+      if (event.ctrlKey) {
+        selected.forEach((item) => {
+          item.point.setActive(false);
+          selectedPoints.delete(item.id);
+        });
+      } else {
+        selected.forEach((item) => {
+          item.point.setActive(true);
+          selectedPoints.set(item.id, item.point);
+        });
+      }
+    }
+  };
+
   return {
     updatePoints,
     destroy,
@@ -134,5 +165,6 @@ export const createPointsManager = (world: PIXI.Container, options: PointsManage
       });
       selectedPoints.clear();
     },
+    selectPiintsBySpace,
   };
 };

@@ -69,7 +69,7 @@ export const createMapApp = async ({
   // 4. Делегирование создания контроллеров управления
   const mapController = createMapController(app, world, {
     onChangeWorld: createOnChangeWorld({ onChangeWorld, app, itemsMap }),
-    onSelectedSpace: console.log,
+    onSelectedSpace: pointsManager.selectPiintsBySpace,
   });
 
   const onBlur = () => {

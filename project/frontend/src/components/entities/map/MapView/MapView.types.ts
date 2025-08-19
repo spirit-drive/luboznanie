@@ -8,6 +8,17 @@ export type MapEditableMode = 'none' | 'points' | 'backgrounds';
 export type PointEditableState = 'default' | 'selected' | 'hover';
 export type MapPoint = Point & { state: PointEditableState };
 
+export type SelectedSpace = { minX: number; minY: number; maxX: number; maxY: number };
+export type SelectedPhase = 'move' | 'end';
+
+export type OnSelectedSpace = (space: SelectedSpace, phase: SelectedPhase, event: PIXI.FederatedPointerEvent) => void;
+
+export type MapControllerOptions = {
+  onChangeWorld?: () => void;
+  onSelectedSpace?: OnSelectedSpace;
+  shouldStartSelecting?: (editableMode: MapEditableMode, event: PIXI.FederatedPointerEvent) => boolean;
+};
+
 export type MapViewProps = {
   className?: string;
   points: Point[];
@@ -36,6 +47,7 @@ export type PointsManagerOptions = {
 } & Pick<MapViewProps, 'onPointClick' | 'backgroundItems' | 'editableMode' | 'onSelectPoints' | 'onChangePoints'>;
 
 export type PointsManager = {
+  selectPiintsBySpace: OnSelectedSpace;
   setEditableMode: (editableMode: MapEditableMode) => void;
   destroy: () => void;
   updatePoints: (points: Point[]) => void;

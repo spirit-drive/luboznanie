@@ -1,23 +1,6 @@
 import * as PIXI from 'pixi.js';
-import { MapEditableMode } from '@/components/entities/map/MapView/MapView.types';
+import { MapControllerOptions, MapEditableMode } from '@/components/entities/map/MapView/MapView.types';
 import { SELECT_COLOR } from '@/components/entities/map/MapView/constants/style';
-
-/**
- * Создает контроллер для управления картой (перемещение, масштабирование, инерция).
- * Прикрепляет все необходимые обработчики событий к сцене PIXI.
- * @param app - Экземпляр PIXI.Application.
- * @param world - Основной контейнер, который будет перемещаться и масштабироваться.
- * @returns {object} - Объект с методом `destroy` для очистки всех подписчиков.
- */
-export type MapControllerOptions = {
-  onChangeWorld?: () => void;
-  onSelectedSpace?: (
-    coords: { minX: number; minY: number; maxX: number; maxY: number },
-    event: PIXI.FederatedPointerEvent,
-    action: 'move' | 'end',
-  ) => void;
-  shouldStartSelecting?: (editableMode: MapEditableMode, event: PIXI.FederatedPointerEvent) => boolean;
-};
 
 export const createMapController = (
   app: PIXI.Application,
@@ -157,7 +140,7 @@ export const createMapController = (
       const maxX = minX + width;
       const maxY = minY + height;
 
-      onSelectedSpace?.({ minX, minY, maxY, maxX }, event, 'move');
+      onSelectedSpace?.({ minX, minY, maxY, maxX }, 'move', event);
       return;
     }
 
@@ -219,7 +202,7 @@ export const createMapController = (
 
       startSelectPosition = null;
 
-      onSelectedSpace?.({ minX: x, minY: y, maxY: y + height, maxX: x + width }, event, 'end');
+      onSelectedSpace?.({ minX: x, minY: y, maxY: y + height, maxX: x + width }, 'end', event);
     }
   };
 
