@@ -68,7 +68,6 @@ export const createPointsManager = (
           onPointDown: (point, event) => {
             event.stopPropagation();
             if (editableMode === 'points' && selectedPoints.has(point.id)) {
-              console.log('onPointDown');
               isDragging = true;
               startPosition = event.global.clone();
 
@@ -154,12 +153,64 @@ export const createPointsManager = (
     }
   };
 
+  // Добавляем обработчик событий клавиатуры
+  const onKeyDown = (event: KeyboardEvent) => {
+    if (editableMode === 'points' && selectedPoints.size > 0) {
+      let deltaX = 0;
+      let deltaY = 0;
+      const shift = event.shiftKey ? 10 : 1;
+
+      switch (event.key) {
+        case 'ArrowUp':
+          deltaY = -shift;
+          break;
+        case 'ArrowDown':
+          deltaY = shift;
+          break;
+        case 'ArrowLeft':
+          deltaX = -shift;
+          break;
+        case 'ArrowRight':
+          deltaX = shift;
+          break;
+        default:
+          return; // Если нажата не стрелка, ничего не делаем
+      }
+
+      event.preventDefault(); // Предотвращаем прокрутку страницы
+
+      selectedPoints.forEach((pointVisual) => {
+        pointVisual.container.position.x += deltaX;
+        pointVisual.container.position.y += deltaY;
+      });
+
+      // Обновляем данные точек
+      const newPoints = Array.from(
+        renderedPoints.values(),
+        (i) =>
+          ({
+            ...i.point,
+            position: {
+              x: i.container.position.x,
+              y: i.container.position.y,
+            },
+          }) as Point,
+      );
+      onChangePoints?.(newPoints);
+    }
+  };
+
+  // Добавляем слушателя событий на документ при создании менеджера
+  document.addEventListener('keydown', onKeyDown);
+
   const destroy = () => {
     world.removeChild(connectionsContainer, pointsContainer);
     connectionsContainer.destroy({ children: true });
     pointsContainer.destroy({ children: true });
     renderedPoints.clear();
     selectedPoints.clear();
+    // Не забываем удалить слушателя
+    document.removeEventListener('keydown', onKeyDown);
   };
 
   const setEditableMode = (mode: MapEditableMode) => {
