@@ -16,13 +16,17 @@ interface PointsManagerState {
   editableMode: MapEditableMode;
   isDragging: boolean;
   moved: boolean;
-  timestamp: number;
+  timestampAppDoubleTap: number;
+  timestampPointTapDoubleTap: number;
+  timeoutPointTap: number;
   dragStartGlobal: PIXI.Point | null;
   dragOffset: PIXI.Point | null;
   movablePoint: PointVisuals | null;
   renderedPoints: Map<PointID, PointVisuals>;
   selectedPoints: Map<PointID, PointVisuals>;
 }
+
+const TIMEOUT = 100;
 
 export const createPointsManager = (
   app: PIXI.Application,
@@ -37,7 +41,8 @@ export const createPointsManager = (
   world.addChild(connectionsContainer, pointsContainer);
 
   const state: PointsManagerState = {
-    timestamp: 0,
+    timestampAppDoubleTap: 0,
+    timestampPointTapDoubleTap: 0,
     editableMode: 'points',
     isDragging: false,
     moved: false,
@@ -122,22 +127,48 @@ export const createPointsManager = (
     app.stage.off('pointerup', onPointerUp);
   };
 
+  const unselectPoints = (points: PointVisuals[]) => {
+    points.forEach((pointVisual) => {
+      pointVisual.setActive(false);
+      state.selectedPoints.delete(pointVisual.point.id);
+    });
+  };
+
+  const selectPoints = (points: PointVisuals[]) => {
+    points.forEach((pointVisual) => {
+      pointVisual.setActive(true);
+      state.selectedPoints.set(pointVisual.point.id, pointVisual);
+    });
+  };
+
   const onPointClick = (point: Point) => {
     if (state.moved) return;
+
     options.onPointClick?.(point);
+    if (state.editableMode !== 'points') return;
 
-    if (state.editableMode === 'points') {
-      const pointVisual = state.renderedPoints.get(point.id);
-      if (!pointVisual) return;
+    const pointVisual = state.renderedPoints.get(point.id);
+    if (!pointVisual) return;
 
-      if (state.selectedPoints.has(point.id)) {
-        pointVisual.setActive(false);
-        state.selectedPoints.delete(point.id);
-      } else {
-        pointVisual.setActive(true);
-        state.selectedPoints.set(point.id, pointVisual);
-      }
+    if (Date.now() - state.timestampPointTapDoubleTap >= TIMEOUT) {
+      state.timestampPointTapDoubleTap = Date.now();
+
+      clearTimeout(state.timeoutPointTap);
+      state.timeoutPointTap = setTimeout(() => {
+        if (state.selectedPoints.has(point.id)) unselectPoints([pointVisual]);
+        else selectPoints([pointVisual]);
+      }, TIMEOUT) as number;
+
+      return;
     }
+
+    clearTimeout(state.timeoutPointTap);
+
+    const children = point.connections
+      .map((i) => state.renderedPoints.get(i.pointId))
+      .filter(Boolean) as PointVisuals[];
+    if (state.selectedPoints.has(point.id)) unselectPoints([...children, pointVisual]);
+    else selectPoints([...children, pointVisual]);
   };
 
   const onKeyDown = (event: KeyboardEvent) => {
@@ -175,8 +206,8 @@ export const createPointsManager = (
   };
 
   const onDoubleTap = (event: PIXI.FederatedPointerEvent) => {
-    if (Date.now() - state.timestamp >= 300) {
-      state.timestamp = Date.now();
+    if (Date.now() - state.timestampAppDoubleTap >= TIMEOUT) {
+      state.timestampAppDoubleTap = Date.now();
       return;
     }
 
