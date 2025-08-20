@@ -126,7 +126,7 @@ export const backgroundItems: BackgroundItem[] = [
   // Элемент, который изначально скрыт и имеет звук
   {
     id: 'item2',
-    type: 'castles-3/3',
+    type: 'map-set-3/3',
     x: 100,
     y: 300,
     hidden: false,
