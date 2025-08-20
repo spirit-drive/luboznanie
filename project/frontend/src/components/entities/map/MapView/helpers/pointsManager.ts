@@ -16,6 +16,7 @@ interface PointsManagerState {
   editableMode: MapEditableMode;
   isDragging: boolean;
   moved: boolean;
+  timestamp: number;
   dragStartGlobal: PIXI.Point | null;
   dragOffset: PIXI.Point | null;
   movablePoint: PointVisuals | null;
@@ -36,6 +37,7 @@ export const createPointsManager = (
   world.addChild(connectionsContainer, pointsContainer);
 
   const state: PointsManagerState = {
+    timestamp: 0,
     editableMode: 'points',
     isDragging: false,
     moved: false,
@@ -172,6 +174,19 @@ export const createPointsManager = (
     }
   };
 
+  const onDoubleTap = (event: PIXI.FederatedPointerEvent) => {
+    if (Date.now() - state.timestamp >= 300) {
+      state.timestamp = Date.now();
+      return;
+    }
+
+    const isPointerClick = state.renderedPoints.values().some((i) => i.container === event.target);
+    if (isPointerClick) return;
+
+    if (state.selectedPoints.size) resetPointsSelecting();
+    else selectAll();
+  };
+
   /**
    * --- ОСНОВНЫЕ МЕТОДЫ МЕНЕДЖЕРА ---
    */
@@ -232,6 +247,13 @@ export const createPointsManager = (
     state.selectedPoints.clear();
   };
 
+  const selectAll = () => {
+    state.selectedPoints = new Map<PointID, PointVisuals>(state.renderedPoints);
+    state.selectedPoints.forEach((item) => {
+      item.setActive(true);
+    });
+  };
+
   const selectPiintsBySpace: OnSelectedSpace = (space, phase, event) => {
     if (phase === 'end') {
       const pointsInSpace = Array.from(state.renderedPoints.entries()).filter(([id, point]) => {
@@ -262,11 +284,14 @@ export const createPointsManager = (
     pointsContainer.destroy({ children: true });
     state.renderedPoints.clear();
     state.selectedPoints.clear();
+    app.stage.off('pointertap', onDoubleTap);
     document.removeEventListener('keydown', onKeyDown);
   };
 
   // Инициализация: добавляем слушатель клавиатуры
   document.addEventListener('keydown', onKeyDown);
+
+  app.stage.on('pointertap', onDoubleTap);
 
   return {
     updatePoints,
