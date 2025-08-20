@@ -11,155 +11,135 @@ import {
 import { createPointVisual } from './createPointVisual';
 import { updateConnections } from '@/components/entities/map/MapView/helpers/updateConnections';
 
+// Интерфейс для внутреннего состояния менеджера
+interface PointsManagerState {
+  editableMode: MapEditableMode;
+  isDragging: boolean;
+  moved: boolean;
+  dragStartGlobal: PIXI.Point | null;
+  dragOffset: PIXI.Point | null;
+  movablePoint: PointVisuals | null;
+  renderedPoints: Map<PointID, PointVisuals>;
+  selectedPoints: Map<PointID, PointVisuals>;
+}
+
 export const createPointsManager = (
   app: PIXI.Application,
   world: PIXI.Container,
   options: PointsManagerOptions,
 ): PointsManager => {
-  let editableMode: MapEditableMode = 'points';
   const { shouldUnselect = (e: PIXI.FederatedPointerEvent) => e.metaKey || e.ctrlKey, onChangePoints } = options;
 
-  // Контейнеры для раздельной отрисовки линий и точек
+  // Контейнеры для раздельной отрисовки, линии под точками
   const connectionsContainer = new PIXI.Container();
   const pointsContainer = new PIXI.Container();
-  world.addChild(connectionsContainer, pointsContainer); // Линии будут под точками
+  world.addChild(connectionsContainer, pointsContainer);
 
-  const renderedPoints = new Map<PointID, PointVisuals>();
-  const selectedPoints = new Map<PointID, PointVisuals>();
-
-  let isDragging = false;
-  let moved = false;
-  let startPosition: PIXI.Point | null = null;
-  let dragOffset: PIXI.Point | null = null;
-  let movablePoint: PointVisuals | null = null;
-
-  /**
-   * Основная функция обновления. Сравнивает новые данные с отрисованными и применяет изменения.
-   * @param points - Новый массив точек для отображения.
-   */
-  const updatePoints = (points: Point[]) => {
-    const currentIds = new Set(renderedPoints.keys());
-    const newIds = new Set(points.map((item) => item.id));
-
-    // 1. Удаление старых точек, которых нет в новом массиве
-    for (const id of currentIds) {
-      if (!newIds.has(id)) {
-        const pointVisual = renderedPoints.get(id);
-        if (pointVisual) {
-          pointsContainer.removeChild(pointVisual.container);
-          pointVisual.container.destroy({ children: true });
-        }
-        renderedPoints.delete(id);
-      }
-    }
-
-    // 2. Добавление и обновление существующих точек
-    for (const pointData of points) {
-      const existingVisual = renderedPoints.get(pointData.id);
-
-      if (existingVisual) {
-        // --- Логика обновления ---
-        existingVisual.container.position.set(pointData.position.x, pointData.position.y);
-        existingVisual.point.position = pointData.position;
-      } else {
-        // --- Логика создания ---
-        const newVisual = createPointVisual(pointData, {
-          ...options,
-          onPointDown: (point, event) => {
-            event.stopPropagation();
-            if (editableMode === 'points' && selectedPoints.has(point.id)) {
-              isDragging = true;
-              startPosition = event.global.clone();
-
-              const localMousePosition = world.toLocal(event.global);
-              dragOffset = new PIXI.Point(
-                localMousePosition.x - point.position.x,
-                localMousePosition.y - point.position.y,
-              );
-
-              movablePoint = newVisual;
-
-              app.stage.on('pointermove', onMouseMove);
-              app.stage.on('pointerup', onMouseUp);
-            }
-          },
-          onPointClick: (point) => {
-            if (moved) return;
-            options.onPointClick?.(point);
-            if (editableMode === 'points') {
-              if (selectedPoints.has(point.id)) {
-                selectedPoints.get(point.id)?.setActive(false);
-                selectedPoints.delete(point.id);
-              } else {
-                selectedPoints.set(point.id, newVisual);
-                newVisual.setActive(true);
-              }
-            }
-          },
-        });
-        renderedPoints.set(pointData.id, newVisual);
-        pointsContainer.addChild(newVisual.container);
-      }
-    }
-
-    // 3. Вызов новой функции для обновления связей
-    updateConnections(connectionsContainer, renderedPoints)(points);
+  const state: PointsManagerState = {
+    editableMode: 'points',
+    isDragging: false,
+    moved: false,
+    dragStartGlobal: null,
+    dragOffset: null,
+    movablePoint: null,
+    renderedPoints: new Map<PointID, PointVisuals>(),
+    selectedPoints: new Map<PointID, PointVisuals>(),
   };
 
-  const handleChangePoints = () => {
-    const newPoints = Array.from(
-      renderedPoints.values(),
-      (i) =>
-        ({
-          ...i.point,
-          position: {
-            x: i.container.position.x,
-            y: i.container.position.y,
-          },
-        }) as Point,
-    );
+  /**
+   * Применяет изменения к данным точек и обновляет визуализацию.
+   * Вызывается при перемещении точек мышью или клавиатурой.
+   */
+  const applyPointChanges = () => {
+    const newPoints = Array.from(state.renderedPoints.values()).map((visual) => ({
+      ...visual.point,
+      position: {
+        x: visual.container.position.x,
+        y: visual.container.position.y,
+      },
+    }));
     onChangePoints?.(newPoints);
   };
 
-  const onMouseMove = (event: PIXI.FederatedMouseEvent) => {
-    if (isDragging && startPosition && dragOffset && movablePoint) {
-      event.stopPropagation();
+  /**
+   * --- ОБРАБОТЧИКИ СОБЫТИЙ МЫШИ И КЛАВИАТУРЫ ---
+   */
 
-      moved = true;
-      const newLocalPosition = world.toLocal(event.global);
+  const onPointerDown = (pointVisual: PointVisuals, event: PIXI.FederatedPointerEvent) => {
+    event.stopPropagation();
+    if (state.editableMode === 'points' && state.selectedPoints.has(pointVisual.point.id)) {
+      state.isDragging = true;
+      state.dragStartGlobal = event.global.clone();
 
-      const newPositionX = newLocalPosition.x - dragOffset.x;
-      const newPositionY = newLocalPosition.y - dragOffset.y;
+      const localMousePosition = world.toLocal(event.global);
+      state.dragOffset = new PIXI.Point(
+        localMousePosition.x - pointVisual.point.position.x,
+        localMousePosition.y - pointVisual.point.position.y,
+      );
 
-      const deltaX = newPositionX - movablePoint.container.position.x;
-      const deltaY = newPositionY - movablePoint.container.position.y;
+      state.movablePoint = pointVisual;
 
-      selectedPoints.forEach((pointVisual) => {
-        pointVisual.container.position.x += deltaX;
-        pointVisual.container.position.y += deltaY;
-      });
-
-      handleChangePoints();
-    }
-  };
-  const onMouseUp = () => {
-    if (isDragging) {
-      setTimeout(() => {
-        isDragging = false;
-        moved = false;
-        startPosition = null;
-        dragOffset = null;
-        movablePoint = null;
-      });
-      // Удаляем слушатели, чтобы не засорять память
-      app.stage.off('pointermove', onMouseMove);
-      app.stage.off('pointerup', onMouseUp);
+      // Привязываем обработчики к сцене, чтобы отслеживать движение за пределами точки
+      app.stage.on('pointermove', onPointerMove);
+      app.stage.on('pointerup', onPointerUp);
     }
   };
 
-  // Добавляем обработчик событий клавиатуры
+  const onPointerMove = (event: PIXI.FederatedPointerEvent) => {
+    if (!state.isDragging || !state.dragStartGlobal || !state.dragOffset || !state.movablePoint) {
+      return;
+    }
+
+    state.moved = true;
+    const newLocalPosition = world.toLocal(event.global);
+
+    const deltaX = newLocalPosition.x - state.dragOffset.x - state.movablePoint.container.position.x;
+    const deltaY = newLocalPosition.y - state.dragOffset.y - state.movablePoint.container.position.y;
+
+    state.selectedPoints.forEach((pointVisual) => {
+      pointVisual.container.position.x += deltaX;
+      pointVisual.container.position.y += deltaY;
+    });
+
+    applyPointChanges();
+  };
+
+  const onPointerUp = () => {
+    if (!state.isDragging) return;
+
+    // Сбрасываем состояние после задержки, чтобы избежать ложных 'clicks'
+    setTimeout(() => {
+      state.isDragging = false;
+      state.moved = false;
+      state.dragStartGlobal = null;
+      state.dragOffset = null;
+      state.movablePoint = null;
+    });
+
+    app.stage.off('pointermove', onPointerMove);
+    app.stage.off('pointerup', onPointerUp);
+  };
+
+  const onPointClick = (point: Point) => {
+    if (state.moved) return;
+    options.onPointClick?.(point);
+
+    if (state.editableMode === 'points') {
+      const pointVisual = state.renderedPoints.get(point.id);
+      if (!pointVisual) return;
+
+      if (state.selectedPoints.has(point.id)) {
+        pointVisual.setActive(false);
+        state.selectedPoints.delete(point.id);
+      } else {
+        pointVisual.setActive(true);
+        state.selectedPoints.set(point.id, pointVisual);
+      }
+    }
+  };
+
   const onKeyDown = (event: KeyboardEvent) => {
-    if (editableMode === 'points' && selectedPoints.size > 0) {
+    if (state.editableMode === 'points' && state.selectedPoints.size > 0) {
       let deltaX = 0;
       let deltaY = 0;
       const shift = event.shiftKey ? 10 : 1;
@@ -178,85 +158,121 @@ export const createPointsManager = (
           deltaX = shift;
           break;
         default:
-          return; // Если нажата не стрелка, ничего не делаем
+          return;
       }
 
-      event.preventDefault(); // Предотвращаем прокрутку страницы
+      event.preventDefault();
 
-      selectedPoints.forEach((pointVisual) => {
+      state.selectedPoints.forEach((pointVisual) => {
         pointVisual.container.position.x += deltaX;
         pointVisual.container.position.y += deltaY;
       });
 
-      // Обновляем данные точек
-      const newPoints = Array.from(
-        renderedPoints.values(),
-        (i) =>
-          ({
-            ...i.point,
-            position: {
-              x: i.container.position.x,
-              y: i.container.position.y,
-            },
-          }) as Point,
-      );
-      onChangePoints?.(newPoints);
+      applyPointChanges();
     }
   };
 
-  // Добавляем слушателя событий на документ при создании менеджера
-  document.addEventListener('keydown', onKeyDown);
+  /**
+   * --- ОСНОВНЫЕ МЕТОДЫ МЕНЕДЖЕРА ---
+   */
 
-  const destroy = () => {
-    world.removeChild(connectionsContainer, pointsContainer);
-    connectionsContainer.destroy({ children: true });
-    pointsContainer.destroy({ children: true });
-    renderedPoints.clear();
-    selectedPoints.clear();
-    // Не забываем удалить слушателя
-    document.removeEventListener('keydown', onKeyDown);
+  /**
+   * Сравнивает новые данные с отрисованными и применяет изменения.
+   */
+  const updatePoints = (points: Point[]) => {
+    const currentIds = new Set(state.renderedPoints.keys());
+    const newIds = new Set(points.map((item) => item.id));
+
+    // 1. Удаление старых точек
+    for (const id of currentIds) {
+      if (!newIds.has(id)) {
+        const pointVisual = state.renderedPoints.get(id);
+        if (pointVisual) {
+          pointsContainer.removeChild(pointVisual.container);
+          pointVisual.container.destroy({ children: true });
+        }
+        state.renderedPoints.delete(id);
+        state.selectedPoints.delete(id); // Важно: удаляем из selected
+      }
+    }
+
+    // 2. Добавление и обновление существующих точек
+    for (const pointData of points) {
+      const existingVisual = state.renderedPoints.get(pointData.id);
+
+      if (existingVisual) {
+        existingVisual.container.position.set(pointData.position.x, pointData.position.y);
+        existingVisual.point.position = pointData.position;
+      } else {
+        const newVisual = createPointVisual(pointData, {
+          ...options,
+          onPointDown: (point, event) => onPointerDown(newVisual, event),
+          onPointClick: onPointClick,
+        });
+        state.renderedPoints.set(pointData.id, newVisual);
+        pointsContainer.addChild(newVisual.container);
+      }
+    }
+
+    // 3. Обновление связей
+    updateConnections(connectionsContainer, state.renderedPoints)(points);
   };
 
   const setEditableMode = (mode: MapEditableMode) => {
-    renderedPoints.forEach((item) => {
+    state.renderedPoints.forEach((item) => {
       item.setEditableMode(mode);
     });
-    editableMode = mode;
+    state.editableMode = mode;
+  };
+
+  const resetPointsSelecting = () => {
+    state.selectedPoints.forEach((item) => {
+      item.setActive(false);
+    });
+    state.selectedPoints.clear();
   };
 
   const selectPiintsBySpace: OnSelectedSpace = (space, phase, event) => {
     if (phase === 'end') {
-      const selected = renderedPoints.entries().reduce<{ id: PointID; point: PointVisuals }[]>((acc, [id, point]) => {
+      const pointsInSpace = Array.from(state.renderedPoints.entries()).filter(([id, point]) => {
         const { x, y } = point.container.position;
-        if (x < space.minX || x > space.maxX || y < space.minY || y > space.maxY) return acc;
-        acc.push({ id, point });
-        return acc;
-      }, []);
+        return x >= space.minX && x <= space.maxX && y >= space.minY && y <= space.maxY;
+      });
 
       if (shouldUnselect!(event)) {
-        selected.forEach((item) => {
-          item.point.setActive(false);
-          selectedPoints.delete(item.id);
+        pointsInSpace.forEach(([id, point]) => {
+          point.setActive(false);
+          state.selectedPoints.delete(id);
         });
       } else {
-        selected.forEach((item) => {
-          item.point.setActive(true);
-          selectedPoints.set(item.id, item.point);
+        pointsInSpace.forEach(([id, point]) => {
+          point.setActive(true);
+          state.selectedPoints.set(id, point);
         });
       }
     }
   };
+
+  /**
+   * Очистка ресурсов
+   */
+  const destroy = () => {
+    world.removeChild(connectionsContainer, pointsContainer);
+    connectionsContainer.destroy({ children: true });
+    pointsContainer.destroy({ children: true });
+    state.renderedPoints.clear();
+    state.selectedPoints.clear();
+    document.removeEventListener('keydown', onKeyDown);
+  };
+
+  // Инициализация: добавляем слушатель клавиатуры
+  document.addEventListener('keydown', onKeyDown);
 
   return {
     updatePoints,
     destroy,
     setEditableMode,
-    resetPointsSelecting: () => {
-      selectedPoints.forEach((item) => {
-        item.setActive(false);
-      });
-      selectedPoints.clear();
-    },
+    resetPointsSelecting,
     selectPiintsBySpace,
   };
 };
