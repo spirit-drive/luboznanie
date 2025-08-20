@@ -31,6 +31,7 @@ export const createPointsManager = (
   let moved = false;
   let startPosition: PIXI.Point | null = null;
   let dragOffset: PIXI.Point | null = null;
+  let movablePoint: PointVisuals | null = null;
 
   /**
    * Основная функция обновления. Сравнивает новые данные с отрисованными и применяет изменения.
@@ -77,6 +78,8 @@ export const createPointsManager = (
                 localMousePosition.y - point.position.y,
               );
 
+              movablePoint = newVisual;
+
               app.stage.on('pointermove', onMouseMove);
               app.stage.on('pointerup', onMouseUp);
             }
@@ -105,7 +108,7 @@ export const createPointsManager = (
   };
 
   const onMouseMove = (event: PIXI.FederatedMouseEvent) => {
-    if (isDragging && startPosition && dragOffset) {
+    if (isDragging && startPosition && dragOffset && movablePoint) {
       event.stopPropagation();
 
       moved = true;
@@ -114,8 +117,8 @@ export const createPointsManager = (
       const newPositionX = newLocalPosition.x - dragOffset.x;
       const newPositionY = newLocalPosition.y - dragOffset.y;
 
-      const deltaX = newPositionX - selectedPoints.values().next().value.container.position.x;
-      const deltaY = newPositionY - selectedPoints.values().next().value.container.position.y;
+      const deltaX = newPositionX - movablePoint.container.position.x;
+      const deltaY = newPositionY - movablePoint.container.position.y;
 
       selectedPoints.forEach((pointVisual) => {
         pointVisual.container.position.x += deltaX;
@@ -130,6 +133,7 @@ export const createPointsManager = (
         moved = false;
         startPosition = null;
         dragOffset = null;
+        movablePoint = null;
 
         const newPoints = Array.from(
           renderedPoints.values(),
