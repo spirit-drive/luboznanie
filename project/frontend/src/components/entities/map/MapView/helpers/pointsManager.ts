@@ -17,6 +17,7 @@ export const createPointsManager = (
   options: PointsManagerOptions,
 ): PointsManager => {
   let editableMode: MapEditableMode = 'points';
+  const { shouldUnselect = (e: PIXI.FederatedPointerEvent) => e.metaKey || e.ctrlKey } = options;
 
   // Контейнеры для раздельной отрисовки линий и точек
   const connectionsContainer = new PIXI.Container();
@@ -156,7 +157,7 @@ export const createPointsManager = (
         return acc;
       }, []);
 
-      if (event.ctrlKey) {
+      if (shouldUnselect!(event)) {
         selected.forEach((item) => {
           item.point.setActive(false);
           selectedPoints.delete(item.id);

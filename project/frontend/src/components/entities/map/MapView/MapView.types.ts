@@ -42,6 +42,7 @@ export type PointVisuals = {
 };
 
 export type PointsManagerOptions = {
+  shouldUnselect?: (event: PIXI.FederatedPointerEvent) => boolean;
   pointTypeIcon: LoadedAsset;
   pointPropsIcon: LoadedAsset;
 } & Pick<MapViewProps, 'onPointClick' | 'backgroundItems' | 'editableMode' | 'onSelectPoints' | 'onChangePoints'>;
