@@ -36,7 +36,8 @@ export type { Point, PointID, MapBackground, Connection };
 
 export type PointVisuals = {
   container: PIXI.Container<ContainerChild>;
-  graphics: PIXI.Graphics;
+  circle: PIXI.Graphics;
+  progress: PIXI.Graphics;
   setEditableMode: (editableMode: MapEditableMode) => void;
   point: Point;
   setActive: (active: boolean) => void;

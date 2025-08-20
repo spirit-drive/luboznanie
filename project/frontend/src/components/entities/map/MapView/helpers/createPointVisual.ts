@@ -35,19 +35,20 @@ interface PointVisualState {
 /**
  * Создает основной круг и прогресс-бар для точки.
  */
-const createPointGraphics = (point: Point): PIXI.Graphics => {
-  const graphics = new PIXI.Graphics();
-  graphics.circle(0, 0, CIRCLE_RADIUS);
-  graphics.fill(point.color || '#eff');
+const createPointGraphics = (point: Point): Record<'progress' | 'circle', PIXI.Graphics> => {
+  const progress = new PIXI.Graphics();
+  const circle = new PIXI.Graphics();
+  circle.circle(0, 0, CIRCLE_RADIUS);
+  circle.fill(point.color || '#eff');
 
   if (point.progress !== undefined && point.progress >= 0 && point.progress <= 100) {
     const startAngle = -Math.PI / 2;
     const endAngle = startAngle + (2 * Math.PI * point.progress) / 100;
-    graphics.setStrokeStyle({ width: PROGRESS_BAR_THICKNESS, color: point.color || '#eff', cap: 'round' });
-    graphics.arc(0, 0, PROGRESS_BAR_RADIUS, startAngle, endAngle);
-    graphics.stroke();
+    progress.setStrokeStyle({ width: PROGRESS_BAR_THICKNESS, color: point.color || '#eff', cap: 'round' });
+    progress.arc(0, 0, PROGRESS_BAR_RADIUS, startAngle, endAngle);
+    progress.stroke();
   }
-  return graphics;
+  return { circle, progress };
 };
 
 /**
@@ -77,7 +78,7 @@ export const createPointVisual = (point: Point, options: PointVisualOptions): Po
   pointContainer.cursor = 'pointer';
 
   // Создаем все визуальные компоненты
-  const graphics = createPointGraphics(point);
+  const { circle, progress } = createPointGraphics(point);
   const hoverCircle = createSelectionCircle(SELECT_COLOR, HOVER_CIRCLE_WIDTH, HOVER_CIRCLE_RADIUS);
   const activeCircle = createSelectionCircle(ACTIVE_COLOR, ACTIVE_CIRCLE_WIDTH, ACTIVE_CIRCLE_RADIUS);
 
@@ -100,7 +101,7 @@ export const createPointVisual = (point: Point, options: PointVisualOptions): Po
   textContainer.position.y = -textContainer.height / 2;
 
   // Добавляем все элементы в контейнер
-  pointContainer.addChild(graphics, activeCircle, hoverCircle, icon, textContainer);
+  pointContainer.addChild(circle, progress, activeCircle, hoverCircle, icon, textContainer);
 
   /**
    * --- ОБРАБОТЧИКИ СОБЫТИЙ ---
@@ -154,5 +155,5 @@ export const createPointVisual = (point: Point, options: PointVisualOptions): Po
     updateVisualState();
   };
 
-  return { container: pointContainer, graphics, setEditableMode, setActive, point };
+  return { container: pointContainer, progress, circle, setEditableMode, setActive, point };
 };
