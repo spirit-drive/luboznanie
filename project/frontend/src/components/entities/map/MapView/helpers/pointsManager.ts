@@ -106,6 +106,21 @@ export const createPointsManager = (
     updateConnections(connectionsContainer, renderedPoints)(points);
   };
 
+  const handleChangePoints = () => {
+    const newPoints = Array.from(
+      renderedPoints.values(),
+      (i) =>
+        ({
+          ...i.point,
+          position: {
+            x: i.container.position.x,
+            y: i.container.position.y,
+          },
+        }) as Point,
+    );
+    onChangePoints?.(newPoints);
+  };
+
   const onMouseMove = (event: PIXI.FederatedMouseEvent) => {
     if (isDragging && startPosition && dragOffset && movablePoint) {
       event.stopPropagation();
@@ -123,6 +138,8 @@ export const createPointsManager = (
         pointVisual.container.position.x += deltaX;
         pointVisual.container.position.y += deltaY;
       });
+
+      handleChangePoints();
     }
   };
   const onMouseUp = () => {
@@ -133,19 +150,6 @@ export const createPointsManager = (
         startPosition = null;
         dragOffset = null;
         movablePoint = null;
-
-        const newPoints = Array.from(
-          renderedPoints.values(),
-          (i) =>
-            ({
-              ...i.point,
-              position: {
-                x: i.container.position.x,
-                y: i.container.position.y,
-              },
-            }) as Point,
-        );
-        onChangePoints?.(newPoints);
       });
       // Удаляем слушатели, чтобы не засорять память
       app.stage.off('pointermove', onMouseMove);
