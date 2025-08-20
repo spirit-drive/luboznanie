@@ -59,6 +59,7 @@ export const createPointsManager = (
       if (existingVisual) {
         // --- Логика обновления ---
         existingVisual.container.position.set(pointData.position.x, pointData.position.y);
+        existingVisual.point.position = pointData.position;
       } else {
         // --- Логика создания ---
         const newVisual = createPointVisual(pointData, {
