@@ -28,6 +28,7 @@ export const createPointsManager = (
   const selectedPoints = new Map<PointID, PointVisuals>();
 
   let isDragging = false;
+  let moved = false;
   let startPosition: PIXI.Point | null = null;
   let dragOffset: PIXI.Point | null = null;
 
@@ -80,7 +81,7 @@ export const createPointsManager = (
             }
           },
           onPointClick: (point) => {
-            if (isDragging) return;
+            if (moved) return;
             options.onPointClick?.(point);
             if (editableMode === 'points') {
               if (selectedPoints.has(point.id)) {
@@ -106,6 +107,7 @@ export const createPointsManager = (
     if (isDragging && startPosition && dragOffset) {
       event.stopPropagation();
 
+      moved = true;
       const newLocalPosition = world.toLocal(event.global);
 
       const newPositionX = newLocalPosition.x - dragOffset.x;
@@ -124,6 +126,7 @@ export const createPointsManager = (
     if (isDragging) {
       setTimeout(() => {
         isDragging = false;
+        moved = false;
         startPosition = null;
         dragOffset = null;
 
