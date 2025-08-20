@@ -17,7 +17,7 @@ export const createPointsManager = (
   options: PointsManagerOptions,
 ): PointsManager => {
   let editableMode: MapEditableMode = 'points';
-  const { shouldUnselect = (e: PIXI.FederatedPointerEvent) => e.metaKey || e.ctrlKey } = options;
+  const { shouldUnselect = (e: PIXI.FederatedPointerEvent) => e.metaKey || e.ctrlKey, onChangePoints } = options;
 
   // Контейнеры для раздельной отрисовки линий и точек
   const connectionsContainer = new PIXI.Container();
@@ -126,6 +126,19 @@ export const createPointsManager = (
         isDragging = false;
         startPosition = null;
         dragOffset = null;
+
+        const newPoints = Array.from(
+          renderedPoints.values(),
+          (i) =>
+            ({
+              ...i.point,
+              position: {
+                x: i.container.position.x,
+                y: i.container.position.y,
+              },
+            }) as Point,
+        );
+        onChangePoints?.(newPoints);
       });
       // Удаляем слушатели, чтобы не засорять память
       app.stage.off('pointermove', onMouseMove);

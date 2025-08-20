@@ -66,6 +66,7 @@ export const createMapApp = async ({
     pointTypeIcon,
     pointPropsIcon,
     onSelectPoints,
+    onChangePoints,
   });
   pointsManager.updatePoints(points);
 

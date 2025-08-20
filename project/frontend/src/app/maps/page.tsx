@@ -4,6 +4,7 @@ import s from './page.module.scss';
 import { MapView } from '@/components/entities/map/MapView/MapView';
 import { Point } from '@/types/entities/point/point.types';
 import { BackgroundItem } from '@/types/entities/map/map.types';
+import { useEffect, useState } from 'react';
 
 const onPointClick = () => {};
 
@@ -240,13 +241,16 @@ export const backgroundItems: BackgroundItem[] = [
 ];
 
 export default function Page() {
+  const [points, setPoints] = useState(items);
+
   return (
     <div className={s.page} style={{ height: 700 }}>
       <MapView
         width={1000}
         height={1000}
         backgroundItems={backgroundItems}
-        points={items}
+        points={points}
+        onChangePoints={setPoints}
         onPointClick={onPointClick}
       />
     </div>

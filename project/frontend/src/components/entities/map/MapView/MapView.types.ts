@@ -38,6 +38,7 @@ export type PointVisuals = {
   container: PIXI.Container<ContainerChild>;
   graphics: PIXI.Graphics;
   setEditableMode: (editableMode: MapEditableMode) => void;
+  point: Point;
   setActive: (active: boolean) => void;
 };
 

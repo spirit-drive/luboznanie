@@ -153,5 +153,5 @@ export const createPointVisual = (point: Point, options: PointVisualOptions): Po
     activeCircle.visible = active;
   };
 
-  return { container: pointContainer, graphics, setEditableMode, setActive };
+  return { container: pointContainer, graphics, setEditableMode, setActive, point };
 };
