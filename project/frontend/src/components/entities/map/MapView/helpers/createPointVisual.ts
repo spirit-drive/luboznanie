@@ -6,151 +6,152 @@ import { Point } from '@/types/entities/point/point.types';
 import { EntityType } from '@/types/shared';
 import { ACTIVE_COLOR, SELECT_COLOR } from '@/components/entities/map/MapView/constants/style';
 
+// --- Константы ---
 const SVG_ICON_SIZE = 60;
 
-const INNER_CIRCLE_RADIUS = 50; // Диаметр 100px
-const PROGRESS_BAR_RADIUS = 68; // Диаметр 136px
+const CIRCLE_RADIUS = 50;
+const PROGRESS_BAR_RADIUS = 68;
 const PROGRESS_BAR_THICKNESS = 8;
-
-const HOVER_CIRCLE_RADIUS = 54; // Радиус голубого круга при наведении
+const HOVER_CIRCLE_RADIUS = 54;
 const HOVER_CIRCLE_WIDTH = 4;
-
-const ACTIVE_CIRCLE_RADIUS = 60; // Радиус голубого круга при наведении
+const ACTIVE_CIRCLE_RADIUS = 60;
 const ACTIVE_CIRCLE_WIDTH = 6;
+const TEXT_BLOCK_OFFSET_X = CIRCLE_RADIUS + PROGRESS_BAR_THICKNESS / 2 + 34;
+const HOVER_SCALE = 1.2;
 
-const TEXT_BLOCK_OFFSET_X = INNER_CIRCLE_RADIUS + PROGRESS_BAR_THICKNESS / 2 + 34; // Расстояние от центра круга до начала текстового блока
-
-const POINT_HOVER_SCALE = 1.2; // Масштаб при наведении
-
-const iconShiftMap: Record<EntityType, number> = {
+const ICON_SHIFT_MAP: Record<EntityType, number> = {
   practice: 0,
   article: 1,
   map: 2,
 };
 
+// Интерфейс для внутреннего состояния
+interface PointVisualState {
+  editableMode: MapEditableMode;
+  isActive: boolean;
+  isHovered: boolean;
+}
+
+/**
+ * Создает основной круг и прогресс-бар для точки.
+ */
+const createPointGraphics = (point: Point): PIXI.Graphics => {
+  const graphics = new PIXI.Graphics();
+  graphics.circle(0, 0, CIRCLE_RADIUS);
+  graphics.fill(point.color || '#eff');
+
+  if (point.progress !== undefined && point.progress >= 0 && point.progress <= 100) {
+    const startAngle = -Math.PI / 2;
+    const endAngle = startAngle + (2 * Math.PI * point.progress) / 100;
+    graphics.setStrokeStyle({ width: PROGRESS_BAR_THICKNESS, color: point.color || '#eff', cap: 'round' });
+    graphics.arc(0, 0, PROGRESS_BAR_RADIUS, startAngle, endAngle);
+    graphics.stroke();
+  }
+  return graphics;
+};
+
+/**
+ * Создает круг-обводку для состояний 'hover' и 'active'.
+ */
+const createSelectionCircle = (color: number, width: number, radius: number): PIXI.Graphics => {
+  const circle = new PIXI.Graphics();
+  circle.circle(0, 0, radius);
+  circle.stroke({ color, width });
+  circle.visible = false;
+  return circle;
+};
+
 /**
  * Создает визуальное представление для одной точки.
- * В будущем сюда можно будет легко добавить текст, иконки, прогресс-бары.
- * @param point - Данные точки.
- * @param options - Опции, включая коллбэк клика.
- * @returns {PointVisuals} - Объект с контейнером и графикой точки.
  */
 export const createPointVisual = (point: Point, options: PointVisualOptions): PointVisuals => {
-  let editableMode: MapEditableMode = 'points';
+  const state: PointVisualState = {
+    editableMode: 'points',
+    isActive: false,
+    isHovered: false,
+  };
 
-  // Главный контейнер для точки. Все элементы (круг, текст, иконки) будут в нем.
   const pointContainer = new PIXI.Container();
-  // point.position указывает на центр круга, поэтому контейнер располагаем по этим координатам
   pointContainer.position.set(point.position.x, point.position.y);
   pointContainer.interactive = true;
   pointContainer.cursor = 'pointer';
 
-  // Цвет точки по умолчанию или из данных
-  const pointColor = point.color || '#eff';
+  // Создаем все визуальные компоненты
+  const graphics = createPointGraphics(point);
+  const hoverCircle = createSelectionCircle(SELECT_COLOR, HOVER_CIRCLE_WIDTH, HOVER_CIRCLE_RADIUS);
+  const activeCircle = createSelectionCircle(ACTIVE_COLOR, ACTIVE_CIRCLE_WIDTH, ACTIVE_CIRCLE_RADIUS);
 
-  // Графика для внутреннего круга и прогресс-бара
-  const graphics = new PIXI.Graphics();
-
-  // Внутренний круг
-  graphics.circle(0, 0, INNER_CIRCLE_RADIUS);
-  graphics.fill(pointColor);
-
-  pointContainer.addChild(graphics);
-
-  // Определяем область обрезки для нужной иконки
+  // Определяем область иконки и создаём спрайт
   const frame = new PIXI.Rectangle(
-    options.pointTypeIcon.frame.height * iconShiftMap[point.entity.type],
+    options.pointTypeIcon.frame.height * ICON_SHIFT_MAP[point.entity.type],
     0,
     options.pointTypeIcon.frame.height,
     options.pointTypeIcon.frame.height,
   );
-
-  // Создаем новую текстуру с обрезанной областью
   const croppedTexture = new PIXI.Texture({ source: options.pointTypeIcon.source, frame });
-
-  // Создаем спрайт с обрезанной текстурой
   const icon = new PIXI.Sprite(croppedTexture);
-
   icon.width = SVG_ICON_SIZE;
   icon.height = SVG_ICON_SIZE;
+  icon.anchor.set(0.5); // Устанавливаем якорь в центр для простоты позиционирования
 
-  // Располагаем иконку по центру. Так как pointContainer центрирован по point.position,
-  // то для размещения по центру круга достаточно сместить иконку на -ширина/2 и -высота/2.
-  icon.position.x = -icon.width / 2;
-  icon.position.y = -icon.height / 2;
-  pointContainer.addChild(icon);
-
-  // Прогресс-бар (обводка)
-  if (point.progress !== undefined && point.progress >= 0 && point.progress <= 100) {
-    const startAngle = -Math.PI / 2; // Начало сверху
-    const endAngle = startAngle + (2 * Math.PI * point.progress) / 100; // По часовой стрелке
-
-    const progressGraphics = new PIXI.Graphics();
-    progressGraphics.setStrokeStyle({ width: PROGRESS_BAR_THICKNESS, color: pointColor, cap: 'round' });
-    progressGraphics.arc(0, 0, PROGRESS_BAR_RADIUS, startAngle, endAngle);
-    progressGraphics.stroke();
-    pointContainer.addChild(progressGraphics);
-  }
-
-  // --- Текстовый блок ---
+  // Создаём текстовый блок
   const { textContainer } = createTextContainer(point, options);
-
   textContainer.position.x = TEXT_BLOCK_OFFSET_X;
   textContainer.position.y = -textContainer.height / 2;
-  pointContainer.addChild(textContainer);
 
-  // --- Интерактивность ---
+  // Добавляем все элементы в контейнер
+  pointContainer.addChild(graphics, activeCircle, hoverCircle, icon, textContainer);
+
+  /**
+   * --- ОБРАБОТЧИКИ СОБЫТИЙ ---
+   */
   pointContainer.on('pointertap', (event) => {
+    // Поднимаем элемент на верхний слой при взаимодействии
     pointContainer.parent.addChild(pointContainer);
     options.onPointClick?.(point, event);
   });
-  // --- Интерактивность ---
+
   pointContainer.on('pointerdown', (event) => {
     pointContainer.parent.addChild(pointContainer);
     options.onPointDown?.(point, event);
   });
 
-  // Голубой круг для выделения при наведении
-  const hoverCircle = new PIXI.Graphics();
-  hoverCircle.circle(0, 0, HOVER_CIRCLE_RADIUS);
-  hoverCircle.stroke({ color: SELECT_COLOR, width: HOVER_CIRCLE_WIDTH });
-  hoverCircle.visible = false; // Скрываем по умолчанию
-  pointContainer.addChildAt(hoverCircle, 0); // Размещаем под остальными элементами
-
-  const activeCircle = new PIXI.Graphics();
-  activeCircle.circle(0, 0, ACTIVE_CIRCLE_RADIUS);
-  activeCircle.stroke({ color: ACTIVE_COLOR, width: ACTIVE_CIRCLE_WIDTH });
-  activeCircle.visible = false; // Скрываем по умолчанию
-  pointContainer.addChildAt(activeCircle, 0); // Размещаем под остальными элементами
-
-  pointContainer.on('pointerover', () => {
-    if (editableMode === 'none') {
-      pointContainer.parent.addChild(pointContainer);
+  const updateVisualState = () => {
+    hoverCircle.visible = state.isHovered && state.editableMode !== 'none' && !state.isActive;
+    activeCircle.visible = state.isActive;
+    if (state.editableMode === 'none') {
       gsap.to(pointContainer.scale, {
-        x: POINT_HOVER_SCALE,
-        y: POINT_HOVER_SCALE,
+        x: state.isHovered ? HOVER_SCALE : 1.0,
+        y: state.isHovered ? HOVER_SCALE : 1.0,
         duration: 0.2,
         ease: 'power2.out',
       });
+      pointContainer.cursor = 'pointer';
     } else {
-      hoverCircle.visible = true;
+      gsap.to(pointContainer.scale, { x: 1.0, y: 1.0, duration: 0.2, ease: 'power2.out' });
+      pointContainer.cursor = state.isHovered ? 'grab' : 'pointer';
     }
+  };
+
+  pointContainer.on('pointerover', () => {
+    state.isHovered = true;
+    updateVisualState();
   });
 
   pointContainer.on('pointerout', () => {
-    if (editableMode === 'none') {
-      gsap.to(pointContainer.scale, { x: 1.0, y: 1.0, duration: 0.2, ease: 'power2.out' });
-    } else {
-      hoverCircle.visible = false;
-    }
+    state.isHovered = false;
+    updateVisualState();
   });
 
+  // --- МЕТОДЫ УПРАВЛЕНИЯ ---
   const setEditableMode = (mode: MapEditableMode) => {
-    editableMode = mode;
+    state.editableMode = mode;
+    updateVisualState();
   };
 
   const setActive = (active: boolean) => {
-    activeCircle.visible = active;
+    state.isActive = active;
+    updateVisualState();
   };
 
   return { container: pointContainer, graphics, setEditableMode, setActive, point };
