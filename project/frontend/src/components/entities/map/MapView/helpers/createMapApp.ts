@@ -4,7 +4,7 @@ import { setupBackground } from '@/components/entities/map/MapView/helpers/backg
 import { createMapController } from '@/components/entities/map/MapView/helpers/mapController';
 import { setupBackgroundItems } from '@/components/entities/map/MapView/helpers/setupBackgroundItems';
 import { createPointsManager } from '@/components/entities/map/MapView/helpers/pointsManager';
-import { MapViewOptions, MapApp, MapEditableMode } from '@/components/entities/map/MapView/MapView.types';
+import { MapViewOptions, MapApp, MapEditableMode, Point } from '@/components/entities/map/MapView/MapView.types';
 import { MapBackgroundItem } from '@/types/entities/map/map.types';
 import { createFog } from '@/components/entities/map/MapView/helpers/createFog';
 import { createOnChangeWorld } from '@/components/entities/map/MapView/helpers/createOnChangeWorld';
@@ -59,6 +59,10 @@ export const createMapApp = async ({
   world.addChild(backgroundContainer);
 
   const { updateFogMask } = createFog(world, { width, height });
+  const onChangePointsProxy = (points: Point[]) => {
+    updateFogMask(points);
+    onChangePoints?.(points);
+  };
 
   // Создаем и сохраняем экземпляр менеджера точек
   const pointsManager = createPointsManager(app, world, {
@@ -66,7 +70,7 @@ export const createMapApp = async ({
     pointTypeIcon,
     pointPropsIcon,
     onSelectPoints,
-    onChangePoints,
+    onChangePoints: onChangePointsProxy,
   });
   pointsManager.updatePoints(points);
 
