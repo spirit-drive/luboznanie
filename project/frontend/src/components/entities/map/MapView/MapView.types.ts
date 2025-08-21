@@ -14,6 +14,7 @@ export type SelectedPhase = 'move' | 'end';
 export type OnSelectedSpace = (space: SelectedSpace, phase: SelectedPhase, event: PIXI.FederatedPointerEvent) => void;
 
 export type MapControllerOptions = {
+  onChangeZoom?: (newScale: number, zoomCenter: PIXI.Point) => void;
   onChangeWorld?: () => void;
   onSelectedSpace?: OnSelectedSpace;
   shouldStartSelecting?: (editableMode: MapEditableMode, event: PIXI.FederatedPointerEvent) => boolean;

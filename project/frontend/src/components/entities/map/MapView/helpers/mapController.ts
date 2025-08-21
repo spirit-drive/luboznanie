@@ -19,6 +19,7 @@ export const createMapController = (
   app: PIXI.Application,
   world: PIXI.Container,
   {
+    onChangeZoom,
     onChangeWorld,
     onSelectedSpace,
     shouldStartSelecting = (editableMode, event) => editableMode === 'points' && event.shiftKey,
@@ -110,6 +111,8 @@ export const createMapController = (
 
     world.x -= worldPointAfter.x - zoomCenter.x;
     world.y -= worldPointAfter.y - zoomCenter.y;
+
+    onChangeZoom?.(newScale, zoomCenter);
 
     clampWorldPosition();
   };
