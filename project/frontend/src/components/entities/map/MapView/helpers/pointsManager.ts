@@ -26,7 +26,7 @@ interface PointsManagerState {
   selectedPoints: Map<PointID, PointVisuals>;
 }
 
-const TIMEOUT = 100;
+const TIMEOUT = 200;
 
 export const createPointsManager = (
   app: PIXI.Application,
@@ -41,6 +41,7 @@ export const createPointsManager = (
   world.addChild(connectionsContainer, pointsContainer);
 
   const state: PointsManagerState = {
+    timeoutPointTap: 0,
     timestampAppDoubleTap: 0,
     timestampPointTapDoubleTap: 0,
     editableMode: 'points',
@@ -205,7 +206,7 @@ export const createPointsManager = (
     }
   };
 
-  const onDoubleTap = (event: PIXI.FederatedPointerEvent) => {
+  const onAppPointerUp = (event: PIXI.FederatedPointerEvent) => {
     if (Date.now() - state.timestampAppDoubleTap >= TIMEOUT) {
       state.timestampAppDoubleTap = Date.now();
       return;
@@ -315,14 +316,14 @@ export const createPointsManager = (
     pointsContainer.destroy({ children: true });
     state.renderedPoints.clear();
     state.selectedPoints.clear();
-    app.stage.off('pointertap', onDoubleTap);
+    app.stage.off('pointerup', onAppPointerUp);
     document.removeEventListener('keydown', onKeyDown);
   };
 
   // Инициализация: добавляем слушатель клавиатуры
   document.addEventListener('keydown', onKeyDown);
 
-  app.stage.on('pointertap', onDoubleTap);
+  app.stage.on('pointerup', onAppPointerUp);
 
   return {
     updatePoints,
