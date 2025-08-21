@@ -10,6 +10,7 @@ import {
 } from '../MapView.types';
 import { createPointVisual } from './createPointVisual';
 import { updateConnections } from '@/components/entities/map/MapView/helpers/updateConnections';
+import { getAllChildren } from '@/components/entities/map/MapView/helpers/helpers';
 
 // Интерфейс для внутреннего состояния менеджера
 interface PointsManagerState {
@@ -168,9 +169,7 @@ export const createPointsManager = (
 
     clearTimeout(state.timeoutIdPointTap);
 
-    const children = point.connections
-      .map((i) => state.renderedPoints.get(i.pointId))
-      .filter(Boolean) as PointVisuals[];
+    const children = getAllChildren(point, state.renderedPoints);
     if (state.selectedPoints.has(point.id)) unselectPoints([...children, pointVisual]);
     else selectPoints([...children, pointVisual]);
   };

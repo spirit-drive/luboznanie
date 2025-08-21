@@ -111,7 +111,7 @@ export const items: Point[] = [
     name: 'Бесконечный цикл',
     position: { x: 500, y: 100 },
     entity: { id: 'practice-204', type: 'practice' },
-    connections: [{ id: 'conn-10-10', pointId: 'point-10', color: '#ff4081' }],
+    connections: [],
   },
 ];
 
