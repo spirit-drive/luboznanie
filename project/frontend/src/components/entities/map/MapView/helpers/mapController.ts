@@ -15,6 +15,11 @@ interface ControllerState {
   startSelectPosition: PIXI.Point | null;
 }
 
+export type MapController = {
+  destroy: () => void;
+  setEditableMode: (mode: MapEditableMode) => void;
+};
+
 export const createMapController = (
   app: PIXI.Application,
   world: PIXI.Container,
@@ -24,7 +29,7 @@ export const createMapController = (
     onSelectedSpace,
     shouldStartSelecting = (editableMode, event) => editableMode === 'points' && event.shiftKey,
   }: MapControllerOptions,
-) => {
+): MapController => {
   // --- Объект состояния ---
   const state: ControllerState = {
     editableMode: 'none',
