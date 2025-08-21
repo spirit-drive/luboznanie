@@ -135,6 +135,7 @@ export const createPointVisual = (point: Point, options: PointVisualOptions): Po
   };
 
   pointContainer.on('pointerover', () => {
+    pointContainer.parent.addChild(pointContainer);
     state.isHovered = true;
     updateVisualState();
   });
