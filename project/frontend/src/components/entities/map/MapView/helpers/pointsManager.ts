@@ -211,18 +211,21 @@ export const createPointsManager = (
 
   const onAppPointerUp = (event: PIXI.FederatedPointerEvent) => {
     clearTimeout(state.timeoutIdPointUp);
-    state.timeoutIdPointUp = setTimeout(() => {
-      if (Date.now() - state.timestampAppDoubleTap >= DOUBLE_TAP_TIMEOUT) {
-        state.timestampAppDoubleTap = Date.now();
-        return;
-      }
+    state.timeoutIdPointUp = setTimeout(
+      () => {
+        if (Date.now() - state.timestampAppDoubleTap >= DOUBLE_TAP_TIMEOUT) {
+          state.timestampAppDoubleTap = Date.now();
+          return;
+        }
 
-      const isPointerClick = state.renderedPoints.values().some((i) => i.container === event.target);
-      if (isPointerClick) return;
+        const isPointerClick = state.renderedPoints.values().some((i) => i.container === event.target);
+        if (isPointerClick) return;
 
-      if (state.selectedPoints.size) resetPointsSelecting();
-      else selectAll();
-    }, PREVENT_DOUBLE_BY_SCALING_TIMEOUT) as number;
+        if (state.selectedPoints.size) resetPointsSelecting();
+        else selectAll();
+      },
+      event.pointerType === 'touch' ? PREVENT_DOUBLE_BY_SCALING_TIMEOUT : 0,
+    ) as number;
   };
 
   /**
