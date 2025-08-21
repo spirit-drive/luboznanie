@@ -53,19 +53,14 @@ export const createMapController = (
 
   /** Вычисляет и возвращает границы выделенной области в локальных координатах мира. */
   const getSelectedSpace = (startGlobal: PIXI.Point, endGlobal: PIXI.Point): SelectedSpace => {
-    const minGlobalX = Math.min(startGlobal.x, endGlobal.x);
-    const minGlobalY = Math.min(startGlobal.y, endGlobal.y);
-    const maxGlobalX = Math.max(startGlobal.x, endGlobal.x);
-    const maxGlobalY = Math.max(startGlobal.y, endGlobal.y);
-
-    const worldPoint1 = world.toLocal(new PIXI.Point(minGlobalX, minGlobalY));
-    const worldPoint2 = world.toLocal(new PIXI.Point(maxGlobalX, maxGlobalY));
+    const startWorld = world.toLocal(startGlobal);
+    const endWorld = world.toLocal(endGlobal);
 
     return {
-      minX: worldPoint1.x,
-      minY: worldPoint1.y,
-      maxX: worldPoint2.x,
-      maxY: worldPoint2.y,
+      minX: Math.min(startWorld.x, endWorld.x),
+      minY: Math.min(startWorld.y, endWorld.y),
+      maxX: Math.max(startWorld.x, endWorld.x),
+      maxY: Math.max(startWorld.y, endWorld.y),
     };
   };
 
