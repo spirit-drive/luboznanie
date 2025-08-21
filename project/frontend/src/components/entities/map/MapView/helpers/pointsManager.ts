@@ -48,7 +48,7 @@ export const createPointsManager = (
     timeoutIdPointTap: 0,
     timestampAppDoubleTap: 0,
     timestampPointTapDoubleTap: 0,
-    editableMode: 'points',
+    editableMode: 'none',
     isDragging: false,
     moved: false,
     dragStartGlobal: null,

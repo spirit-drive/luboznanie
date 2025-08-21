@@ -27,7 +27,7 @@ export const createMapController = (
 ) => {
   // --- Объект состояния ---
   const state: ControllerState = {
-    editableMode: 'points',
+    editableMode: 'none',
     isDragging: false,
     isPinching: false,
     isSelecting: false,

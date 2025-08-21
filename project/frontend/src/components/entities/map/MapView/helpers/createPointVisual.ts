@@ -67,7 +67,7 @@ const createSelectionCircle = (color: number, width: number, radius: number): PI
  */
 export const createPointVisual = (point: Point, options: PointVisualOptions): PointVisuals => {
   const state: PointVisualState = {
-    editableMode: 'points',
+    editableMode: 'none',
     isActive: false,
     isHovered: false,
   };
@@ -118,8 +118,6 @@ export const createPointVisual = (point: Point, options: PointVisualOptions): Po
   });
 
   const updateVisualState = () => {
-    hoverCircle.visible = state.isHovered && state.editableMode !== 'none' && !state.isActive;
-    activeCircle.visible = state.isActive;
     if (state.editableMode === 'none') {
       gsap.to(pointContainer.scale, {
         x: state.isHovered ? HOVER_SCALE : 1.0,
@@ -128,7 +126,9 @@ export const createPointVisual = (point: Point, options: PointVisualOptions): Po
         ease: 'power2.out',
       });
       pointContainer.cursor = 'pointer';
-    } else {
+    } else if (state.editableMode === 'points') {
+      hoverCircle.visible = state.isHovered && state.editableMode !== 'none' && !state.isActive;
+      activeCircle.visible = state.isActive;
       gsap.to(pointContainer.scale, { x: 1.0, y: 1.0, duration: 0.2, ease: 'power2.out' });
       pointContainer.cursor = state.isHovered ? 'grab' : 'pointer';
     }

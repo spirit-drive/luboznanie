@@ -77,7 +77,6 @@ export const useMapView = ({
   }, [points]);
 
   useEffect(() => {
-    console.log('editableMode', editableMode);
     mapController.current?.setEditableMode(editableMode!);
   }, [editableMode]);
 
