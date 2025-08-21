@@ -40,8 +40,10 @@ export const createPointsManager = (
 
   // Контейнеры для раздельной отрисовки, линии под точками
   const connectionsContainer = new PIXI.Container();
-  const pointsContainer = new PIXI.Container();
-  world.addChild(connectionsContainer, pointsContainer);
+  const pointItemsContainer = new PIXI.Container();
+  const pointContainer = new PIXI.Container();
+  pointContainer.addChild(connectionsContainer, pointItemsContainer);
+  world.addChild(pointContainer);
 
   const state: PointsManagerState = {
     timeoutIdPointUp: 0,
@@ -243,7 +245,7 @@ export const createPointsManager = (
       if (!newIds.has(id)) {
         const pointVisual = state.renderedPoints.get(id);
         if (pointVisual) {
-          pointsContainer.removeChild(pointVisual.container);
+          pointItemsContainer.removeChild(pointVisual.container);
           pointVisual.container.destroy({ children: true });
         }
         state.renderedPoints.delete(id);
@@ -265,7 +267,7 @@ export const createPointsManager = (
           onPointClick: onPointClick,
         });
         state.renderedPoints.set(pointData.id, newVisual);
-        pointsContainer.addChild(newVisual.container);
+        pointItemsContainer.addChild(newVisual.container);
       }
     }
 
@@ -296,7 +298,7 @@ export const createPointsManager = (
 
   const selectPiintsBySpace: OnSelectedSpace = (space, phase, event) => {
     if (phase === 'end') {
-      const pointsInSpace = Array.from(state.renderedPoints.entries()).filter(([id, point]) => {
+      const pointsInSpace = Array.from(state.renderedPoints.entries()).filter(([_, point]) => {
         const { x, y } = point.container.position;
         return x >= space.minX && x <= space.maxX && y >= space.minY && y <= space.maxY;
       });
@@ -319,9 +321,9 @@ export const createPointsManager = (
    * Очистка ресурсов
    */
   const destroy = () => {
-    world.removeChild(connectionsContainer, pointsContainer);
+    world.removeChild(connectionsContainer, pointItemsContainer);
     connectionsContainer.destroy({ children: true });
-    pointsContainer.destroy({ children: true });
+    pointItemsContainer.destroy({ children: true });
     state.renderedPoints.clear();
     state.selectedPoints.clear();
     app.stage.off('pointerup', onAppPointerUp);
@@ -338,6 +340,7 @@ export const createPointsManager = (
     destroy,
     setEditableMode,
     resetPointsSelecting,
-    selectPiintsBySpace,
+    selectPointsBySpace: selectPiintsBySpace,
+    pointContainer,
   };
 };

@@ -56,7 +56,8 @@ export type PointVisualOptions = {
 } & Omit<PointsManagerOptions, 'onPointClick'>;
 
 export type PointsManager = {
-  selectPiintsBySpace: OnSelectedSpace;
+  pointContainer: PIXI.Container;
+  selectPointsBySpace: OnSelectedSpace;
   setEditableMode: (editableMode: MapEditableMode) => void;
   destroy: () => void;
   updatePoints: (points: Point[]) => void;

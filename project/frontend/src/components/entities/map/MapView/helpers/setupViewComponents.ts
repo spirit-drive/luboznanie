@@ -72,11 +72,13 @@ export const setupViewComponents = async ({ app, world, options }: MapDependenci
   // 6. Создание контроллера карты
   const mapController = createMapController(app, world, {
     onChangeWorld: createOnChangeWorld({ onChangeWorld, app, itemsMap }),
-    onSelectedSpace: pointsManager.selectPiintsBySpace,
+    onSelectedSpace: pointsManager.selectPointsBySpace,
   });
 
   const setEditableMode = (mode: MapEditableMode) => {
     fog.visible = mode !== 'backgrounds';
+    pointsManager.pointContainer.alpha = mode !== 'backgrounds' ? 1 : 0.2;
+    pointsManager.pointContainer.eventMode = mode !== 'backgrounds' ? 'auto' : 'none';
   };
 
   return { pointsManager, mapController, setEditableMode };
