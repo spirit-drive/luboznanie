@@ -7,7 +7,7 @@ export const createMapApp = async ({ container, appRef, ...options }: MapViewOpt
   const { app, world } = await setupPixiApp(container, appRef);
 
   // 2. Настройка всех компонентов и получение менеджеров
-  const { pointsManager, mapController } = await setupViewComponents({ app, world, options });
+  const { pointsManager, mapController, setEditableMode } = await setupViewComponents({ app, world, options });
 
   // 3. Настройка обработки событий окна
   const onBlur = () => app.ticker.stop();
@@ -20,6 +20,7 @@ export const createMapApp = async ({ container, appRef, ...options }: MapViewOpt
     setEditableMode: (mode: MapEditableMode) => {
       mapController.setEditableMode(mode);
       pointsManager.setEditableMode(mode);
+      setEditableMode(mode);
     },
     updatePoints: (points) => {
       pointsManager.updatePoints(points);

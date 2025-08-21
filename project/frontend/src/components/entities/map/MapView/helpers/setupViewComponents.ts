@@ -1,5 +1,5 @@
 import * as PIXI from 'pixi.js';
-import { MapViewOptions, Point } from '@/components/entities/map/MapView/MapView.types';
+import { MapEditableMode, MapViewOptions, Point } from '@/components/entities/map/MapView/MapView.types';
 import { loadingAssets } from '@/components/entities/map/MapView/helpers/loadingAssets';
 import { setupBackground } from '@/components/entities/map/MapView/helpers/background';
 import { MapBackgroundItem } from '@/types/entities/map/map.types';
@@ -52,7 +52,7 @@ export const setupViewComponents = async ({ app, world, options }: MapDependenci
   world.addChild(backgroundContainer);
 
   // 4. Создание тумана и прокси-функции для обновления точек
-  const { updateFogMask } = createFog(world, { width, height });
+  const { updateFogMask, fog } = createFog(world, { width, height });
   const onChangePointsWithFog = (newPoints: Point[]) => {
     updateFogMask(newPoints);
     onChangePoints?.(newPoints);
@@ -75,5 +75,9 @@ export const setupViewComponents = async ({ app, world, options }: MapDependenci
     onSelectedSpace: pointsManager.selectPiintsBySpace,
   });
 
-  return { pointsManager, mapController };
+  const setEditableMode = (mode: MapEditableMode) => {
+    fog.visible = mode !== 'backgrounds';
+  };
+
+  return { pointsManager, mapController, setEditableMode };
 };

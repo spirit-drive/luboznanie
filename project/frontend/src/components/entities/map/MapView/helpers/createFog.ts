@@ -26,5 +26,5 @@ export const createFog = (world: PIXI.Container, { width, height }: { width: num
     });
   };
 
-  return { updateFogMask };
+  return { updateFogMask, fog }; // Добавляем 'fog' в возвращаемое значение
 };
