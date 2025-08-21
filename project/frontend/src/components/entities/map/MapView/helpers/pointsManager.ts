@@ -18,7 +18,8 @@ interface PointsManagerState {
   moved: boolean;
   timestampAppDoubleTap: number;
   timestampPointTapDoubleTap: number;
-  timeoutPointTap: number;
+  timeoutIdPointTap: number;
+  timeoutIdPointUp: number;
   dragStartGlobal: PIXI.Point | null;
   dragOffset: PIXI.Point | null;
   movablePoint: PointVisuals | null;
@@ -26,7 +27,8 @@ interface PointsManagerState {
   selectedPoints: Map<PointID, PointVisuals>;
 }
 
-const TIMEOUT = 200;
+const DOUBLE_TAP_TIMEOUT = 200;
+const PREVENT_DOUBLE_BY_SCALING_TIMEOUT = 100;
 
 export const createPointsManager = (
   app: PIXI.Application,
@@ -41,7 +43,8 @@ export const createPointsManager = (
   world.addChild(connectionsContainer, pointsContainer);
 
   const state: PointsManagerState = {
-    timeoutPointTap: 0,
+    timeoutIdPointUp: 0,
+    timeoutIdPointTap: 0,
     timestampAppDoubleTap: 0,
     timestampPointTapDoubleTap: 0,
     editableMode: 'points',
@@ -151,19 +154,19 @@ export const createPointsManager = (
     const pointVisual = state.renderedPoints.get(point.id);
     if (!pointVisual) return;
 
-    if (Date.now() - state.timestampPointTapDoubleTap >= TIMEOUT) {
+    if (Date.now() - state.timestampPointTapDoubleTap >= DOUBLE_TAP_TIMEOUT) {
       state.timestampPointTapDoubleTap = Date.now();
 
-      clearTimeout(state.timeoutPointTap);
-      state.timeoutPointTap = setTimeout(() => {
+      clearTimeout(state.timeoutIdPointTap);
+      state.timeoutIdPointTap = setTimeout(() => {
         if (state.selectedPoints.has(point.id)) unselectPoints([pointVisual]);
         else selectPoints([pointVisual]);
-      }, TIMEOUT) as number;
+      }, DOUBLE_TAP_TIMEOUT) as number;
 
       return;
     }
 
-    clearTimeout(state.timeoutPointTap);
+    clearTimeout(state.timeoutIdPointTap);
 
     const children = point.connections
       .map((i) => state.renderedPoints.get(i.pointId))
@@ -207,16 +210,19 @@ export const createPointsManager = (
   };
 
   const onAppPointerUp = (event: PIXI.FederatedPointerEvent) => {
-    if (Date.now() - state.timestampAppDoubleTap >= TIMEOUT) {
-      state.timestampAppDoubleTap = Date.now();
-      return;
-    }
+    clearTimeout(state.timeoutIdPointUp);
+    state.timeoutIdPointUp = setTimeout(() => {
+      if (Date.now() - state.timestampAppDoubleTap >= DOUBLE_TAP_TIMEOUT) {
+        state.timestampAppDoubleTap = Date.now();
+        return;
+      }
 
-    const isPointerClick = state.renderedPoints.values().some((i) => i.container === event.target);
-    if (isPointerClick) return;
+      const isPointerClick = state.renderedPoints.values().some((i) => i.container === event.target);
+      if (isPointerClick) return;
 
-    if (state.selectedPoints.size) resetPointsSelecting();
-    else selectAll();
+      if (state.selectedPoints.size) resetPointsSelecting();
+      else selectAll();
+    }, PREVENT_DOUBLE_BY_SCALING_TIMEOUT) as number;
   };
 
   /**
