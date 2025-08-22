@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useImperativeHandle } from 'react';
 import clsx from 'clsx';
 import s from './MapView.module.scss';
 import { MapViewProps } from './MapView.types';
@@ -16,8 +16,9 @@ export const MapView = ({
   editableMode = 'points',
   onChangePoints,
   onSelectPoints,
+  ref,
 }: MapViewProps) => {
-  const { containerRef } = useMapView({
+  const { containerRef, ...mapViewController } = useMapView({
     editableMode,
     onPointClick,
     points,
@@ -28,5 +29,8 @@ export const MapView = ({
     onChangePoints,
     onSelectPoints,
   });
+
+  useImperativeHandle(ref, () => mapViewController);
+
   return <div ref={containerRef} className={clsx(s.root, className)} />;
 };

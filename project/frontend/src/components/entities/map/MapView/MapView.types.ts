@@ -2,7 +2,7 @@ import { Point, PointID, Connection } from '@/types/entities/point/point.types';
 import { BackgroundItem, LoadedAsset, MapBackground, MapVisibleBackgroundItem } from '@/types/entities/map/map.types';
 import * as PIXI from 'pixi.js';
 import { ContainerChild } from 'pixi.js/lib/scene/container/Container';
-import { RefObject } from 'react';
+import { Ref, RefObject } from 'react';
 
 export type MapEditableMode = 'none' | 'points' | 'backgrounds';
 export type PointEditableState = 'default' | 'selected' | 'hover';
@@ -21,6 +21,7 @@ export type MapControllerOptions = {
 };
 
 export type MapViewProps = {
+  ref?: Ref<MapViewController>;
   className?: string;
   points: Point[];
   backgroundItems?: BackgroundItem[];
@@ -79,10 +80,13 @@ export type UseMapViewOptions = Pick<
   | 'onChangePoints'
 >;
 
-export type TMapView = {
-  containerRef: RefObject<HTMLDivElement>;
+export type MapViewController = {
   setVolume: (volume: number) => void;
 } & Pick<PointsManager, 'selectAllPoints' | 'selectPoints'>;
+
+export type TMapView = {
+  containerRef: RefObject<HTMLDivElement>;
+} & MapViewController;
 
 export type MapViewOptions = {
   container: HTMLDivElement;

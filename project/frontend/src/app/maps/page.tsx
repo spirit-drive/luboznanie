@@ -4,8 +4,8 @@ import s from './page.module.scss';
 import { MapView } from '@/components/entities/map/MapView/MapView';
 import { Point } from '@/types/entities/point/point.types';
 import { BackgroundItem } from '@/types/entities/map/map.types';
-import { useState } from 'react';
-import { MapEditableMode } from '@/components/entities/map/MapView/MapView.types';
+import { RefObject, useRef, useState } from 'react';
+import { MapEditableMode, MapViewController } from '@/components/entities/map/MapView/MapView.types';
 
 const onPointClick = () => {};
 
@@ -244,11 +244,13 @@ export const backgroundItems: BackgroundItem[] = [
 export default function Page() {
   const [editableMode, setEditableMode] = useState<MapEditableMode>('none');
   const [points, setPoints] = useState(items);
+  const mapViewController = useRef() as RefObject<MapViewController>;
 
   return (
     <div className={s.page}>
       <div style={{ height: 700 }}>
         <MapView
+          ref={mapViewController}
           editableMode={editableMode}
           width={1000}
           height={1000}
@@ -261,6 +263,16 @@ export default function Page() {
       <button onClick={() => setEditableMode('points')}>points</button>
       <button onClick={() => setEditableMode('none')}>none</button>
       <button onClick={() => setEditableMode('backgrounds')}>backgrounds</button>
+      <div>
+        <button
+          onClick={() => {
+            setEditableMode('points');
+            mapViewController.current.selectAllPoints();
+          }}
+        >
+          Выделить все
+        </button>
+      </div>
     </div>
   );
 }
