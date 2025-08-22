@@ -56,6 +56,8 @@ export type PointVisualOptions = {
 } & Omit<PointsManagerOptions, 'onPointClick'>;
 
 export type PointsManager = {
+  selectPoints: (ids: PointID[]) => void;
+  selectAllPoints: () => void;
   pointContainer: PIXI.Container;
   selectPointsBySpace: OnSelectedSpace;
   setEditableMode: (editableMode: MapEditableMode) => void;
@@ -77,6 +79,11 @@ export type UseMapViewOptions = Pick<
   | 'onChangePoints'
 >;
 
+export type TMapView = {
+  containerRef: RefObject<HTMLDivElement>;
+  setVolume: (volume: number) => void;
+} & Pick<PointsManager, 'selectAllPoints' | 'selectPoints'>;
+
 export type MapViewOptions = {
   container: HTMLDivElement;
   appRef: RefObject<PIXI.Application>;
@@ -86,4 +93,4 @@ export type MapViewOptions = {
 export type MapApp = {
   cleanup: () => void;
   setEditableMode: (editableMode: MapEditableMode) => void;
-} & Pick<PointsManager, 'updatePoints'>;
+} & Pick<PointsManager, 'updatePoints' | 'selectAllPoints' | 'selectPoints'>;

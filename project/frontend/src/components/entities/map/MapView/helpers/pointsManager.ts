@@ -342,5 +342,21 @@ export const createPointsManager = (
     resetPointsSelecting,
     selectPointsBySpace: selectPiintsBySpace,
     pointContainer,
+    selectAllPoints: () => {
+      console.log('selectAllPoints');
+      state.selectedPoints = new Map(state.renderedPoints);
+      state.selectedPoints.values().forEach((i) => {
+        i.setActive(true);
+      });
+    },
+    selectPoints: (ids) => {
+      ids.forEach((i) => {
+        if (state.renderedPoints.has(i)) {
+          const point = state.renderedPoints.get(i)!;
+          state.selectedPoints.set(i, point);
+          point.setActive(true);
+        }
+      });
+    },
   };
 };

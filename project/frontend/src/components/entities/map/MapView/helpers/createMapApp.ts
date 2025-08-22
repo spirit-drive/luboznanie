@@ -17,6 +17,10 @@ export const createMapApp = async ({ container, appRef, ...options }: MapViewOpt
 
   // 4. Возвращаем публичный API
   return {
+    selectAllPoints: () => {
+      pointsManager.selectAllPoints();
+    },
+    selectPoints: (ids) => pointsManager.selectPoints(ids),
     setEditableMode: (mode: MapEditableMode) => {
       mapController.setEditableMode(mode);
       pointsManager.setEditableMode(mode);

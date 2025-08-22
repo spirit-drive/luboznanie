@@ -1,6 +1,6 @@
 import { RefObject, useEffect, useRef } from 'react';
 import * as PIXI from 'pixi.js';
-import { MapApp, UseMapViewOptions } from '../MapView.types';
+import { MapApp, TMapView, UseMapViewOptions } from '../MapView.types';
 import { createMapApp } from '../helpers/createMapApp';
 import { useSounds } from '@/components/entities/map/MapView/helpers/useSounds';
 
@@ -14,7 +14,7 @@ export const useMapView = ({
   editableMode,
   onSelectPoints,
   onChangePoints,
-}: UseMapViewOptions) => {
+}: UseMapViewOptions): TMapView => {
   const containerRef = useRef<HTMLDivElement>(null);
   const appRef = useRef<PIXI.Application | null>(null);
   const mapController = useRef<MapApp | null>(null);
@@ -80,5 +80,14 @@ export const useMapView = ({
     mapController.current?.setEditableMode(editableMode!);
   }, [editableMode]);
 
-  return { containerRef, setVolume };
+  return {
+    containerRef,
+    setVolume,
+    selectAllPoints: () => {
+      mapController.current?.selectAllPoints();
+    },
+    selectPoints: (ids) => {
+      mapController.current?.selectPoints(ids);
+    },
+  };
 };
