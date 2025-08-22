@@ -49,5 +49,7 @@ export type BackgroundItem = BackgroundItemBase & {
   deps?: BackgroundItemDep[];
 };
 
+export type AddingBackgroundType = Omit<BackgroundItem, 'x' | 'y'>;
+
 export type MapBackgroundItem = { sprite: Sprite; backgroundItem: BackgroundItem };
 export type MapVisibleBackgroundItem = MapBackgroundItem & { visibleSpace: number };

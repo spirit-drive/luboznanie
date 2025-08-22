@@ -2,10 +2,10 @@
 
 import s from './page.module.scss';
 import { MapView } from '@/components/entities/map/MapView/MapView';
-import { Point } from '@/types/entities/point/point.types';
+import { AddingPoint, Point } from '@/types/entities/point/point.types';
 import { BackgroundItem } from '@/types/entities/map/map.types';
 import { RefObject, useRef, useState } from 'react';
-import { MapEditableMode, MapViewController } from '@/components/entities/map/MapView/MapView.types';
+import { AddingElement, MapEditableMode, MapViewController } from '@/components/entities/map/MapView/MapView.types';
 
 const onPointClick = () => {};
 
@@ -241,6 +241,19 @@ export const backgroundItems: BackgroundItem[] = [
   },
 ];
 
+const addingPoint: AddingPoint = {
+  name: 'Углубленная тема',
+  entity: { id: 'article-102', type: 'article' },
+  locked: false, // Доступна
+  success: true, // Эта точка уже пройдена
+  connections: [],
+};
+
+const addingElement: AddingElement = {
+  type: 'point',
+  value: addingPoint,
+};
+
 export default function Page() {
   const [editableMode, setEditableMode] = useState<MapEditableMode>('none');
   const [points, setPoints] = useState(items);
@@ -250,6 +263,12 @@ export default function Page() {
     <div className={s.page}>
       <div style={{ height: 700 }}>
         <MapView
+          onAddedElement={(added) => {
+            if (added.type === 'point') {
+              setPoints((v) => [...v, added.value]);
+            }
+          }}
+          addingElement={addingElement}
           ref={mapViewController}
           editableMode={editableMode}
           width={1000}

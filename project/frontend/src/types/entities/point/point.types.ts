@@ -29,3 +29,5 @@ export type Point = {
     type: EntityType;
   };
 };
+
+export type AddingPoint = Omit<Point, 'position'>;

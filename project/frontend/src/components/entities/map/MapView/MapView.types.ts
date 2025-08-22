@@ -1,5 +1,11 @@
-import { Point, PointID, Connection } from '@/types/entities/point/point.types';
-import { BackgroundItem, LoadedAsset, MapBackground, MapVisibleBackgroundItem } from '@/types/entities/map/map.types';
+import { Point, PointID, Connection, AddingPoint } from '@/types/entities/point/point.types';
+import {
+  AddingBackgroundType,
+  BackgroundItem,
+  LoadedAsset,
+  MapBackground,
+  MapVisibleBackgroundItem,
+} from '@/types/entities/map/map.types';
 import * as PIXI from 'pixi.js';
 import { ContainerChild } from 'pixi.js/lib/scene/container/Container';
 import { Ref, RefObject } from 'react';
@@ -21,6 +27,8 @@ export type MapControllerOptions = {
 };
 
 export type MapViewProps = {
+  addingElement: AddingElement;
+  onAddedElement: (added: AddedElement) => void;
   ref?: Ref<MapViewController>;
   className?: string;
   points: Point[];
@@ -98,3 +106,27 @@ export type MapApp = {
   cleanup: () => void;
   setEditableMode: (editableMode: MapEditableMode) => void;
 } & Pick<PointsManager, 'updatePoints' | 'selectAllPoints' | 'selectPoints'>;
+
+export type AddingPointType = {
+  type: 'point';
+  value: AddingPoint;
+};
+
+export type AddingBackgroundItemType = {
+  type: 'background';
+  value: AddingBackgroundType;
+};
+
+export type AddingElement = AddingPointType | AddingBackgroundItemType;
+
+export type AddedPointType = {
+  type: 'point';
+  value: Point;
+};
+
+export type AddedBackgroundItemType = {
+  type: 'background';
+  value: BackgroundItem;
+};
+
+export type AddedElement = AddedPointType | AddedBackgroundItemType;
