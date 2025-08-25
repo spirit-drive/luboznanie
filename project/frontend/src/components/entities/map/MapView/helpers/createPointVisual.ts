@@ -103,20 +103,6 @@ export const createPointVisual = (point: Point, options: PointVisualOptions): Po
   // Добавляем все элементы в контейнер
   pointContainer.addChild(circle, progress, activeCircle, hoverCircle, icon, textContainer);
 
-  /**
-   * --- ОБРАБОТЧИКИ СОБЫТИЙ ---
-   */
-  pointContainer.on('pointertap', (event) => {
-    // Поднимаем элемент на верхний слой при взаимодействии
-    pointContainer.parent.addChild(pointContainer);
-    options.onPointClick?.(point, event);
-  });
-
-  pointContainer.on('pointerdown', (event) => {
-    pointContainer.parent.addChild(pointContainer);
-    options.onPointDown?.(point, event);
-  });
-
   const updateVisualState = () => {
     if (state.editableMode === 'none') {
       gsap.to(pointContainer.scale, {
@@ -133,6 +119,20 @@ export const createPointVisual = (point: Point, options: PointVisualOptions): Po
       pointContainer.cursor = state.isHovered ? 'grab' : 'pointer';
     }
   };
+
+  /**
+   * --- ОБРАБОТЧИКИ СОБЫТИЙ ---
+   */
+  pointContainer.on('pointertap', (event) => {
+    // Поднимаем элемент на верхний слой при взаимодействии
+    pointContainer.parent.addChild(pointContainer);
+    options.onPointClick?.(point, event);
+  });
+
+  pointContainer.on('pointerdown', (event) => {
+    pointContainer.parent.addChild(pointContainer);
+    options.onPointDown?.(point, event);
+  });
 
   pointContainer.on('pointerover', () => {
     pointContainer.parent.addChild(pointContainer);

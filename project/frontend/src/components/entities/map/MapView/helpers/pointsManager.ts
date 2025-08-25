@@ -6,6 +6,7 @@ import {
   PointID,
   PointsManager,
   PointsManagerOptions,
+  PointVisualOptions,
   PointVisuals,
 } from '../MapView.types';
 import { createPointVisual } from './createPointVisual';
@@ -13,7 +14,9 @@ import { updateConnections } from '@/components/entities/map/MapView/helpers/upd
 import { getAllChildren } from '@/components/entities/map/MapView/helpers/helpers';
 
 // Интерфейс для внутреннего состояния менеджера
+
 interface PointsManagerState {
+  ghostPointVisual: PointVisuals | null;
   editableMode: MapEditableMode;
   isDragging: boolean;
   moved: boolean;
@@ -31,6 +34,25 @@ interface PointsManagerState {
 const DOUBLE_TAP_TIMEOUT = 200;
 const PREVENT_DOUBLE_BY_SCALING_TIMEOUT = 100;
 
+const createGhostPoint = (position: PIXI.PointData, options: PointVisualOptions): PointVisuals => {
+  const visual = createPointVisual(
+    {
+      id: 'ghost-point',
+      name: '',
+      position,
+      connections: [],
+      entity: {
+        id: 'id',
+        type: 'article',
+      },
+    },
+    options,
+  );
+  visual.container.alpha = 0.5; // Делаем ее полупрозрачной
+  visual.container.eventMode = 'none';
+  return visual;
+};
+
 export const createPointsManager = (
   app: PIXI.Application,
   world: PIXI.Container,
@@ -46,6 +68,7 @@ export const createPointsManager = (
   world.addChild(pointContainer);
 
   const state: PointsManagerState = {
+    ghostPointVisual: null,
     timeoutIdPointUp: 0,
     timeoutIdPointTap: 0,
     timestampAppDoubleTap: 0,
@@ -58,6 +81,29 @@ export const createPointsManager = (
     movablePoint: null,
     renderedPoints: new Map<PointID, PointVisuals>(),
     selectedPoints: new Map<PointID, PointVisuals>(),
+  };
+
+  const onAppPointerMove = (event: PIXI.FederatedPointerEvent) => {
+    if (state.ghostPointVisual) {
+      state.ghostPointVisual.container.visible = !isAnyPointerEvent(event);
+      const localPosition = world.toLocal(event.global);
+      state.ghostPointVisual.container.position.copyFrom(localPosition);
+    }
+  };
+
+  app.stage.on('pointermove', onAppPointerMove);
+
+  const mountGhost = (mode: MapEditableMode) => {
+    if (state.ghostPointVisual) {
+      pointItemsContainer.removeChild(state.ghostPointVisual.container);
+      state.ghostPointVisual.container.destroy({ children: true });
+      state.ghostPointVisual = null;
+    }
+
+    if (mode === 'points') {
+      state.ghostPointVisual = createGhostPoint({ x: 0, y: 0 }, options); // Начальная позиция
+      pointItemsContainer.addChild(state.ghostPointVisual.container);
+    }
   };
 
   /**
@@ -210,6 +256,10 @@ export const createPointsManager = (
     }
   };
 
+  const isAnyPointerEvent = (event: PIXI.FederatedPointerEvent): boolean => {
+    return state.renderedPoints.values().some((i) => i.container === event.target);
+  };
+
   const onAppPointerUp = (event: PIXI.FederatedPointerEvent) => {
     clearTimeout(state.timeoutIdPointUp);
     state.timeoutIdPointUp = setTimeout(
@@ -219,7 +269,7 @@ export const createPointsManager = (
           return;
         }
 
-        const isPointerClick = state.renderedPoints.values().some((i) => i.container === event.target);
+        const isPointerClick = isAnyPointerEvent(event);
         if (isPointerClick) return;
 
         if (state.selectedPoints.size) resetPointsSelecting();
@@ -280,6 +330,7 @@ export const createPointsManager = (
       item.setEditableMode(mode);
     });
     state.editableMode = mode;
+    mountGhost(mode);
   };
 
   const resetPointsSelecting = () => {
@@ -328,6 +379,13 @@ export const createPointsManager = (
     state.selectedPoints.clear();
     app.stage.off('pointerup', onAppPointerUp);
     document.removeEventListener('keydown', onKeyDown);
+
+    if (state.ghostPointVisual) {
+      pointItemsContainer.removeChild(state.ghostPointVisual.container);
+      state.ghostPointVisual.container.destroy({ children: true });
+      state.ghostPointVisual = null;
+    }
+    app.stage.off('pointermove', onAppPointerMove);
   };
 
   // Инициализация: добавляем слушатель клавиатуры
