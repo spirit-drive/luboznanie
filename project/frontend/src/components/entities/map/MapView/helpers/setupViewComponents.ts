@@ -73,6 +73,7 @@ export const setupViewComponents = async ({ app, world, options }: MapDependenci
   const mapController = createMapController(app, world, {
     onChangeWorld: createOnChangeWorld({ onChangeWorld, app, itemsMap }),
     onSelectedSpace: pointsManager.selectPointsBySpace,
+    shouldPreventScrolling: pointsManager.shouldMapPreventScrolling,
   });
 
   const setEditableMode = (mode: MapEditableMode) => {

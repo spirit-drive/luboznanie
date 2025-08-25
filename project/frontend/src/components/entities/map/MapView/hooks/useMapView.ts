@@ -14,6 +14,7 @@ export const useMapView = ({
   editableMode,
   onSelectPoints,
   onChangePoints,
+  addingElement,
 }: UseMapViewOptions): TMapView => {
   const containerRef = useRef<HTMLDivElement>(null);
   const appRef = useRef<PIXI.Application | null>(null);
@@ -37,6 +38,7 @@ export const useMapView = ({
         onPointClick,
         background,
         width,
+        addingElement,
         appRef: appRef as RefObject<PIXI.Application>,
         onChangeWorld: ({ visibleBackgorundItems }) => {
           updateBackgroundItemMusic(visibleBackgorundItems);
@@ -79,6 +81,10 @@ export const useMapView = ({
   useEffect(() => {
     mapController.current?.setEditableMode(editableMode!);
   }, [editableMode]);
+
+  useEffect(() => {
+    mapController.current?.setAddingElement(addingElement!);
+  }, [addingElement]);
 
   return {
     containerRef,

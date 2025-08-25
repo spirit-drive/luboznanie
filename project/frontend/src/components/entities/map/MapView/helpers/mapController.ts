@@ -24,6 +24,7 @@ export const createMapController = (
   app: PIXI.Application,
   world: PIXI.Container,
   {
+    shouldPreventScrolling,
     onChangeZoom,
     onChangeWorld,
     onSelectedSpace,
@@ -133,6 +134,8 @@ export const createMapController = (
       event.stopPropagation();
       return;
     }
+
+    if (shouldPreventScrolling?.(event)) return;
 
     if (state.activePointers.size === 1) {
       state.isDragging = true;

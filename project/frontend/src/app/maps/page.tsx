@@ -4,7 +4,7 @@ import s from './page.module.scss';
 import { MapView } from '@/components/entities/map/MapView/MapView';
 import { AddingPoint, Point } from '@/types/entities/point/point.types';
 import { BackgroundItem } from '@/types/entities/map/map.types';
-import { RefObject, useRef, useState } from 'react';
+import { RefObject, useEffect, useRef, useState } from 'react';
 import { AddingElement, MapEditableMode, MapViewController } from '@/components/entities/map/MapView/MapView.types';
 
 const onPointClick = () => {};
@@ -242,6 +242,7 @@ export const backgroundItems: BackgroundItem[] = [
 ];
 
 const addingPoint: AddingPoint = {
+  id: 'addingPoint',
   name: 'Углубленная тема',
   entity: { id: 'article-102', type: 'article' },
   locked: false, // Доступна
@@ -249,7 +250,7 @@ const addingPoint: AddingPoint = {
   connections: [],
 };
 
-const addingElement: AddingElement = {
+const addingElementOrigin: AddingElement = {
   type: 'point',
   value: addingPoint,
 };
@@ -258,6 +259,29 @@ export default function Page() {
   const [editableMode, setEditableMode] = useState<MapEditableMode>('none');
   const [points, setPoints] = useState(items);
   const mapViewController = useRef() as RefObject<MapViewController>;
+  const [addingElement, setAddingElement] = useState<AddingElement>(null);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.code === 'Space') {
+        setAddingElement(null);
+      }
+    };
+
+    const handleKeyUp = (e: KeyboardEvent) => {
+      if (e.code === 'Space') {
+        setAddingElement(addingElementOrigin);
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    document.addEventListener('keyup', handleKeyUp);
+
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+      document.removeEventListener('keyup', handleKeyUp);
+    };
+  }, []);
 
   return (
     <div className={s.page}>
@@ -291,6 +315,9 @@ export default function Page() {
         >
           Выделить все
         </button>
+      </div>
+      <div>
+        <button onClick={() => setAddingElement(addingElementOrigin)}>+</button>
       </div>
     </div>
   );

@@ -23,6 +23,7 @@ export type MapControllerOptions = {
   onChangeZoom?: (newScale: number, zoomCenter: PIXI.Point) => void;
   onChangeWorld?: () => void;
   onSelectedSpace?: OnSelectedSpace;
+  shouldPreventScrolling?: (event: PIXI.FederatedPointerEvent) => boolean;
   shouldStartSelecting?: (editableMode: MapEditableMode, event: PIXI.FederatedPointerEvent) => boolean;
 };
 
@@ -67,6 +68,8 @@ export type PointVisualOptions = {
 export type PointsManager = {
   selectPoints: (ids: PointID[]) => void;
   selectAllPoints: () => void;
+  setAddingElement: (addingElement: AddingPoint | null) => void;
+  shouldMapPreventScrolling: (event: PIXI.FederatedPointerEvent) => boolean;
   pointContainer: PIXI.Container;
   selectPointsBySpace: OnSelectedSpace;
   setEditableMode: (editableMode: MapEditableMode) => void;
@@ -78,6 +81,7 @@ export type PointsManager = {
 export type UseMapViewOptions = Pick<
   MapViewProps,
   | 'background'
+  | 'addingElement'
   | 'width'
   | 'height'
   | 'points'
@@ -105,6 +109,7 @@ export type MapViewOptions = {
 export type MapApp = {
   cleanup: () => void;
   setEditableMode: (editableMode: MapEditableMode) => void;
+  setAddingElement: (addingElement: AddingElement | null) => void;
 } & Pick<PointsManager, 'updatePoints' | 'selectAllPoints' | 'selectPoints'>;
 
 export type AddingPointType = {
