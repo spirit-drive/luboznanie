@@ -18,9 +18,11 @@ export const MapView = ({
   onSelectPoints,
   ref,
   addingElement,
+  onAddedElement,
 }: MapViewProps) => {
   const { containerRef, ...mapViewController } = useMapView({
     addingElement,
+    onAddedElement,
     editableMode,
     onPointClick,
     points,

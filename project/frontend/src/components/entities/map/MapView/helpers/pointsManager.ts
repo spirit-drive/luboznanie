@@ -52,7 +52,11 @@ export const createPointsManager = (
   world: PIXI.Container,
   options: PointsManagerOptions,
 ): PointsManager => {
-  const { shouldUnselect = (e: PIXI.FederatedPointerEvent) => e.metaKey || e.ctrlKey, onChangePoints } = options;
+  const {
+    shouldUnselect = (e: PIXI.FederatedPointerEvent) => e.metaKey || e.ctrlKey,
+    onChangePoints,
+    onAddedElement,
+  } = options;
 
   // Контейнеры для раздельной отрисовки, линии под точками
   const connectionsContainer = new PIXI.Container();
@@ -257,6 +261,21 @@ export const createPointsManager = (
 
   const onAppPointerUp = (event: PIXI.FederatedPointerEvent) => {
     clearTimeout(state.timeoutIdPointUp);
+
+    if (state.addingPoint?.container.visible) {
+      onAddedElement?.({
+        type: 'point',
+        value: {
+          ...state.addingPoint.point,
+          position: {
+            x: state.addingPoint.container.position.x,
+            y: state.addingPoint.container.position.y,
+          },
+        },
+      });
+      return;
+    }
+
     state.timeoutIdPointUp = setTimeout(
       () => {
         if (Date.now() - state.timestampAppDoubleTap >= DOUBLE_TAP_TIMEOUT) {

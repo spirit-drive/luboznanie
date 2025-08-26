@@ -15,6 +15,7 @@ export const useMapView = ({
   onSelectPoints,
   onChangePoints,
   addingElement,
+  onAddedElement,
 }: UseMapViewOptions): TMapView => {
   const containerRef = useRef<HTMLDivElement>(null);
   const appRef = useRef<PIXI.Application | null>(null);
@@ -33,6 +34,7 @@ export const useMapView = ({
       mapController.current = await createMapApp({
         container,
         backgroundItems,
+        onAddedElement,
         height,
         points,
         onPointClick,

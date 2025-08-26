@@ -261,14 +261,19 @@ export default function Page() {
   const mapViewController = useRef() as RefObject<MapViewController>;
   const [addingElement, setAddingElement] = useState<AddingElement>(null);
 
+  const editableModeCopy = useRef(editableMode);
+  editableModeCopy.current = editableMode;
+
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
+      if (editableModeCopy.current !== 'points') return;
       if (e.code === 'Space') {
         setAddingElement(null);
       }
     };
 
     const handleKeyUp = (e: KeyboardEvent) => {
+      if (editableModeCopy.current !== 'points') return;
       if (e.code === 'Space') {
         setAddingElement(addingElementOrigin);
       }
@@ -289,7 +294,7 @@ export default function Page() {
         <MapView
           onAddedElement={(added) => {
             if (added.type === 'point') {
-              setPoints((v) => [...v, added.value]);
+              setPoints((v) => [...v, { ...added.value, id: Math.random() }]);
             }
           }}
           addingElement={addingElement}
