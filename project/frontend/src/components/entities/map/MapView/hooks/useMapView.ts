@@ -21,7 +21,7 @@ export const useMapView = ({
   const appRef = useRef<PIXI.Application | null>(null);
   const mapController = useRef<MapApp | null>(null);
 
-  const { playBackgroundMusic, updateBackgroundItemMusic, setVolume } = useSounds();
+  const { playBackgroundMusic, updateBackgroundItemMusic, setVolume, onAddPoint } = useSounds();
 
   // Основной useEffect для инициализации
   useEffect(() => {
@@ -34,7 +34,10 @@ export const useMapView = ({
       mapController.current = await createMapApp({
         container,
         backgroundItems,
-        onAddedElement,
+        onAddedElement: (args) => {
+          onAddedElement?.(args);
+          onAddPoint();
+        },
         height,
         points,
         onPointClick,

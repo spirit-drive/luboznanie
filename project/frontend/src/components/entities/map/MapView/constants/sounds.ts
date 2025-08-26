@@ -20,6 +20,8 @@ export const BACKGROUND_MUSIC_PLAYLIST = [
   '/sounds/warn-3.webm',
 ];
 
+export const POINT_ADDING_SOUND = '/sounds/point-adding.wav';
+
 export const getRandomPlaylistIndex = () => {
   return Math.round(Math.random() * (BACKGROUND_MUSIC_PLAYLIST.length - 1));
 };

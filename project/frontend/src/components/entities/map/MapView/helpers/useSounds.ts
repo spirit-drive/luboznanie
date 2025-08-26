@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useCallback } from 'react';
 import { Howl, Howler } from 'howler';
-import { BACKGROUND_MUSIC_PLAYLIST, getRandomPlaylistIndex } from '../constants/sounds';
+import { BACKGROUND_MUSIC_PLAYLIST, getRandomPlaylistIndex, POINT_ADDING_SOUND } from '../constants/sounds';
 import { backgroundItemsMap } from '@/components/entities/map/MapView/constants/backgroundItemsMap';
 import { MapVisibleBackgroundItem } from '@/types/entities/map/map.types';
 
@@ -69,6 +69,17 @@ export const useSounds = () => {
     backgroundItemMusicRef.current?.fade(0, 1, 1000);
   }, []);
 
+  const onAddPoint = () => {
+    const sound = new Howl({
+      src: [POINT_ADDING_SOUND],
+      html5: true,
+      autoplay: true,
+      onend: () => {
+        sound.unload();
+      },
+    });
+  };
+
   // Новая функция, которая принимает видимые элементы и решает, что играть
   const updateBackgroundItemMusic = useCallback(
     (visibleBackgroundItems: MapVisibleBackgroundItem[]) => {
@@ -114,5 +125,5 @@ export const useSounds = () => {
     };
   }, [playBackgroundMusic]);
 
-  return { playBackgroundMusic, updateBackgroundItemMusic, setVolume };
+  return { playBackgroundMusic, updateBackgroundItemMusic, setVolume, onAddPoint };
 };
