@@ -255,6 +255,18 @@ const addingElementOrigin: AddingElement = {
   value: addingPoint,
 };
 
+const HIDE_ADDING_KEYS = [
+  'ShiftLeft',
+  'ShiftRight',
+  'AltLeft',
+  'AltRight',
+  'ControlLeft',
+  'ControlRight',
+  'MetaRight',
+  'MetaLeft',
+  'Space',
+];
+
 export default function Page() {
   const [editableMode, setEditableMode] = useState<MapEditableMode>('none');
   const [points, setPoints] = useState(items);
@@ -267,14 +279,14 @@ export default function Page() {
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (editableModeCopy.current !== 'points') return;
-      if (e.code === 'Space') {
+      if (HIDE_ADDING_KEYS.some((i) => e.code === i)) {
         setAddingElement(null);
       }
     };
 
     const handleKeyUp = (e: KeyboardEvent) => {
       if (editableModeCopy.current !== 'points') return;
-      if (e.code === 'Space') {
+      if (HIDE_ADDING_KEYS.some((i) => e.code === i)) {
         setAddingElement(addingElementOrigin);
       }
     };
