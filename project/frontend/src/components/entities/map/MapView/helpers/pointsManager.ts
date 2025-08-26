@@ -330,6 +330,7 @@ export const createPointsManager = (
           onPointDown: (point, event) => onPointerDown(newVisual, event),
           onPointClick: onPointClick,
         });
+        newVisual.setEditableMode(state.editableMode);
         state.renderedPoints.set(pointData.id, newVisual);
         pointItemsContainer.addChild(newVisual.container);
       }
