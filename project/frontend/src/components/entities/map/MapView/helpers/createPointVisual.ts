@@ -113,7 +113,7 @@ export const createPointVisual = (point: Point, options: PointVisualOptions): Po
       });
       pointContainer.cursor = 'pointer';
     } else if (state.editableMode === 'points') {
-      hoverCircle.visible = state.isHovered && state.editableMode !== 'none' && !state.isActive;
+      hoverCircle.visible = state.isHovered;
       activeCircle.visible = state.isActive;
       gsap.to(pointContainer.scale, { x: 1.0, y: 1.0, duration: 0.2, ease: 'power2.out' });
       pointContainer.cursor = state.isHovered ? 'grab' : 'pointer';
