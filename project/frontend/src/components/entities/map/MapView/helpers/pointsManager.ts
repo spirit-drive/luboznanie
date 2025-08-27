@@ -10,7 +10,7 @@ import {
   PointVisuals,
 } from '../MapView.types';
 import { createPointVisual } from './createPointVisual';
-import { updateConnections } from '@/components/entities/map/MapView/helpers/updateConnections';
+import { createUpdateConnections } from '@/components/entities/map/MapView/helpers/createUpdateConnections';
 import { getAllChildren } from '@/components/entities/map/MapView/helpers/helpers';
 import { AddingPoint } from '@/types/entities/point/point.types';
 
@@ -81,6 +81,8 @@ export const createPointsManager = (
     renderedPoints: new Map<PointID, PointVisuals>(),
     selectedPoints: new Map<PointID, PointVisuals>(),
   };
+
+  const updateConnections = createUpdateConnections(connectionsContainer, state);
 
   const onMoveAddingPoint = (event: PIXI.FederatedPointerEvent) => {
     if (state.addingPoint) {
@@ -184,6 +186,7 @@ export const createPointsManager = (
       pointVisual.setActive(false);
       state.selectedPoints.delete(pointVisual.point.id);
     });
+    updateConnections();
   };
 
   const selectPoints = (points: PointVisuals[]) => {
@@ -191,9 +194,10 @@ export const createPointsManager = (
       pointVisual.setActive(true);
       state.selectedPoints.set(pointVisual.point.id, pointVisual);
     });
+    updateConnections();
   };
 
-  const onPointClick = (point: Point) => {
+  const onPointClick = (point: Point, event: PIXI.FederatedPointerEvent) => {
     if (state.moved) return;
 
     options.onPointClick?.(point);
@@ -201,6 +205,22 @@ export const createPointsManager = (
 
     const pointVisual = state.renderedPoints.get(point.id);
     if (!pointVisual) return;
+
+    if (state.selectedPoints.size === 1) {
+      const selected = [...state.selectedPoints.values()][0] as PointVisuals;
+      if ((event.metaKey || event.ctrlKey) && point.id !== selected.point.id) {
+        if (
+          !point.connections.some((i) => i.pointId === selected.point.id) &&
+          !selected.point.connections.some((i) => i.pointId === point.id)
+        ) {
+          selected.point.connections.push({ id: Math.random().toString(), pointId: point.id });
+        } else {
+          selected.point.connections = selected.point.connections.filter((i) => i.pointId !== point.id);
+        }
+        updateConnections();
+        return;
+      }
+    }
 
     if (Date.now() - state.timestampPointTapDoubleTap >= DOUBLE_TAP_TIMEOUT) {
       state.timestampPointTapDoubleTap = Date.now();
@@ -260,6 +280,7 @@ export const createPointsManager = (
   };
 
   const onAppPointerUp = (event: PIXI.FederatedPointerEvent) => {
+    if (state.editableMode !== 'points') return;
     clearTimeout(state.timeoutIdPointUp);
 
     if (state.addingPoint?.container.visible) {
@@ -337,7 +358,7 @@ export const createPointsManager = (
     }
 
     // 3. Обновление связей
-    updateConnections(connectionsContainer, state.renderedPoints)(points);
+    updateConnections();
   };
 
   const setEditableMode = (mode: MapEditableMode) => {
@@ -348,17 +369,13 @@ export const createPointsManager = (
   };
 
   const resetPointsSelecting = () => {
-    state.selectedPoints.forEach((item) => {
-      item.setActive(false);
-    });
+    unselectPoints(Array.from(state.selectedPoints.values()));
     state.selectedPoints.clear();
   };
 
   const selectAll = () => {
-    state.selectedPoints = new Map<PointID, PointVisuals>(state.renderedPoints);
-    state.selectedPoints.forEach((item) => {
-      item.setActive(true);
-    });
+    selectPoints(Array.from(state.renderedPoints.values()));
+    state.selectedPoints = new Map(state.renderedPoints);
   };
 
   const selectPiintsBySpace: OnSelectedSpace = (space, phase, event) => {
@@ -427,7 +444,6 @@ export const createPointsManager = (
       return !!state.addingPoint?.container.visible;
     },
     selectAllPoints: () => {
-      console.log('selectAllPoints');
       state.selectedPoints = new Map(state.renderedPoints);
       state.selectedPoints.values().forEach((i) => {
         i.setActive(true);
