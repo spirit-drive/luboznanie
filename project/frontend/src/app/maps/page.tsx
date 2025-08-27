@@ -270,9 +270,11 @@ const HIDE_ADDING_KEYS = [
 export default function Page() {
   const [editableMode, setEditableMode] = useState<MapEditableMode>('none');
   const [points, setPoints] = useState(items);
-  const mapViewController = useRef() as RefObject<MapViewController>;
-  const [addingElement, setAddingElement] = useState<AddingElement>(null);
+  const [addingElement, setAddingElement] = useState<AddingElement | null>(null);
 
+  const mapViewController = useRef<MapViewController | null>(null);
+
+  const editableModePrev = useRef<AddingElement | null>(null);
   const editableModeCopy = useRef(editableMode);
   editableModeCopy.current = editableMode;
 
@@ -287,7 +289,7 @@ export default function Page() {
     const handleKeyUp = (e: KeyboardEvent) => {
       if (editableModeCopy.current !== 'points') return;
       if (HIDE_ADDING_KEYS.some((i) => e.code === i)) {
-        setAddingElement(addingElementOrigin);
+        setAddingElement(editableModePrev.current);
       }
     };
 
@@ -327,14 +329,20 @@ export default function Page() {
         <button
           onClick={() => {
             setEditableMode('points');
-            mapViewController.current.selectAllPoints();
+            mapViewController.current?.selectAllPoints();
           }}
         >
           Выделить все
         </button>
       </div>
       <div>
-        <button onClick={() => setAddingElement(addingElementOrigin)}>+</button>
+        <button
+          onClick={() => {
+            setAddingElement((editableModePrev.current = addingElementOrigin));
+          }}
+        >
+          +
+        </button>
       </div>
     </div>
   );

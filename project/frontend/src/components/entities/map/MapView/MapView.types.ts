@@ -28,7 +28,7 @@ export type MapControllerOptions = {
 };
 
 export type MapViewProps = {
-  addingElement: AddingElement;
+  addingElement: AddingElement | null;
   onAddedElement: (added: AddedElement) => void;
   ref?: Ref<MapViewController>;
   className?: string;
