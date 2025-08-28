@@ -13,6 +13,7 @@ import { createPointVisual } from './createPointVisual';
 import { createUpdateConnections } from '@/components/entities/map/MapView/helpers/createUpdateConnections';
 import { getAllChildren } from '@/components/entities/map/MapView/helpers/helpers';
 import { AddingPoint } from '@/types/entities/point/point.types';
+import { deepCopy } from '@/utils/deepCopy';
 
 // Интерфейс для внутреннего состояния менеджера
 
@@ -109,7 +110,7 @@ export const createPointsManager = (
    */
   const applyPointChanges = () => {
     const newPoints = Array.from(state.renderedPoints.values()).map((visual) => ({
-      ...visual.point,
+      ...deepCopy(visual.point),
       position: {
         x: visual.container.position.x,
         y: visual.container.position.y,
@@ -204,7 +205,7 @@ export const createPointsManager = (
 
     if (state.selectedPoints.size === 1) {
       const selected = [...state.selectedPoints.values()][0] as PointVisuals;
-      if (shouldConnectPoints(event) && point.id !== selected.point.id) {
+      if (point.id !== selected.point.id && shouldConnectPoints(event)) {
         if (
           !point.connections.some((i) => i.pointId === selected.point.id) &&
           !selected.point.connections.some((i) => i.pointId === point.id)
@@ -282,7 +283,7 @@ export const createPointsManager = (
     if (state.addingPoint?.container.visible) {
       const id = Math.random().toString(16);
       const value: Point = {
-        ...state.addingPoint.point,
+        ...deepCopy(state.addingPoint.point),
         id,
         position: {
           x: state.addingPoint.container.position.x,
