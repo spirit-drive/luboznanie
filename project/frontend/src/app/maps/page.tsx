@@ -6,6 +6,7 @@ import { AddingPoint, Point } from '@/types/entities/point/point.types';
 import { BackgroundItem } from '@/types/entities/map/map.types';
 import { RefObject, useEffect, useRef, useState } from 'react';
 import { AddingElement, MapEditableMode, MapViewController } from '@/components/entities/map/MapView/MapView.types';
+import * as PIXI from 'pixi.js';
 
 const onPointClick = () => {};
 
@@ -306,6 +307,8 @@ export default function Page() {
     <div className={s.page}>
       <div style={{ height: 700 }}>
         <MapView
+          shouldConnectPoints={(e) => e.metaKey || e.ctrlKey}
+          shouldUnselectByRect={(e) => e.metaKey || e.ctrlKey}
           onAddedElement={(added) => {
             if (added.type === 'point') {
               setPoints((v) => [...v, { ...added.value, id: Math.random() }]);

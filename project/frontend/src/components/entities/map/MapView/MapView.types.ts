@@ -28,6 +28,8 @@ export type MapControllerOptions = {
 };
 
 export type MapViewProps = {
+  shouldUnselectByRect: (event: PIXI.FederatedPointerEvent) => boolean;
+  shouldConnectPoints: (event: PIXI.FederatedPointerEvent) => boolean;
   addingElement: AddingElement | null;
   onAddedElement: (added: AddedElement) => void;
   ref?: Ref<MapViewController>;
@@ -55,12 +57,18 @@ export type PointVisuals = {
 };
 
 export type PointsManagerOptions = {
-  shouldUnselect?: (event: PIXI.FederatedPointerEvent) => boolean;
   pointTypeIcon: LoadedAsset;
   pointPropsIcon: LoadedAsset;
 } & Pick<
   MapViewProps,
-  'onAddedElement' | 'onPointClick' | 'backgroundItems' | 'editableMode' | 'onSelectPoints' | 'onChangePoints'
+  | 'shouldUnselectByRect'
+  | 'onAddedElement'
+  | 'onPointClick'
+  | 'shouldConnectPoints'
+  | 'backgroundItems'
+  | 'editableMode'
+  | 'onSelectPoints'
+  | 'onChangePoints'
 >;
 
 export type PointVisualOptions = {
@@ -83,6 +91,8 @@ export type PointsManager = {
 
 export type UseMapViewOptions = Pick<
   MapViewProps,
+  | 'shouldConnectPoints'
+  | 'shouldUnselectByRect'
   | 'background'
   | 'addingElement'
   | 'onAddedElement'

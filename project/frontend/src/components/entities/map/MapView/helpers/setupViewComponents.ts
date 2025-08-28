@@ -30,6 +30,8 @@ export const setupViewComponents = async ({ app, world, options }: MapDependenci
     onChangePoints,
     onChangeWorld,
     onAddedElement,
+    shouldUnselectByRect,
+    shouldConnectPoints,
   } = options;
 
   // Центрируем мир
@@ -67,6 +69,8 @@ export const setupViewComponents = async ({ app, world, options }: MapDependenci
     onSelectPoints,
     onAddedElement,
     onChangePoints: onChangePointsWithFog,
+    shouldUnselectByRect,
+    shouldConnectPoints,
   });
   pointsManager.updatePoints(points);
   updateFogMask(points);

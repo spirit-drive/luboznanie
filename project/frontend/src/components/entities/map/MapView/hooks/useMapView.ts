@@ -16,6 +16,8 @@ export const useMapView = ({
   onChangePoints,
   addingElement,
   onAddedElement,
+  shouldUnselectByRect,
+  shouldConnectPoints,
 }: UseMapViewOptions): TMapView => {
   const containerRef = useRef<HTMLDivElement>(null);
   const appRef = useRef<PIXI.Application | null>(null);
@@ -32,6 +34,8 @@ export const useMapView = ({
       }
 
       mapController.current = await createMapApp({
+        shouldUnselectByRect,
+        shouldConnectPoints,
         container,
         backgroundItems,
         onAddedElement: (args) => {

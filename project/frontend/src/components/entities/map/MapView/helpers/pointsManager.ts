@@ -52,11 +52,7 @@ export const createPointsManager = (
   world: PIXI.Container,
   options: PointsManagerOptions,
 ): PointsManager => {
-  const {
-    shouldUnselect = (e: PIXI.FederatedPointerEvent) => e.metaKey || e.ctrlKey,
-    onChangePoints,
-    onAddedElement,
-  } = options;
+  const { shouldUnselectByRect, onChangePoints, onAddedElement, shouldConnectPoints } = options;
 
   // Контейнеры для раздельной отрисовки, линии под точками
   const connectionsContainer = new PIXI.Container();
@@ -208,7 +204,7 @@ export const createPointsManager = (
 
     if (state.selectedPoints.size === 1) {
       const selected = [...state.selectedPoints.values()][0] as PointVisuals;
-      if ((event.metaKey || event.ctrlKey) && point.id !== selected.point.id) {
+      if (shouldConnectPoints(event) && point.id !== selected.point.id) {
         if (
           !point.connections.some((i) => i.pointId === selected.point.id) &&
           !selected.point.connections.some((i) => i.pointId === point.id)
@@ -385,7 +381,7 @@ export const createPointsManager = (
         return x >= space.minX && x <= space.maxX && y >= space.minY && y <= space.maxY;
       });
 
-      if (shouldUnselect!(event)) {
+      if (shouldUnselectByRect!(event)) {
         pointsInSpace.forEach(([id, point]) => {
           point.setActive(false);
           state.selectedPoints.delete(id);
@@ -396,6 +392,7 @@ export const createPointsManager = (
           state.selectedPoints.set(id, point);
         });
       }
+      updateConnections();
     }
   };
 
