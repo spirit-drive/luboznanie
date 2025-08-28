@@ -280,16 +280,18 @@ export const createPointsManager = (
     clearTimeout(state.timeoutIdPointUp);
 
     if (state.addingPoint?.container.visible) {
-      onAddedElement?.({
-        type: 'point',
-        value: {
-          ...state.addingPoint.point,
-          position: {
-            x: state.addingPoint.container.position.x,
-            y: state.addingPoint.container.position.y,
-          },
+      const id = Math.random().toString(16);
+      const value: Point = {
+        ...state.addingPoint.point,
+        id,
+        position: {
+          x: state.addingPoint.container.position.x,
+          y: state.addingPoint.container.position.y,
         },
-      });
+      };
+      onAddedElement?.({ type: 'point', value });
+      // Чтобы сработало после добавления
+      setTimeout(applyPointChanges);
       return;
     }
 

@@ -305,7 +305,7 @@ export default function Page() {
           shouldUnselectByRect={(e) => e.metaKey || e.ctrlKey}
           onAddedElement={(added) => {
             if (added.type === 'point') {
-              setPoints((v) => [...v, { ...added.value, id: Math.random() }]);
+              setPoints((v) => [...v, added.value]);
             }
           }}
           addingElement={addingElement}
