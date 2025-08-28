@@ -446,6 +446,9 @@ export const createPointsManager = (
         i.setActive(true);
       });
     },
+    setVisibleOfAddingElement: (visible) => {
+      if (state.addingPoint) state.addingPoint.container.visible = visible;
+    },
     selectPoints: (ids) => {
       ids.forEach((i) => {
         if (state.renderedPoints.has(i)) {

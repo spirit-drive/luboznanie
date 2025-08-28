@@ -275,22 +275,16 @@ export default function Page() {
 
   const mapViewController = useRef<MapViewController | null>(null);
 
-  const editableModePrev = useRef<AddingElement | null>(null);
-  const editableModeCopy = useRef(editableMode);
-  editableModeCopy.current = editableMode;
-
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (editableModeCopy.current !== 'points') return;
       if (HIDE_ADDING_KEYS.some((i) => e.code === i)) {
-        setAddingElement(null);
+        mapViewController.current?.setVisibleOfAddingElement(false);
       }
     };
 
     const handleKeyUp = (e: KeyboardEvent) => {
-      if (editableModeCopy.current !== 'points') return;
       if (HIDE_ADDING_KEYS.some((i) => e.code === i)) {
-        setAddingElement(editableModePrev.current);
+        mapViewController.current?.setVisibleOfAddingElement(true);
       }
     };
 
@@ -341,7 +335,7 @@ export default function Page() {
       <div>
         <button
           onClick={() => {
-            setAddingElement((editableModePrev.current = addingElementOrigin));
+            setAddingElement(addingElementOrigin);
           }}
         >
           +

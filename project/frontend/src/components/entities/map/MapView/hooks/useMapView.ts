@@ -98,6 +98,7 @@ export const useMapView = ({
   return {
     containerRef,
     setVolume,
+    setVisibleOfAddingElement: (v) => mapController.current?.setVisibleOfAddingElement(v),
     selectAllPoints: () => {
       mapController.current?.selectAllPoints();
     },

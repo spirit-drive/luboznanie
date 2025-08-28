@@ -77,6 +77,7 @@ export type PointVisualOptions = {
 } & Omit<PointsManagerOptions, 'onPointClick'>;
 
 export type PointsManager = {
+  setVisibleOfAddingElement: (visible: boolean) => void;
   selectPoints: (ids: PointID[]) => void;
   selectAllPoints: () => void;
   setAddingElement: (addingElement: AddingPoint | null) => void;
@@ -108,7 +109,7 @@ export type UseMapViewOptions = Pick<
 
 export type MapViewController = {
   setVolume: (volume: number) => void;
-} & Pick<PointsManager, 'selectAllPoints' | 'selectPoints'>;
+} & Pick<PointsManager, 'selectAllPoints' | 'selectPoints' | 'setVisibleOfAddingElement'>;
 
 export type TMapView = {
   containerRef: RefObject<HTMLDivElement>;
@@ -124,7 +125,7 @@ export type MapApp = {
   cleanup: () => void;
   setEditableMode: (editableMode: MapEditableMode) => void;
   setAddingElement: (addingElement: AddingElement | null) => void;
-} & Pick<PointsManager, 'updatePoints' | 'selectAllPoints' | 'selectPoints'>;
+} & Pick<PointsManager, 'updatePoints' | 'selectAllPoints' | 'selectPoints' | 'setVisibleOfAddingElement'>;
 
 export type AddingPointType = {
   type: 'point';

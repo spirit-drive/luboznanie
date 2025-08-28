@@ -18,6 +18,7 @@ export const createMapApp = async ({ container, appRef, ...options }: MapViewOpt
 
   // 4. Возвращаем публичный API
   return {
+    setVisibleOfAddingElement: (v) => pointsManager.setVisibleOfAddingElement(v),
     setAddingElement: (addingElement) => {
       if (!addingElement) {
         pointsManager.setAddingElement(null);
