@@ -377,7 +377,7 @@ export const createPointsManager = (
     state.selectedPoints = new Map(state.renderedPoints);
   };
 
-  const selectPiintsBySpace: OnSelectedSpace = (space, phase, event) => {
+  const selectPointsBySpace: OnSelectedSpace = (space, phase, event) => {
     if (phase === 'end') {
       const pointsInSpace = Array.from(state.renderedPoints.entries()).filter(([_, point]) => {
         const { x, y } = point.container.position;
@@ -423,21 +423,23 @@ export const createPointsManager = (
     destroy,
     setEditableMode,
     resetPointsSelecting,
-    selectPointsBySpace: selectPiintsBySpace,
+    selectPointsBySpace,
     pointContainer,
     setAddingElement: (addingElement) => {
-      if (!addingElement) {
-        if (state.addingPoint) {
-          state.addingPoint.container.visible = state.addingPointVisible = false;
+      if (state.editableMode === 'points') {
+        if (!addingElement) {
+          if (state.addingPoint) {
+            state.addingPoint.container.visible = state.addingPointVisible = false;
+          }
+          return;
         }
-        return;
-      }
 
-      if (state.addingPoint) {
-        state.addingPoint.container.visible = state.addingPointVisible = true;
-      } else {
-        state.addingPointVisible = true;
-        mountAddingPoint(state.editableMode, addingElement);
+        if (state.addingPoint) {
+          state.addingPoint.container.visible = state.addingPointVisible = true;
+        } else {
+          state.addingPointVisible = true;
+          mountAddingPoint(state.editableMode, addingElement);
+        }
       }
     },
     shouldMapPreventScrolling: () => {
@@ -450,7 +452,8 @@ export const createPointsManager = (
       });
     },
     setVisibleOfAddingElement: (visible) => {
-      if (state.addingPoint) state.addingPoint.container.visible = visible;
+      if (state.editableMode !== 'points' && state.editableMode !== 'backgrounds') return;
+      if (state.addingPoint) state.addingPoint.container.visible = state.addingPointVisible = visible;
     },
     selectPoints: (ids) => {
       ids.forEach((i) => {
