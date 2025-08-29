@@ -83,6 +83,7 @@ export const useMapView = ({
   // --- useEffect для обновления точек ---
   useEffect(() => {
     if (mapController.current && points) {
+      console.log(points);
       mapController.current?.updatePoints(points);
     }
   }, [points]);

@@ -14,6 +14,9 @@ import { createUpdateConnections } from '@/components/entities/map/MapView/helpe
 import { getAllChildren } from '@/components/entities/map/MapView/helpers/helpers';
 import { AddingPoint } from '@/types/entities/point/point.types';
 import { deepCopy } from '@/utils/deepCopy';
+import { createSingleDoubleAction } from '@/utils/createSingleDoubleAction';
+import { ContainerChild } from 'pixi.js/lib/scene/container/Container';
+import { createPreventMultiAction } from '@/utils/createPreventMultiAction';
 
 // Интерфейс для внутреннего состояния менеджера
 
@@ -23,10 +26,6 @@ interface PointsManagerState {
   editableMode: MapEditableMode;
   isDragging: boolean;
   moved: boolean;
-  timestampAppDoubleTap: number;
-  timestampPointTapDoubleTap: number;
-  timeoutIdPointTap: number;
-  timeoutIdPointUp: number;
   dragStartGlobal: PIXI.Point | null;
   dragOffset: PIXI.Point | null;
   movablePoint: PointVisuals | null;
@@ -34,10 +33,7 @@ interface PointsManagerState {
   selectedPoints: Map<PointID, PointVisuals>;
 }
 
-const DOUBLE_TAP_TIMEOUT = 200;
-const PREVENT_DOUBLE_BY_SCALING_TIMEOUT = 100;
-
-const createGhostPoint = (
+const createAddingPoint = (
   position: PIXI.PointData,
   addingPoint: AddingPoint,
   options: PointVisualOptions,
@@ -50,7 +46,7 @@ const createGhostPoint = (
 
 export const createPointsManager = (
   app: PIXI.Application,
-  world: PIXI.Container,
+  world: PIXI.Container<ContainerChild>,
   options: PointsManagerOptions,
 ): PointsManager => {
   const { shouldUnselectByRect, onChangePoints, onAddedElement, shouldConnectPoints } = options;
@@ -65,10 +61,6 @@ export const createPointsManager = (
   const state: PointsManagerState = {
     addingPoint: null,
     addingPointVisible: false,
-    timeoutIdPointUp: 0,
-    timeoutIdPointTap: 0,
-    timestampAppDoubleTap: 0,
-    timestampPointTapDoubleTap: 0,
     editableMode: 'none',
     isDragging: false,
     moved: false,
@@ -99,7 +91,7 @@ export const createPointsManager = (
   };
 
   const mountAddingPoint = (mode: MapEditableMode, addingPoint: AddingPoint) => {
-    state.addingPoint = createGhostPoint({ x: 0, y: 0 }, addingPoint, options); // Начальная позиция
+    state.addingPoint = createAddingPoint({ x: 0, y: 0 }, addingPoint, options); // Начальная позиция
     pointItemsContainer.addChild(state.addingPoint.container);
     app.stage.on('pointermove', onMoveAddingPoint);
   };
@@ -168,7 +160,6 @@ export const createPointsManager = (
     // Сбрасываем состояние после задержки, чтобы избежать ложных 'clicks'
     setTimeout(() => {
       state.isDragging = false;
-      state.moved = false;
       state.dragStartGlobal = null;
       state.dragOffset = null;
       state.movablePoint = null;
@@ -194,49 +185,51 @@ export const createPointsManager = (
     updateConnections();
   };
 
-  const onPointClick = (point: Point, event: PIXI.FederatedPointerEvent) => {
-    if (state.moved) return;
+  const onPointClick = createSingleDoubleAction<PIXI.FederatedPointerEvent>({
+    alwaysHandler: (_, point: Point) => {
+      options.onPointClick?.(point);
 
-    options.onPointClick?.(point);
-    if (state.editableMode !== 'points') return;
-
-    const pointVisual = state.renderedPoints.get(point.id);
-    if (!pointVisual) return;
-
-    if (state.selectedPoints.size === 1) {
-      const selected = [...state.selectedPoints.values()][0] as PointVisuals;
-      if (point.id !== selected.point.id && shouldConnectPoints(event)) {
-        if (
-          !point.connections.some((i) => i.pointId === selected.point.id) &&
-          !selected.point.connections.some((i) => i.pointId === point.id)
-        ) {
-          selected.point.connections.push({ id: Math.random().toString(), pointId: point.id });
-        } else {
-          selected.point.connections = selected.point.connections.filter((i) => i.pointId !== point.id);
-        }
-        updateConnections();
+      return false;
+    },
+    singleHandler: (event, point: Point) => {
+      if (state.moved) {
+        state.moved = false;
         return;
       }
-    }
 
-    if (Date.now() - state.timestampPointTapDoubleTap >= DOUBLE_TAP_TIMEOUT) {
-      state.timestampPointTapDoubleTap = Date.now();
+      if (state.editableMode !== 'points') return;
 
-      clearTimeout(state.timeoutIdPointTap);
-      state.timeoutIdPointTap = setTimeout(() => {
-        if (state.selectedPoints.has(point.id)) unselectPoints([pointVisual]);
-        else selectPoints([pointVisual]);
-      }, DOUBLE_TAP_TIMEOUT) as number;
+      if (state.selectedPoints.size === 1) {
+        const selected = [...state.selectedPoints.values()][0] as PointVisuals;
+        if (point.id !== selected.point.id && shouldConnectPoints(event)) {
+          if (
+            !point.connections.some((i) => i.pointId === selected.point.id) &&
+            !selected.point.connections.some((i) => i.pointId === point.id)
+          ) {
+            selected.point.connections.push({ id: Math.random().toString(), pointId: point.id });
+          } else {
+            selected.point.connections = selected.point.connections.filter((i) => i.pointId !== point.id);
+          }
+          updateConnections();
+          return;
+        }
+      }
 
-      return;
-    }
+      const pointVisual = state.renderedPoints.get(point.id);
+      if (!pointVisual) return;
 
-    clearTimeout(state.timeoutIdPointTap);
+      if (state.selectedPoints.has(point.id)) unselectPoints([pointVisual]);
+      else selectPoints([pointVisual]);
+    },
+    doubleHandler: (event, point: Point) => {
+      const pointVisual = state.renderedPoints.get(point.id);
+      if (!pointVisual) return;
 
-    const children = getAllChildren(point, state.renderedPoints);
-    if (state.selectedPoints.has(point.id)) unselectPoints([...children, pointVisual]);
-    else selectPoints([...children, pointVisual]);
-  };
+      const children = getAllChildren(point, state.renderedPoints);
+      if (state.selectedPoints.has(point.id)) unselectPoints([...children, pointVisual]);
+      else selectPoints([...children, pointVisual]);
+    },
+  });
 
   const onKeyDown = (event: KeyboardEvent) => {
     if (state.editableMode === 'points' && state.selectedPoints.size > 0) {
@@ -276,42 +269,62 @@ export const createPointsManager = (
     return state.renderedPoints.values().some((i) => i.container === event.target);
   };
 
-  const onAppPointerUp = (event: PIXI.FederatedPointerEvent) => {
-    if (state.editableMode !== 'points') return;
-    clearTimeout(state.timeoutIdPointUp);
-
-    if (state.addingPoint?.container.visible) {
-      const id = Math.random().toString(16);
-      const value: Point = {
-        ...deepCopy(state.addingPoint.point),
-        id,
-        position: {
-          x: state.addingPoint.container.position.x,
-          y: state.addingPoint.container.position.y,
-        },
-      };
-      onAddedElement?.({ type: 'point', value });
-      // Чтобы сработало после добавления
-      setTimeout(applyPointChanges);
-      return;
-    }
-
-    state.timeoutIdPointUp = setTimeout(
-      () => {
-        if (Date.now() - state.timestampAppDoubleTap >= DOUBLE_TAP_TIMEOUT) {
-          state.timestampAppDoubleTap = Date.now();
-          return;
+  const onAppPointerUp = createPreventMultiAction<PIXI.FederatedPointerEvent>({
+    alwaysHandler: (): boolean => {
+      switch (state.editableMode) {
+        case 'points': {
+          if (!state.addingPoint?.container.visible) return;
+          const id = Math.random().toString(16);
+          const value: Point = {
+            ...deepCopy(state.addingPoint.point),
+            id,
+            position: {
+              x: state.addingPoint.container.position.x,
+              y: state.addingPoint.container.position.y,
+            },
+          };
+          onAddedElement?.({ type: 'point', value });
+          // Чтобы сработало после добавления
+          setTimeout(applyPointChanges);
+          return true;
         }
 
-        const isPointerClick = isAnyPointerEvent(event);
-        if (isPointerClick) return;
+        default:
+          return false;
+      }
+    },
+    isEnable: (event) => event.pointerType === 'touch',
+  })(
+    createSingleDoubleAction<PIXI.FederatedPointerEvent>({
+      alwaysHandler: (): boolean => {
+        switch (state.editableMode) {
+          case 'points': {
+            if (state.addingPoint?.container.visible) return true;
+            break;
+          }
 
-        if (state.selectedPoints.size) resetPointsSelecting();
-        else selectAll();
+          default:
+            return false;
+        }
       },
-      event.pointerType === 'touch' ? PREVENT_DOUBLE_BY_SCALING_TIMEOUT : 0,
-    ) as number;
-  };
+      doubleHandler: (event) => {
+        switch (state.editableMode) {
+          case 'points': {
+            const isPointerClick = isAnyPointerEvent(event);
+            if (isPointerClick) return;
+
+            if (state.selectedPoints.size) resetPointsSelecting();
+            else selectAll();
+
+            break;
+          }
+
+          default:
+            break;
+        }
+      },
+    }),
+  );
 
   /**
    * --- ОСНОВНЫЕ МЕТОДЫ МЕНЕДЖЕРА ---
@@ -348,7 +361,7 @@ export const createPointsManager = (
         const newVisual = createPointVisual(pointData, {
           ...options,
           onPointDown: (point, event) => onPointerDown(newVisual, event),
-          onPointClick: onPointClick,
+          onPointClick: (point, event) => onPointClick(event, point),
         });
         newVisual.setEditableMode(state.editableMode);
         state.renderedPoints.set(pointData.id, newVisual);
@@ -379,7 +392,7 @@ export const createPointsManager = (
 
   const selectPointsBySpace: OnSelectedSpace = (space, phase, event) => {
     if (phase === 'end') {
-      const pointsInSpace = Array.from(state.renderedPoints.entries()).filter(([_, point]) => {
+      const pointsInSpace = Array.from(state.renderedPoints.entries()).filter(([, point]) => {
         const { x, y } = point.container.position;
         return x >= space.minX && x <= space.maxX && y >= space.minY && y <= space.maxY;
       });
@@ -446,6 +459,7 @@ export const createPointsManager = (
       return !!state.addingPoint?.container.visible;
     },
     selectAllPoints: () => {
+      if (state.editableMode !== 'points') return;
       state.selectedPoints = new Map(state.renderedPoints);
       state.selectedPoints.values().forEach((i) => {
         i.setActive(true);
@@ -456,6 +470,7 @@ export const createPointsManager = (
       if (state.addingPoint) state.addingPoint.container.visible = state.addingPointVisible = visible;
     },
     selectPoints: (ids) => {
+      if (state.editableMode !== 'points') return;
       ids.forEach((i) => {
         if (state.renderedPoints.has(i)) {
           const point = state.renderedPoints.get(i)!;

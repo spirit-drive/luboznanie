@@ -299,7 +299,7 @@ export default function Page() {
 
   return (
     <div className={s.page}>
-      <div style={{ height: 700 }}>
+      <div style={{ height: 500 }}>
         <MapView
           shouldConnectPoints={(e) => e.metaKey || e.ctrlKey}
           shouldUnselectByRect={(e) => e.metaKey || e.ctrlKey}
