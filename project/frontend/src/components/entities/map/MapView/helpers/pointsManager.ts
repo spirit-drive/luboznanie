@@ -16,7 +16,6 @@ import { AddingPoint } from '@/types/entities/point/point.types';
 import { deepCopy } from '@/utils/deepCopy';
 import { createSingleDoubleAction } from '@/utils/createSingleDoubleAction';
 import { ContainerChild } from 'pixi.js/lib/scene/container/Container';
-import { createPreventMultiAction } from '@/utils/createPreventMultiAction';
 
 // Интерфейс для внутреннего состояния менеджера
 
@@ -269,11 +268,11 @@ export const createPointsManager = (
     return state.renderedPoints.values().some((i) => i.container === event.target);
   };
 
-  const onAppPointerUp = createPreventMultiAction<PIXI.FederatedPointerEvent>({
+  const onAppPointerUp = createSingleDoubleAction<PIXI.FederatedPointerEvent>({
     alwaysHandler: (): boolean => {
       switch (state.editableMode) {
         case 'points': {
-          if (!state.addingPoint?.container.visible) return;
+          if (!state.addingPoint?.container.visible) return false;
           const id = Math.random().toString(16);
           const value: Point = {
             ...deepCopy(state.addingPoint.point),
@@ -293,38 +292,23 @@ export const createPointsManager = (
           return false;
       }
     },
-    isEnable: (event) => event.pointerType === 'touch',
-  })(
-    createSingleDoubleAction<PIXI.FederatedPointerEvent>({
-      alwaysHandler: (): boolean => {
-        switch (state.editableMode) {
-          case 'points': {
-            if (state.addingPoint?.container.visible) return true;
-            break;
-          }
+    doubleHandler: (event) => {
+      switch (state.editableMode) {
+        case 'points': {
+          const isPointerClick = isAnyPointerEvent(event);
+          if (isPointerClick) return;
 
-          default:
-            return false;
+          if (state.selectedPoints.size) resetPointsSelecting();
+          else selectAll();
+
+          break;
         }
-      },
-      doubleHandler: (event) => {
-        switch (state.editableMode) {
-          case 'points': {
-            const isPointerClick = isAnyPointerEvent(event);
-            if (isPointerClick) return;
 
-            if (state.selectedPoints.size) resetPointsSelecting();
-            else selectAll();
-
-            break;
-          }
-
-          default:
-            break;
-        }
-      },
-    }),
-  );
+        default:
+          break;
+      }
+    },
+  });
 
   /**
    * --- ОСНОВНЫЕ МЕТОДЫ МЕНЕДЖЕРА ---
