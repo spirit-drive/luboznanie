@@ -41,7 +41,7 @@ export const setupViewComponents = async ({ app, world, options }: MapDependenci
   world.y = app.screen.height / 2 - height / 2;
 
   // 1. Загрузка ассетов
-  const { pointTypeIcon, pointPropsIcon, backgroundAssets } = await loadingAssets({ backgroundItems });
+  const { pointTypeIcon, pointPropsIcon, backgroundAssets, fogAssets } = await loadingAssets({ backgroundItems });
 
   // 2. Настройка фона
   await setupBackground(world, { image: background!.image!, width, height });
@@ -55,7 +55,7 @@ export const setupViewComponents = async ({ app, world, options }: MapDependenci
   world.addChild(backgroundContainer);
 
   // 4. Создание тумана и прокси-функции для обновления точек
-  const { updateFogMask, fog } = createFog(world, { width, height });
+  const { updateFogMask, fog } = createFog(world, { width, height, fogAssets });
   const onChangePointsWithFog = (newPoints: Point[]) => {
     updateFogMask(newPoints);
     onChangePoints?.(newPoints);
