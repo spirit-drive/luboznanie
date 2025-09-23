@@ -1,80 +1,44 @@
+import { createUpdateConnections } from '@/components/entities/map/MapView/helpers/createUpdateConnections';
 import * as PIXI from 'pixi.js';
+import { isAnyPointerEvent } from '@/components/entities/map/MapView/helpers/isAnyPointerEvent';
 import {
   MapEditableMode,
   OnSelectedSpace,
   Point,
-  PointID,
-  PointsManager,
   PointsManagerOptions,
-  PointVisualOptions,
   PointVisuals,
-} from '../MapView.types';
-import { createPointVisual } from './createPointVisual';
-import { createUpdateConnections } from '@/components/entities/map/MapView/helpers/createUpdateConnections';
-import { getAllChildren } from '@/components/entities/map/MapView/helpers/helpers';
+} from '@/components/entities/map/MapView/MapView.types';
 import { AddingPoint } from '@/types/entities/point/point.types';
+import { createAddingPoint } from '@/components/entities/map/MapView/helpers/createAddingPoint';
 import { deepCopy } from '@/utils/deepCopy';
 import { createSingleDoubleAction } from '@/utils/createSingleDoubleAction';
+import { getAllChildren } from '@/components/entities/map/MapView/helpers/helpers';
+import { createPointVisual } from '@/components/entities/map/MapView/helpers/createPointVisual';
+import { PointsAndBackgroundsManagerState } from '@/components/entities/map/MapView/helpers/types';
 import { ContainerChild } from 'pixi.js/lib/scene/container/Container';
 
-// Интерфейс для внутреннего состояния менеджера
-
-interface PointsManagerState {
-  addingPoint: PointVisuals | null;
-  addingPointVisible: boolean;
-  editableMode: MapEditableMode;
-  isDragging: boolean;
-  moved: boolean;
-  dragStartGlobal: PIXI.Point | null;
-  dragOffset: PIXI.Point | null;
-  movablePoint: PointVisuals | null;
-  renderedPoints: Map<PointID, PointVisuals>;
-  selectedPoints: Map<PointID, PointVisuals>;
-}
-
-const createAddingPoint = (
-  position: PIXI.PointData,
-  addingPoint: AddingPoint,
-  options: PointVisualOptions,
-): PointVisuals => {
-  const visual = createPointVisual({ ...addingPoint, position }, options);
-  visual.container.alpha = 0.5; // Делаем ее полупрозрачной
-  visual.container.eventMode = 'none';
-  return visual;
-};
-
-export const createPointsManager = (
-  app: PIXI.Application,
-  world: PIXI.Container<ContainerChild>,
-  options: PointsManagerOptions,
-): PointsManager => {
-  const { shouldUnselectByRect, onChangePoints, onAddedElement, shouldConnectPoints } = options;
-
-  // Контейнеры для раздельной отрисовки, линии под точками
-  const connectionsContainer = new PIXI.Container();
-  const pointItemsContainer = new PIXI.Container();
-  const pointContainer = new PIXI.Container();
-  pointContainer.addChild(connectionsContainer, pointItemsContainer);
-  world.addChild(pointContainer);
-
-  const state: PointsManagerState = {
-    addingPoint: null,
-    addingPointVisible: false,
-    editableMode: 'none',
-    isDragging: false,
-    moved: false,
-    dragStartGlobal: null,
-    dragOffset: null,
-    movablePoint: null,
-    renderedPoints: new Map<PointID, PointVisuals>(),
-    selectedPoints: new Map<PointID, PointVisuals>(),
-  };
+export const createPointsManager = ({
+  app,
+  world,
+  options,
+  state,
+  connectionsContainer,
+  pointItemsContainer,
+}: {
+  state: PointsAndBackgroundsManagerState;
+  connectionsContainer: PIXI.Container;
+  pointItemsContainer: PIXI.Container;
+  app: PIXI.Application;
+  world: PIXI.Container<ContainerChild>;
+  options: PointsManagerOptions;
+}) => {
+  const { shouldUnselectByRect, onChangePoints, shouldConnectPoints } = options;
 
   const updateConnections = createUpdateConnections(connectionsContainer, state);
 
   const onMoveAddingPoint = (event: PIXI.FederatedPointerEvent) => {
     if (state.addingPoint) {
-      state.addingPoint.container.visible = state.addingPointVisible && !isAnyPointerEvent(event);
+      state.addingPoint.container.visible = state.addingPointVisible && !isAnyPointerEvent(event, state.renderedPoints);
       const localPosition = world.toLocal(event.global);
       state.addingPoint.container.position.copyFrom(localPosition);
     }
@@ -95,10 +59,6 @@ export const createPointsManager = (
     app.stage.on('pointermove', onMoveAddingPoint);
   };
 
-  /**
-   * Применяет изменения к данным точек и обновляет визуализацию.
-   * Вызывается при перемещении точек мышью или клавиатурой.
-   */
   const applyPointChanges = () => {
     const newPoints = Array.from(state.renderedPoints.values()).map((visual) => ({
       ...deepCopy(visual.point),
@@ -109,10 +69,6 @@ export const createPointsManager = (
     }));
     onChangePoints?.(newPoints);
   };
-
-  /**
-   * --- ОБРАБОТЧИКИ СОБЫТИЙ МЫШИ И КЛАВИАТУРЫ ---
-   */
 
   const onPointerDown = (pointVisual: PointVisuals, event: PIXI.FederatedPointerEvent) => {
     event.stopPropagation();
@@ -230,93 +186,6 @@ export const createPointsManager = (
     },
   });
 
-  const onKeyDown = (event: KeyboardEvent) => {
-    if (state.editableMode === 'points' && state.selectedPoints.size > 0) {
-      let deltaX = 0;
-      let deltaY = 0;
-      const shift = event.shiftKey ? 10 : 1;
-
-      switch (event.key) {
-        case 'ArrowUp':
-          deltaY = -shift;
-          break;
-        case 'ArrowDown':
-          deltaY = shift;
-          break;
-        case 'ArrowLeft':
-          deltaX = -shift;
-          break;
-        case 'ArrowRight':
-          deltaX = shift;
-          break;
-        default:
-          return;
-      }
-
-      event.preventDefault();
-
-      state.selectedPoints.forEach((pointVisual) => {
-        pointVisual.container.position.x += deltaX;
-        pointVisual.container.position.y += deltaY;
-      });
-
-      applyPointChanges();
-    }
-  };
-
-  const isAnyPointerEvent = (event: PIXI.FederatedPointerEvent): boolean => {
-    return state.renderedPoints.values().some((i) => i.container === event.target);
-  };
-
-  const onAppPointerUp = createSingleDoubleAction<PIXI.FederatedPointerEvent>({
-    alwaysHandler: (): boolean => {
-      switch (state.editableMode) {
-        case 'points': {
-          if (!state.addingPoint?.container.visible) return false;
-          const id = Math.random().toString(16);
-          const value: Point = {
-            ...deepCopy(state.addingPoint.point),
-            id,
-            position: {
-              x: state.addingPoint.container.position.x,
-              y: state.addingPoint.container.position.y,
-            },
-          };
-          onAddedElement?.({ type: 'point', value });
-          // Чтобы сработало после добавления
-          setTimeout(applyPointChanges);
-          return true;
-        }
-
-        default:
-          return false;
-      }
-    },
-    doubleHandler: (event) => {
-      switch (state.editableMode) {
-        case 'points': {
-          const isPointerClick = isAnyPointerEvent(event);
-          if (isPointerClick) return;
-
-          if (state.selectedPoints.size) resetPointsSelecting();
-          else selectAll();
-
-          break;
-        }
-
-        default:
-          break;
-      }
-    },
-  });
-
-  /**
-   * --- ОСНОВНЫЕ МЕТОДЫ МЕНЕДЖЕРА ---
-   */
-
-  /**
-   * Сравнивает новые данные с отрисованными и применяет изменения.
-   */
   const updatePoints = (points: Point[]) => {
     const currentIds = new Set(state.renderedPoints.keys());
     const newIds = new Set(points.map((item) => item.id));
@@ -357,19 +226,12 @@ export const createPointsManager = (
     updateConnections();
   };
 
-  const setEditableMode = (mode: MapEditableMode) => {
-    state.renderedPoints.forEach((item) => {
-      item.setEditableMode(mode);
-    });
-    state.editableMode = mode;
-  };
-
   const resetPointsSelecting = () => {
     unselectPoints(Array.from(state.selectedPoints.values()));
     state.selectedPoints.clear();
   };
 
-  const selectAll = () => {
+  const selectAllPoints = () => {
     selectPoints(Array.from(state.renderedPoints.values()));
     state.selectedPoints = new Map(state.renderedPoints);
   };
@@ -396,72 +258,20 @@ export const createPointsManager = (
     }
   };
 
-  /**
-   * Очистка ресурсов
-   */
-  const destroy = () => {
-    world.removeChild(connectionsContainer, pointItemsContainer);
-    connectionsContainer.destroy({ children: true });
-    pointItemsContainer.destroy({ children: true });
-    state.renderedPoints.clear();
-    state.selectedPoints.clear();
-    app.stage.off('pointerup', onAppPointerUp);
-    document.removeEventListener('keydown', onKeyDown);
-    unmountAddingPoint();
-  };
-
-  // Инициализация: добавляем слушатель клавиатуры
-  document.addEventListener('keydown', onKeyDown);
-
-  app.stage.on('pointerup', onAppPointerUp);
-
   return {
-    updatePoints,
-    destroy,
-    setEditableMode,
-    resetPointsSelecting,
+    selectAllPoints,
     selectPointsBySpace,
-    pointContainer,
-    setAddingElement: (addingElement) => {
-      if (state.editableMode === 'points') {
-        if (!addingElement) {
-          if (state.addingPoint) {
-            state.addingPoint.container.visible = state.addingPointVisible = false;
-          }
-          return;
-        }
-
-        if (state.addingPoint) {
-          state.addingPoint.container.visible = state.addingPointVisible = true;
-        } else {
-          state.addingPointVisible = true;
-          mountAddingPoint(state.editableMode, addingElement);
-        }
-      }
-    },
-    shouldMapPreventScrolling: () => {
-      return !!state.addingPoint?.container.visible;
-    },
-    selectAllPoints: () => {
-      if (state.editableMode !== 'points') return;
-      state.selectedPoints = new Map(state.renderedPoints);
-      state.selectedPoints.values().forEach((i) => {
-        i.setActive(true);
-      });
-    },
-    setVisibleOfAddingElement: (visible) => {
-      if (state.editableMode !== 'points' && state.editableMode !== 'backgrounds') return;
-      if (state.addingPoint) state.addingPoint.container.visible = state.addingPointVisible = visible;
-    },
-    selectPoints: (ids) => {
-      if (state.editableMode !== 'points') return;
-      ids.forEach((i) => {
-        if (state.renderedPoints.has(i)) {
-          const point = state.renderedPoints.get(i)!;
-          state.selectedPoints.set(i, point);
-          point.setActive(true);
-        }
-      });
-    },
+    resetPointsSelecting,
+    updatePoints,
+    selectPoints,
+    unselectPoints,
+    onPointerUp,
+    updateConnections,
+    onMoveAddingPoint,
+    unmountAddingPoint,
+    mountAddingPoint,
+    applyPointChanges,
+    onPointerDown,
+    onPointerMove,
   };
 };

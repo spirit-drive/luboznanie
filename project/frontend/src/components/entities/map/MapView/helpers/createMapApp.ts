@@ -8,7 +8,11 @@ export const createMapApp = async ({ container, appRef, ...options }: MapViewOpt
   const { app, world } = await setupPixiApp(container, appRef);
 
   // 2. Настройка всех компонентов и получение менеджеров
-  const { pointsManager, mapController, setEditableMode } = await setupViewComponents({ app, world, options });
+  const { pointsAndBackgroundsManager, mapController, setEditableMode } = await setupViewComponents({
+    app,
+    world,
+    options,
+  });
 
   // 3. Настройка обработки событий окна
   const onBlur = () => app.ticker.stop();
@@ -18,28 +22,28 @@ export const createMapApp = async ({ container, appRef, ...options }: MapViewOpt
 
   // 4. Возвращаем публичный API
   return {
-    setVisibleOfAddingElement: (v) => pointsManager.setVisibleOfAddingElement(v),
+    setVisibleOfAddingElement: (v) => pointsAndBackgroundsManager.setVisibleOfAddingElement(v),
     setAddingElement: (addingElement) => {
       if (!addingElement) {
-        pointsManager.setAddingElement(null);
+        pointsAndBackgroundsManager.setAddingElement(null);
       } else if (addingElement.type === 'point') {
-        pointsManager.setAddingElement(addingElement.value as AddingPoint);
+        pointsAndBackgroundsManager.setAddingElement(addingElement.value as AddingPoint);
       }
     },
     selectAllPoints: () => {
-      pointsManager.selectAllPoints();
+      pointsAndBackgroundsManager.selectAllPoints();
     },
-    selectPoints: (ids) => pointsManager.selectPoints(ids),
+    selectPoints: (ids) => pointsAndBackgroundsManager.selectPoints(ids),
     setEditableMode: (mode: MapEditableMode) => {
       mapController.setEditableMode(mode);
-      pointsManager.setEditableMode(mode);
+      pointsAndBackgroundsManager.setEditableMode(mode);
       setEditableMode(mode);
     },
     updatePoints: (points) => {
-      pointsManager.updatePoints(points);
+      pointsAndBackgroundsManager.updatePoints(points);
     },
     cleanup: () => {
-      pointsManager.destroy();
+      pointsAndBackgroundsManager.destroy();
       mapController.destroy();
       window.removeEventListener('blur', onBlur);
       window.removeEventListener('focus', onFocus);

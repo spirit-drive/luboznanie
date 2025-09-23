@@ -5,7 +5,7 @@ import { setupBackground } from '@/components/entities/map/MapView/helpers/backg
 import { MapBackgroundItem } from '@/types/entities/map/map.types';
 import { setupBackgroundItems } from '@/components/entities/map/MapView/helpers/setupBackgroundItems';
 import { createFog } from '@/components/entities/map/MapView/helpers/createFog';
-import { createPointsManager } from '@/components/entities/map/MapView/helpers/pointsManager';
+import { createPointsAndBackgroundsManager } from '@/components/entities/map/MapView/helpers/createPointsAndBackgroundsManager';
 import { createMapController } from '@/components/entities/map/MapView/helpers/mapController';
 import { createOnChangeWorld } from '@/components/entities/map/MapView/helpers/createOnChangeWorld';
 
@@ -62,7 +62,7 @@ export const setupViewComponents = async ({ app, world, options }: MapDependenci
   };
 
   // 5. Создание менеджера точек
-  const pointsManager = createPointsManager(app, world, {
+  const pointsAndBackgroundsManager = createPointsAndBackgroundsManager(app, world, {
     onPointClick,
     pointTypeIcon,
     pointPropsIcon,
@@ -72,21 +72,21 @@ export const setupViewComponents = async ({ app, world, options }: MapDependenci
     shouldUnselectByRect,
     shouldConnectPoints,
   });
-  pointsManager.updatePoints(points);
+  pointsAndBackgroundsManager.updatePoints(points);
   updateFogMask(points);
 
   // 6. Создание контроллера карты
   const mapController = createMapController(app, world, {
     onChangeWorld: createOnChangeWorld({ onChangeWorld, app, itemsMap }),
-    onSelectedSpace: pointsManager.selectPointsBySpace,
-    shouldPreventScrolling: pointsManager.shouldMapPreventScrolling,
+    onSelectedSpace: pointsAndBackgroundsManager.selectPointsBySpace,
+    shouldPreventScrolling: pointsAndBackgroundsManager.shouldMapPreventScrolling,
   });
 
   const setEditableMode = (mode: MapEditableMode) => {
     fog.visible = mode !== 'backgrounds';
-    pointsManager.pointContainer.alpha = mode !== 'backgrounds' ? 1 : 0.2;
-    pointsManager.pointContainer.eventMode = mode !== 'backgrounds' ? 'auto' : 'none';
+    pointsAndBackgroundsManager.pointContainer.alpha = mode !== 'backgrounds' ? 1 : 0.2;
+    pointsAndBackgroundsManager.pointContainer.eventMode = mode !== 'backgrounds' ? 'auto' : 'none';
   };
 
-  return { pointsManager, mapController, setEditableMode };
+  return { pointsAndBackgroundsManager, mapController, setEditableMode };
 };
