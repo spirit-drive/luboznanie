@@ -4,7 +4,7 @@ import { loadingAssets } from '@/components/entities/map/MapView/helpers/loading
 import { setupBackground } from '@/components/entities/map/MapView/helpers/background';
 import { MapBackgroundItem } from '@/types/entities/map/map.types';
 import { setupBackgroundItems } from '@/components/entities/map/MapView/helpers/setupBackgroundItems';
-import { createFog } from '@/components/entities/map/MapView/helpers/createFog';
+import { createFogManager } from '@/components/entities/map/MapView/helpers/createFogManager';
 import { createPointsAndBackgroundsManager } from '@/components/entities/map/MapView/helpers/createPointsAndBackgroundsManager';
 import { createMapController } from '@/components/entities/map/MapView/helpers/mapController';
 import { createOnChangeWorld } from '@/components/entities/map/MapView/helpers/createOnChangeWorld';
@@ -55,9 +55,9 @@ export const setupViewComponents = async ({ app, world, options }: MapDependenci
   world.addChild(backgroundContainer);
 
   // 4. Создание тумана и прокси-функции для обновления точек
-  const { updateFogMask, fog } = createFog(world, { width, height, fogAssets });
+  const fogManager = createFogManager(world, { width, height, fogAssets });
   const onChangePointsWithFog = (newPoints: Point[]) => {
-    updateFogMask(newPoints);
+    fogManager.updateFogMask(newPoints);
     onChangePoints?.(newPoints);
   };
 
@@ -73,7 +73,7 @@ export const setupViewComponents = async ({ app, world, options }: MapDependenci
     shouldConnectPoints,
   });
   pointsAndBackgroundsManager.updatePoints(points);
-  updateFogMask(points);
+  fogManager.updateFogMask(points);
 
   // 6. Создание контроллера карты
   const mapController = createMapController(app, world, {
@@ -83,9 +83,8 @@ export const setupViewComponents = async ({ app, world, options }: MapDependenci
   });
 
   const setEditableMode = (mode: MapEditableMode) => {
-    fog.visible = mode !== 'backgrounds';
-    pointsAndBackgroundsManager.pointContainer.alpha = mode !== 'backgrounds' ? 1 : 0.2;
-    pointsAndBackgroundsManager.pointContainer.eventMode = mode !== 'backgrounds' ? 'auto' : 'none';
+    fogManager.setEditableMode(mode);
+    pointsAndBackgroundsManager.setEditableMode(mode);
   };
 
   return { pointsAndBackgroundsManager, mapController, setEditableMode };

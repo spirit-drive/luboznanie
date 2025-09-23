@@ -22,17 +22,19 @@ export const createPointsManager = ({
   world,
   options,
   state,
-  connectionsContainer,
-  pointItemsContainer,
 }: {
   state: PointsAndBackgroundsManagerState;
-  connectionsContainer: PIXI.Container;
-  pointItemsContainer: PIXI.Container;
   app: PIXI.Application;
   world: PIXI.Container<ContainerChild>;
   options: PointsManagerOptions;
 }) => {
   const { shouldUnselectByRect, onChangePoints, shouldConnectPoints } = options;
+
+  const connectionsContainer = new PIXI.Container();
+  const pointItemsContainer = new PIXI.Container();
+  const pointsContainer = new PIXI.Container();
+  pointsContainer.addChild(connectionsContainer, pointItemsContainer);
+  world.addChild(pointsContainer);
 
   const updateConnections = createUpdateConnections(connectionsContainer, state);
 
@@ -258,7 +260,18 @@ export const createPointsManager = ({
     }
   };
 
+  const destroyPoints = () => {
+    world.removeChild(connectionsContainer, pointItemsContainer);
+    connectionsContainer.destroy({ children: true });
+    pointItemsContainer.destroy({ children: true });
+    state.renderedPoints.clear();
+    state.selectedPoints.clear();
+    unmountAddingPoint();
+  };
+
   return {
+    destroyPoints,
+    pointsContainer,
     selectAllPoints,
     selectPointsBySpace,
     resetPointsSelecting,

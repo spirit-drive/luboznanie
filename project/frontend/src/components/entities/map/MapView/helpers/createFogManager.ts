@@ -1,8 +1,9 @@
 import * as PIXI from 'pixi.js';
 import { Point } from '@/types/entities/point/point.types';
 import { LoadedAsset } from '@/types/entities/map/map.types';
+import { MapEditableMode } from '@/components/entities/map/MapView/MapView.types';
 
-export const createFog = (
+export const createFogManager = (
   world: PIXI.Container,
   { width, height, fogAssets }: { width: number; height: number; fogAssets: LoadedAsset },
 ) => {
@@ -25,5 +26,10 @@ export const createFog = (
     });
   };
 
-  return { updateFogMask, fog };
+  return {
+    updateFogMask,
+    setEditableMode: (mode: MapEditableMode) => {
+      fog.visible = mode !== 'backgrounds';
+    },
+  };
 };

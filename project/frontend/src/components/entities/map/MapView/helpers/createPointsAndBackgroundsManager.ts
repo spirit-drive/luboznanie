@@ -1,21 +1,8 @@
 import * as PIXI from 'pixi.js';
-import {
-  MapEditableMode,
-  OnSelectedSpace,
-  Point,
-  PointID,
-  PointsManager,
-  PointsManagerOptions,
-  PointVisuals,
-} from '../MapView.types';
-import { createPointVisual } from './createPointVisual';
-import { createUpdateConnections } from '@/components/entities/map/MapView/helpers/createUpdateConnections';
-import { getAllChildren } from '@/components/entities/map/MapView/helpers/helpers';
-import { AddingPoint } from '@/types/entities/point/point.types';
+import { MapEditableMode, Point, PointID, PointsManager, PointsManagerOptions, PointVisuals } from '../MapView.types';
 import { deepCopy } from '@/utils/deepCopy';
 import { createSingleDoubleAction } from '@/utils/createSingleDoubleAction';
 import { ContainerChild } from 'pixi.js/lib/scene/container/Container';
-import { createAddingPoint } from '@/components/entities/map/MapView/helpers/createAddingPoint';
 import { isAnyPointerEvent } from '@/components/entities/map/MapView/helpers/isAnyPointerEvent';
 import { PointsAndBackgroundsManagerState } from '@/components/entities/map/MapView/helpers/types';
 import { createPointsManager } from '@/components/entities/map/MapView/helpers/createPointsManager';
@@ -26,13 +13,6 @@ export const createPointsAndBackgroundsManager = (
   options: PointsManagerOptions,
 ): PointsManager => {
   const { onAddedElement } = options;
-
-  // Контейнеры для раздельной отрисовки, линии под точками
-  const connectionsContainer = new PIXI.Container();
-  const pointItemsContainer = new PIXI.Container();
-  const pointContainer = new PIXI.Container();
-  pointContainer.addChild(connectionsContainer, pointItemsContainer);
-  world.addChild(pointContainer);
 
   const state: PointsAndBackgroundsManagerState = {
     addingPoint: null,
@@ -52,10 +32,11 @@ export const createPointsAndBackgroundsManager = (
     selectPointsBySpace,
     selectAllPoints,
     mountAddingPoint,
-    unmountAddingPoint,
+    pointsContainer,
     applyPointChanges,
     updatePoints,
-  } = createPointsManager({ state, world, options, app, connectionsContainer, pointItemsContainer });
+    destroyPoints,
+  } = createPointsManager({ state, world, options, app });
 
   const onKeyDown = (event: KeyboardEvent) => {
     if (state.editableMode === 'points' && state.selectedPoints.size > 0) {
@@ -134,14 +115,9 @@ export const createPointsAndBackgroundsManager = (
   });
 
   const destroy = () => {
-    world.removeChild(connectionsContainer, pointItemsContainer);
-    connectionsContainer.destroy({ children: true });
-    pointItemsContainer.destroy({ children: true });
-    state.renderedPoints.clear();
-    state.selectedPoints.clear();
+    destroyPoints();
     app.stage.off('pointerup', onAppPointerUp);
     document.removeEventListener('keydown', onKeyDown);
-    unmountAddingPoint();
   };
 
   // Инициализация: добавляем слушатель клавиатуры
@@ -157,10 +133,11 @@ export const createPointsAndBackgroundsManager = (
         item.setEditableMode(mode);
       });
       state.editableMode = mode;
+      pointsContainer.alpha = mode === 'backgrounds' ? 0.2 : 1;
+      pointsContainer.eventMode = mode === 'backgrounds' ? 'none' : 'auto';
     },
     resetPointsSelecting,
     selectPointsBySpace,
-    pointContainer,
     setAddingElement: (addingElement) => {
       if (state.editableMode === 'points') {
         if (!addingElement) {
