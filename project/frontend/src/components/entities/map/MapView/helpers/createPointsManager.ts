@@ -179,6 +179,8 @@ export const createPointsManager = ({
       else selectPoints([pointVisual]);
     },
     doubleHandler: (event, point: Point) => {
+      if (state.editableMode !== 'points') return;
+
       const pointVisual = state.renderedPoints.get(point.id);
       if (!pointVisual) return;
 
