@@ -6,6 +6,7 @@ import { ContainerChild } from 'pixi.js/lib/scene/container/Container';
 import { isAnyPointerEvent } from '@/components/entities/map/MapView/helpers/isAnyPointerEvent';
 import { PointsAndBackgroundsManagerState } from '@/components/entities/map/MapView/helpers/types';
 import { createPointsManager } from '@/components/entities/map/MapView/helpers/createPointsManager';
+import { createBackgroundItemsManager } from '@/components/entities/map/MapView/helpers/createBackgroundItemsManager';
 
 export const createPointsAndBackgroundsManager = (
   app: PIXI.Application,
@@ -26,6 +27,10 @@ export const createPointsAndBackgroundsManager = (
     renderedPoints: new Map<PointID, PointVisuals>(),
     selectedPoints: new Map<PointID, PointVisuals>(),
   };
+
+  const { backgroundItemsMap } = createBackgroundItemsManager({ state, world, options, app });
+
+  options.drawFog();
 
   const {
     resetPointsSelecting,
@@ -169,6 +174,7 @@ export const createPointsAndBackgroundsManager = (
       if (state.editableMode !== 'points' && state.editableMode !== 'backgrounds') return;
       if (state.addingPoint) state.addingPoint.container.visible = state.addingPointVisible = visible;
     },
+    backgroundItemsMap,
     selectPoints: (ids) => {
       if (state.editableMode !== 'points') return;
       ids.forEach((i) => {

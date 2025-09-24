@@ -4,14 +4,17 @@ import * as PIXI from 'pixi.js';
 
 export const createOnChangeWorld = ({
   onChangeWorld,
-  itemsMap,
+  backgroundItemsMap,
   app,
-}: Pick<MapViewOptions, 'onChangeWorld'> & { itemsMap: Map<string, MapBackgroundItem>; app: PIXI.Application }) => {
+}: Pick<MapViewOptions, 'onChangeWorld'> & {
+  backgroundItemsMap: Map<string, MapBackgroundItem> | undefined;
+  app: PIXI.Application;
+}) => {
   return () => {
     const visibleBackgorundItems: Array<MapVisibleBackgroundItem> = [];
     const screenBounds = app.screen;
 
-    itemsMap.entries().forEach(([_, item]) => {
+    backgroundItemsMap?.entries().forEach(([_, item]) => {
       const { sprite } = item;
       const spriteBounds = sprite.getBounds();
 

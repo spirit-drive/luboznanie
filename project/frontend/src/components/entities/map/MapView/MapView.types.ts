@@ -4,6 +4,7 @@ import {
   BackgroundItem,
   LoadedAsset,
   MapBackground,
+  MapBackgroundItem,
   MapVisibleBackgroundItem,
 } from '@/types/entities/map/map.types';
 import * as PIXI from 'pixi.js';
@@ -59,6 +60,9 @@ export type PointVisuals = {
 export type PointsManagerOptions = {
   pointTypeIcon: LoadedAsset;
   pointPropsIcon: LoadedAsset;
+  backgroundItems?: BackgroundItem[];
+  backgroundAssets: Record<string, LoadedAsset>;
+  drawFog: () => void;
 } & Pick<
   MapViewProps,
   | 'shouldUnselectByRect'
@@ -80,6 +84,7 @@ export type PointsManager = {
   setVisibleOfAddingElement: (visible: boolean) => void;
   selectPoints: (ids: PointID[]) => void;
   selectAllPoints: () => void;
+  backgroundItemsMap: Map<string, MapBackgroundItem> | undefined;
   setAddingElement: (addingElement: AddingPoint | null) => void;
   shouldMapPreventScrolling: (event: PIXI.FederatedPointerEvent) => boolean;
   selectPointsBySpace: OnSelectedSpace;

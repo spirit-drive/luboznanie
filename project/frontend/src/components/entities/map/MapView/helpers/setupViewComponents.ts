@@ -2,8 +2,6 @@ import * as PIXI from 'pixi.js';
 import { MapEditableMode, MapViewOptions, Point } from '@/components/entities/map/MapView/MapView.types';
 import { loadingAssets } from '@/components/entities/map/MapView/helpers/loadingAssets';
 import { setupBackground } from '@/components/entities/map/MapView/helpers/background';
-import { MapBackgroundItem } from '@/types/entities/map/map.types';
-import { setupBackgroundItems } from '@/components/entities/map/MapView/helpers/setupBackgroundItems';
 import { createFogManager } from '@/components/entities/map/MapView/helpers/createFogManager';
 import { createPointsAndBackgroundsManager } from '@/components/entities/map/MapView/helpers/createPointsAndBackgroundsManager';
 import { createMapController } from '@/components/entities/map/MapView/helpers/mapController';
@@ -46,14 +44,6 @@ export const setupViewComponents = async ({ app, world, options }: MapDependenci
   // 2. Настройка фона
   await setupBackground(world, { image: background!.image!, width, height });
 
-  // 3. Настройка предметов фона
-  const backgroundContainer = new PIXI.Container();
-  let itemsMap: Map<string, MapBackgroundItem> | undefined;
-  if (backgroundItems) {
-    itemsMap = setupBackgroundItems(backgroundContainer, backgroundItems, backgroundAssets).itemsMap;
-  }
-  world.addChild(backgroundContainer);
-
   // 4. Создание тумана и прокси-функции для обновления точек
   const fogManager = createFogManager(world, { width, height, fogAssets });
   const onChangePointsWithFog = (newPoints: Point[]) => {
@@ -68,16 +58,24 @@ export const setupViewComponents = async ({ app, world, options }: MapDependenci
     pointPropsIcon,
     onSelectPoints,
     onAddedElement,
+    drawFog: fogManager.drawFog,
     onChangePoints: onChangePointsWithFog,
     shouldUnselectByRect,
     shouldConnectPoints,
+    backgroundItems,
+    backgroundAssets,
   });
+
   pointsAndBackgroundsManager.updatePoints(points);
   fogManager.updateFogMask(points);
 
   // 6. Создание контроллера карты
   const mapController = createMapController(app, world, {
-    onChangeWorld: createOnChangeWorld({ onChangeWorld, app, itemsMap }),
+    onChangeWorld: createOnChangeWorld({
+      onChangeWorld,
+      app,
+      backgroundItemsMap: pointsAndBackgroundsManager.backgroundItemsMap,
+    }),
     onSelectedSpace: pointsAndBackgroundsManager.selectPointsBySpace,
     shouldPreventScrolling: pointsAndBackgroundsManager.shouldMapPreventScrolling,
   });

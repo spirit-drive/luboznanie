@@ -9,12 +9,9 @@ export const createFogManager = (
 ) => {
   const fog = new PIXI.TilingSprite(fogAssets as PIXI.Texture, width, height);
   fog.alpha = 0.9;
-  world.addChild(fog);
 
   const mask = new PIXI.Graphics();
   fog.setMask({ mask, inverse: true });
-
-  world.addChild(mask);
 
   const updateFogMask = (points: Point[]) => {
     mask.clear();
@@ -27,6 +24,10 @@ export const createFogManager = (
   };
 
   return {
+    drawFog() {
+      world.addChild(fog);
+      world.addChild(mask);
+    },
     updateFogMask,
     setEditableMode: (mode: MapEditableMode) => {
       fog.visible = mode !== 'backgrounds';

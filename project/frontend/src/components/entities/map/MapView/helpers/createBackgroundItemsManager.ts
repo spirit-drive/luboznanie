@@ -16,8 +16,10 @@ import { getAllChildren } from '@/components/entities/map/MapView/helpers/helper
 import { createPointVisual } from '@/components/entities/map/MapView/helpers/createPointVisual';
 import { PointsAndBackgroundsManagerState } from '@/components/entities/map/MapView/helpers/types';
 import { ContainerChild } from 'pixi.js/lib/scene/container/Container';
+import { MapBackgroundItem } from '@/types/entities/map/map.types';
+import { setupBackgroundItems } from '@/components/entities/map/MapView/helpers/setupBackgroundItems';
 
-export const createPointsManager = ({
+export const createBackgroundItemsManager = ({
   app,
   world,
   options,
@@ -28,7 +30,18 @@ export const createPointsManager = ({
   world: PIXI.Container<ContainerChild>;
   options: PointsManagerOptions;
 }) => {
-  const { shouldUnselectByRect, onChangePoints, shouldConnectPoints } = options;
+  const { shouldUnselectByRect, onChangePoints, shouldConnectPoints, backgroundItems, backgroundAssets } = options;
+
+  const backgroundContainer = new PIXI.Container();
+  let backgroundItemsMap: Map<string, MapBackgroundItem> | undefined;
+  if (backgroundItems) {
+    backgroundItemsMap = setupBackgroundItems(backgroundContainer, backgroundItems, backgroundAssets).itemsMap;
+  }
+  world.addChild(backgroundContainer);
+
+  return {
+    backgroundItemsMap,
+  };
 
   const connectionsContainer = new PIXI.Container();
   const pointItemsContainer = new PIXI.Container();
@@ -179,8 +192,6 @@ export const createPointsManager = ({
       else selectPoints([pointVisual]);
     },
     doubleHandler: (event, point: Point) => {
-      if (state.editableMode !== 'points') return;
-
       const pointVisual = state.renderedPoints.get(point.id);
       if (!pointVisual) return;
 
@@ -189,38 +200,6 @@ export const createPointsManager = ({
       else selectPoints([...children, pointVisual]);
     },
   });
-
-  const resetPointsSelecting = () => {
-    unselectPoints(Array.from(state.selectedPoints.values()));
-    state.selectedPoints.clear();
-  };
-
-  const selectAllPoints = () => {
-    selectPoints(Array.from(state.renderedPoints.values()));
-    state.selectedPoints = new Map(state.renderedPoints);
-  };
-
-  const selectPointsBySpace: OnSelectedSpace = (space, phase, event) => {
-    if (phase === 'end') {
-      const pointsInSpace = Array.from(state.renderedPoints.entries()).filter(([, point]) => {
-        const { x, y } = point.container.position;
-        return x >= space.minX && x <= space.maxX && y >= space.minY && y <= space.maxY;
-      });
-
-      if (shouldUnselectByRect!(event)) {
-        pointsInSpace.forEach(([id, point]) => {
-          point.setActive(false);
-          state.selectedPoints.delete(id);
-        });
-      } else {
-        pointsInSpace.forEach(([id, point]) => {
-          point.setActive(true);
-          state.selectedPoints.set(id, point);
-        });
-      }
-      updateConnections();
-    }
-  };
 
   const updatePoints = (points: Point[]) => {
     const currentIds = new Set(state.renderedPoints.keys());
@@ -260,6 +239,38 @@ export const createPointsManager = ({
 
     // 3. Обновление связей
     updateConnections();
+  };
+
+  const resetPointsSelecting = () => {
+    unselectPoints(Array.from(state.selectedPoints.values()));
+    state.selectedPoints.clear();
+  };
+
+  const selectAllPoints = () => {
+    selectPoints(Array.from(state.renderedPoints.values()));
+    state.selectedPoints = new Map(state.renderedPoints);
+  };
+
+  const selectPointsBySpace: OnSelectedSpace = (space, phase, event) => {
+    if (phase === 'end') {
+      const pointsInSpace = Array.from(state.renderedPoints.entries()).filter(([, point]) => {
+        const { x, y } = point.container.position;
+        return x >= space.minX && x <= space.maxX && y >= space.minY && y <= space.maxY;
+      });
+
+      if (shouldUnselectByRect!(event)) {
+        pointsInSpace.forEach(([id, point]) => {
+          point.setActive(false);
+          state.selectedPoints.delete(id);
+        });
+      } else {
+        pointsInSpace.forEach(([id, point]) => {
+          point.setActive(true);
+          state.selectedPoints.set(id, point);
+        });
+      }
+      updateConnections();
+    }
   };
 
   const destroyPoints = () => {
