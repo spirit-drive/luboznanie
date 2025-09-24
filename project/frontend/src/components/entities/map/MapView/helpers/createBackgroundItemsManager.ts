@@ -17,7 +17,7 @@ import { createPointVisual } from '@/components/entities/map/MapView/helpers/cre
 import { PointsAndBackgroundsManagerState } from '@/components/entities/map/MapView/helpers/types';
 import { ContainerChild } from 'pixi.js/lib/scene/container/Container';
 import { MapBackgroundItem } from '@/types/entities/map/map.types';
-import { setupBackgroundItems } from '@/components/entities/map/MapView/helpers/setupBackgroundItems';
+import { createBGItemVisual } from '@/components/entities/map/MapView/helpers/createBGItemVisual';
 
 export const createBackgroundItemsManager = ({
   app,
@@ -33,10 +33,23 @@ export const createBackgroundItemsManager = ({
   const { shouldUnselectByRect, onChangePoints, shouldConnectPoints, backgroundItems, backgroundAssets } = options;
 
   const backgroundContainer = new PIXI.Container();
-  let backgroundItemsMap: Map<string, MapBackgroundItem> | undefined;
+  const backgroundItemsMap = new Map<string, MapBackgroundItem>();
   if (backgroundItems) {
-    backgroundItemsMap = setupBackgroundItems(backgroundContainer, backgroundItems, backgroundAssets).itemsMap;
+    backgroundItems.forEach((item) => {
+      try {
+        const { container } = createBGItemVisual(item, {
+          backgroundAssets,
+          onPointClick: () => {},
+          onPointDown: () => {},
+        });
+        backgroundContainer.addChild(container);
+        backgroundItemsMap.set(item.id, { container, backgroundItem: item });
+      } catch (e) {
+        console.warn(e);
+      }
+    });
   }
+
   world.addChild(backgroundContainer);
 
   return {

@@ -15,17 +15,17 @@ export const createOnChangeWorld = ({
     const screenBounds = app.screen;
 
     backgroundItemsMap?.entries().forEach(([_, item]) => {
-      const { sprite } = item;
-      const spriteBounds = sprite.getBounds();
+      const { container } = item;
+      const containerBounds = container.getBounds();
 
       // Находим пересечение между границами спрайта и экрана
       const intersectionX = Math.max(
         0,
-        Math.min(spriteBounds.right, screenBounds.right) - Math.max(spriteBounds.left, screenBounds.left),
+        Math.min(containerBounds.right, screenBounds.right) - Math.max(containerBounds.left, screenBounds.left),
       );
       const intersectionY = Math.max(
         0,
-        Math.min(spriteBounds.bottom, screenBounds.bottom) - Math.max(spriteBounds.top, screenBounds.top),
+        Math.min(containerBounds.bottom, screenBounds.bottom) - Math.max(containerBounds.top, screenBounds.top),
       );
 
       const visibleSpace = intersectionX * intersectionY;

@@ -57,6 +57,14 @@ export type PointVisuals = {
   setActive: (active: boolean) => void;
 };
 
+export type BGItemVisuals = {
+  container: PIXI.Container<ContainerChild>;
+  sprite: PIXI.Sprite;
+  bgItem: BackgroundItem;
+  setEditableMode: (editableMode: MapEditableMode) => void;
+  setActive: (active: boolean) => void;
+};
+
 export type PointsManagerOptions = {
   pointTypeIcon: LoadedAsset;
   pointPropsIcon: LoadedAsset;
@@ -79,6 +87,11 @@ export type PointVisualOptions = {
   onPointClick?: (point: Point, event: PIXI.FederatedPointerEvent) => void;
   onPointDown?: (point: Point, event: PIXI.FederatedPointerEvent) => void;
 } & Omit<PointsManagerOptions, 'onPointClick'>;
+
+export type BGItemVisualOptions = {
+  onPointClick?: (bgItem: BackgroundItem, event: PIXI.FederatedPointerEvent) => void;
+  onPointDown?: (bgItem: BackgroundItem, event: PIXI.FederatedPointerEvent) => void;
+} & Pick<PointsManagerOptions, 'backgroundAssets'>;
 
 export type PointsManager = {
   setVisibleOfAddingElement: (visible: boolean) => void;

@@ -1,4 +1,4 @@
-import { Sprite } from 'pixi.js';
+import { Container } from 'pixi.js';
 
 export type MapBackground = {
   image?: string;
@@ -51,5 +51,5 @@ export type BackgroundItem = BackgroundItemBase & {
 
 export type AddingBackgroundType = Omit<BackgroundItem, 'x' | 'y'>;
 
-export type MapBackgroundItem = { sprite: Sprite; backgroundItem: BackgroundItem };
+export type MapBackgroundItem = { container: Container; backgroundItem: BackgroundItem };
 export type MapVisibleBackgroundItem = MapBackgroundItem & { visibleSpace: number };
