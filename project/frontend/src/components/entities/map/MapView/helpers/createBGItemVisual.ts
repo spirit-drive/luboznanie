@@ -1,36 +1,9 @@
 import * as PIXI from 'pixi.js';
-import {
-  BGItemVisualOptions,
-  BGItemVisuals,
-  MapEditableMode,
-  PointVisualOptions,
-  PointVisuals,
-} from '../MapView.types';
-import { gsap } from 'gsap';
-import { createTextContainer } from './createTextContainer';
-import { Point } from '@/types/entities/point/point.types';
-import { EntityType } from '@/types/shared';
+import { BGItemVisualOptions, BGItemVisuals, MapEditableMode } from '../MapView.types';
 import { ACTIVE_COLOR, SELECT_COLOR } from '@/components/entities/map/MapView/constants/style';
 import { BackgroundItem } from '@/types/entities/map/map.types';
 
-// --- Константы ---
-const SVG_ICON_SIZE = 60;
-
-const CIRCLE_RADIUS = 50;
-const PROGRESS_BAR_RADIUS = 68;
-const PROGRESS_BAR_THICKNESS = 8;
-const HOVER_CIRCLE_RADIUS = 54;
-const HOVER_CIRCLE_WIDTH = 4;
-const ACTIVE_CIRCLE_RADIUS = PROGRESS_BAR_RADIUS;
-const ACTIVE_CIRCLE_WIDTH = PROGRESS_BAR_THICKNESS;
-const TEXT_BLOCK_OFFSET_X = CIRCLE_RADIUS + PROGRESS_BAR_THICKNESS / 2 + 34;
-const HOVER_SCALE = 1.2;
-
-const ICON_SHIFT_MAP: Record<EntityType, number> = {
-  practice: 0,
-  article: 1,
-  map: 2,
-};
+const BORDER_THICKNESS = 4;
 
 // Интерфейс для внутреннего состояния
 interface BGItemVisualState {
@@ -39,38 +12,18 @@ interface BGItemVisualState {
   isHovered: boolean;
 }
 
-/**
- * Создает основной круг и прогресс-бар для точки.
- */
-const createPointGraphics = (point: Point): Record<'progress' | 'circle', PIXI.Graphics> => {
-  const progress = new PIXI.Graphics();
-  const circle = new PIXI.Graphics();
-  circle.circle(0, 0, CIRCLE_RADIUS);
-  circle.fill(point.color || '#eff');
-
-  if (point.progress !== undefined && point.progress >= 0 && point.progress <= 100) {
-    const startAngle = -Math.PI / 2;
-    const endAngle = startAngle + (2 * Math.PI * point.progress) / 100;
-    progress.setStrokeStyle({ width: PROGRESS_BAR_THICKNESS, color: point.color || '#eff', cap: 'round' });
-    progress.arc(0, 0, PROGRESS_BAR_RADIUS, startAngle, endAngle);
-    progress.stroke();
-  }
-  return { circle, progress };
+const createSelectionSquare = (color: string, width: number, size: number): PIXI.Graphics => {
+  const square = new PIXI.Graphics();
+  const halfSize = size / 2;
+  // Рисуем квадрат с центром в (0, 0)
+  square.rect(-halfSize, -halfSize, size, size);
+  square.stroke({ color, width });
+  square.visible = false;
+  return square;
 };
 
 /**
- * Создает круг-обводку для состояний 'hover' и 'active'.
- */
-const createSelectionCircle = (color: number, width: number, radius: number): PIXI.Graphics => {
-  const circle = new PIXI.Graphics();
-  circle.circle(0, 0, radius);
-  circle.stroke({ color, width });
-  circle.visible = false;
-  return circle;
-};
-
-/**
- * Создает визуальное представление для одной точки.
+ * Создает визуальное представление для одного фонового элемента.
  */
 export const createBGItemVisual = (item: BackgroundItem, options: BGItemVisualOptions): BGItemVisuals => {
   const state: BGItemVisualState = {
@@ -81,19 +34,19 @@ export const createBGItemVisual = (item: BackgroundItem, options: BGItemVisualOp
 
   const { backgroundAssets } = options;
 
-  // Получаем загруженный ассет по алиасу (item.type.split('/')[0])
-  // Предполагается, что алиас - это часть строки до '/'
-  const [alias, index] = item.type.split('/');
-  const asset = backgroundAssets[alias];
+  // Получаем загруженный ассет и определяем область обрезки
+  const [alias, indexStr] = item.type.split('/');
+  const index = parseInt(indexStr);
 
-  if (Number.isNaN(parseInt(index))) {
+  if (Number.isNaN(index)) {
     throw `Некорректный индекс изображения в спрайте ${item.type} в пункте с id ${item.id}`;
   }
+  const asset = backgroundAssets[alias];
   if (!(asset instanceof PIXI.Texture)) throw `Asset for item with id ${item.id} is not a valid Texture.`;
 
-  const size = asset.frame.height;
+  const assetFrameSize = asset.frame.height; // Предполагаем, что иконки в спрайте квадратные
   // Определяем область обрезки для нужной иконки
-  const frame = new PIXI.Rectangle(size * parseInt(index), 0, size, size);
+  const frame = new PIXI.Rectangle(assetFrameSize * index, 0, assetFrameSize, assetFrameSize);
 
   // Создаем новую текстуру с обрезанной областью
   const croppedTexture = new PIXI.Texture({ source: asset.source, frame });
@@ -101,27 +54,77 @@ export const createBGItemVisual = (item: BackgroundItem, options: BGItemVisualOp
   const sprite = new PIXI.Sprite(croppedTexture);
   const container = new PIXI.Container();
 
+  // Масштабируем спрайт
   sprite.height = sprite.height / 2;
   sprite.width = sprite.width / 2;
+  sprite.anchor.set(0.5); // Центрируем спрайт
 
-  container.height = sprite.height;
-  container.width = sprite.width;
-  container.x = item.x;
-  container.y = item.y;
+  // Позиционируем контейнер
+  container.position.set(item.x, item.y);
 
-  sprite.label = item.id; // Устанавливаем id элемента как имя спрайта для удобного поиска
-  sprite.visible = !item.hidden; // Устанавливаем видимость
+  // --- Создаём квадраты ---
+  // Размер квадрата берем чуть больше размера спрайта для обводки
+  const squareSize = Math.max(sprite.width, sprite.height) + BORDER_THICKNESS * 2;
+  const hoverSquare = createSelectionSquare(SELECT_COLOR, BORDER_THICKNESS, squareSize - 8);
+  const activeSquare = createSelectionSquare(ACTIVE_COLOR, BORDER_THICKNESS, squareSize);
 
-  container.addChild(sprite);
+  sprite.label = item.id;
+  container.visible = !item.hidden;
+  container.interactive = true;
+
+  // Добавляем элементы в контейнер: сначала квадраты, потом спрайт
+  container.addChild(hoverSquare, activeSquare, sprite);
+
+  /**
+   * Обновляет визуальное состояние элемента в зависимости от mode, hover и active.
+   */
+  const updateVisualState = () => {
+    // В режиме редактирования фоновых элементов
+    if (state.editableMode === 'backgrounds') {
+      hoverSquare.visible = state.isHovered;
+      activeSquare.visible = state.isActive;
+      container.cursor = state.isHovered ? 'grab' : 'default';
+    } else {
+      hoverSquare.visible = false;
+      activeSquare.visible = false;
+    }
+  };
+
+  /**
+   * --- ОБРАБОТЧИКИ СОБЫТИЙ ---
+   */
+  container.on('pointertap', (event) => {
+    container.parent.addChild(container); // Поднимаем наверх
+    options.onBGItemClick?.(item, event); // Используем onBGItemClick из опций
+  });
+
+  container.on('pointerdown', (event) => {
+    options.onBGItemDown?.(item, event); // Используем onBGItemDown из опций
+  });
+
+  container.on('pointerover', () => {
+    state.isHovered = true;
+    container.addChild(hoverSquare);
+    updateVisualState();
+  });
+
+  container.on('pointerout', () => {
+    state.isHovered = false;
+    updateVisualState();
+  });
+
+  // --- МЕТОДЫ УПРАВЛЕНИЯ ---
 
   const setEditableMode = (mode: MapEditableMode) => {
     state.editableMode = mode;
-    // updateVisualState();
+    console.log('setEditableMode', container.interactive);
+    updateVisualState();
   };
 
   const setActive = (active: boolean) => {
     state.isActive = active;
-    // updateVisualState();
+    container.addChild(activeSquare);
+    updateVisualState();
   };
 
   return {
@@ -131,90 +134,4 @@ export const createBGItemVisual = (item: BackgroundItem, options: BGItemVisualOp
     sprite,
     bgItem: item,
   };
-
-  // const pointContainer = new PIXI.Container();
-  // pointContainer.position.set(point.position.x, point.position.y);
-  // pointContainer.interactive = true;
-  // pointContainer.cursor = 'pointer';
-  //
-  // // Создаем все визуальные компоненты
-  // const { circle, progress } = createPointGraphics(point);
-  // const hoverCircle = createSelectionCircle(SELECT_COLOR, HOVER_CIRCLE_WIDTH, HOVER_CIRCLE_RADIUS);
-  // const activeCircle = createSelectionCircle(ACTIVE_COLOR, ACTIVE_CIRCLE_WIDTH, ACTIVE_CIRCLE_RADIUS);
-  //
-  // // Определяем область иконки и создаём спрайт
-  // const frame = new PIXI.Rectangle(
-  //   options.pointTypeIcon.frame.height * ICON_SHIFT_MAP[point.entity.type],
-  //   0,
-  //   options.pointTypeIcon.frame.height,
-  //   options.pointTypeIcon.frame.height,
-  // );
-  // const croppedTexture = new PIXI.Texture({ source: options.pointTypeIcon.source, frame });
-  // const icon = new PIXI.Sprite(croppedTexture);
-  // icon.width = SVG_ICON_SIZE;
-  // icon.height = SVG_ICON_SIZE;
-  // icon.anchor.set(0.5); // Устанавливаем якорь в центр для простоты позиционирования
-  //
-  // // Создаём текстовый блок
-  // const { textContainer } = createTextContainer(point, options);
-  // textContainer.position.x = TEXT_BLOCK_OFFSET_X;
-  // textContainer.position.y = -textContainer.height / 2;
-  //
-  // // Добавляем все элементы в контейнер
-  // pointContainer.addChild(circle, progress, activeCircle, hoverCircle, icon, textContainer);
-  //
-  // const updateVisualState = () => {
-  //   if (state.editableMode === 'none') {
-  //     gsap.to(pointContainer.scale, {
-  //       x: state.isHovered ? HOVER_SCALE : 1.0,
-  //       y: state.isHovered ? HOVER_SCALE : 1.0,
-  //       duration: 0.2,
-  //       ease: 'power2.out',
-  //     });
-  //     pointContainer.cursor = 'pointer';
-  //   } else if (state.editableMode === 'points') {
-  //     hoverCircle.visible = state.isHovered;
-  //     activeCircle.visible = state.isActive;
-  //     gsap.to(pointContainer.scale, { x: 1.0, y: 1.0, duration: 0.2, ease: 'power2.out' });
-  //     pointContainer.cursor = state.isHovered ? 'grab' : 'pointer';
-  //   }
-  // };
-  //
-  // /**
-  //  * --- ОБРАБОТЧИКИ СОБЫТИЙ ---
-  //  */
-  // pointContainer.on('pointertap', (event) => {
-  //   // Поднимаем элемент на верхний слой при взаимодействии
-  //   pointContainer.parent.addChild(pointContainer);
-  //   options.onPointClick?.(point, event);
-  // });
-  //
-  // pointContainer.on('pointerdown', (event) => {
-  //   pointContainer.parent.addChild(pointContainer);
-  //   options.onPointDown?.(point, event);
-  // });
-  //
-  // pointContainer.on('pointerover', () => {
-  //   pointContainer.parent.addChild(pointContainer);
-  //   state.isHovered = true;
-  //   updateVisualState();
-  // });
-  //
-  // pointContainer.on('pointerout', () => {
-  //   state.isHovered = false;
-  //   updateVisualState();
-  // });
-  //
-  // // --- МЕТОДЫ УПРАВЛЕНИЯ ---
-  // const setEditableMode = (mode: MapEditableMode) => {
-  //   state.editableMode = mode;
-  //   updateVisualState();
-  // };
-  //
-  // const setActive = (active: boolean) => {
-  //   state.isActive = active;
-  //   updateVisualState();
-  // };
-  //
-  // return { container: pointContainer, progress, circle, setEditableMode, setActive, point };
 };

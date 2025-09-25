@@ -89,8 +89,8 @@ export type PointVisualOptions = {
 } & Omit<PointsManagerOptions, 'onPointClick'>;
 
 export type BGItemVisualOptions = {
-  onPointClick?: (bgItem: BackgroundItem, event: PIXI.FederatedPointerEvent) => void;
-  onPointDown?: (bgItem: BackgroundItem, event: PIXI.FederatedPointerEvent) => void;
+  onBGItemClick?: (bgItem: BackgroundItem, event: PIXI.FederatedPointerEvent) => void;
+  onBGItemDown?: (bgItem: BackgroundItem, event: PIXI.FederatedPointerEvent) => void;
 } & Pick<PointsManagerOptions, 'backgroundAssets'>;
 
 export type PointsManager = {

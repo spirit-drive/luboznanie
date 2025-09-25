@@ -1,4 +1,4 @@
-import { MapEditableMode, PointID, PointVisuals } from '@/components/entities/map/MapView/MapView.types';
+import { BGItemVisuals, MapEditableMode, PointID, PointVisuals } from '@/components/entities/map/MapView/MapView.types';
 import * as PIXI from 'pixi.js';
 
 export type PointsAndBackgroundsManagerState = {
@@ -12,4 +12,6 @@ export type PointsAndBackgroundsManagerState = {
   movablePoint: PointVisuals | null;
   renderedPoints: Map<PointID, PointVisuals>;
   selectedPoints: Map<PointID, PointVisuals>;
+  renderedBGItems: Map<PointID, BGItemVisuals>;
+  selectedBGItems: Map<PointID, BGItemVisuals>;
 };

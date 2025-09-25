@@ -1,5 +1,13 @@
 import * as PIXI from 'pixi.js';
-import { MapEditableMode, Point, PointID, PointsManager, PointsManagerOptions, PointVisuals } from '../MapView.types';
+import {
+  BGItemVisuals,
+  MapEditableMode,
+  Point,
+  PointID,
+  PointsManager,
+  PointsManagerOptions,
+  PointVisuals,
+} from '../MapView.types';
 import { deepCopy } from '@/utils/deepCopy';
 import { createSingleDoubleAction } from '@/utils/createSingleDoubleAction';
 import { ContainerChild } from 'pixi.js/lib/scene/container/Container';
@@ -26,9 +34,11 @@ export const createPointsAndBackgroundsManager = (
     movablePoint: null,
     renderedPoints: new Map<PointID, PointVisuals>(),
     selectedPoints: new Map<PointID, PointVisuals>(),
+    renderedBGItems: new Map<PointID, BGItemVisuals>(),
+    selectedBGItems: new Map<PointID, BGItemVisuals>(),
   };
 
-  const { backgroundItemsMap } = createBackgroundItemsManager({ state, world, options, app });
+  const { backgroundItemsMap, backgroundContainer } = createBackgroundItemsManager({ state, world, options, app });
 
   options.drawFog();
 
@@ -137,9 +147,13 @@ export const createPointsAndBackgroundsManager = (
       state.renderedPoints.forEach((item) => {
         item.setEditableMode(mode);
       });
+      state.renderedBGItems.forEach((item) => {
+        item.setEditableMode(mode);
+      });
       state.editableMode = mode;
       pointsContainer.alpha = mode === 'backgrounds' ? 0.2 : 1;
       pointsContainer.eventMode = mode === 'backgrounds' ? 'none' : 'auto';
+      backgroundContainer.eventMode = mode === 'backgrounds' ? 'auto' : 'none';
     },
     resetPointsSelecting,
     selectPointsBySpace,
