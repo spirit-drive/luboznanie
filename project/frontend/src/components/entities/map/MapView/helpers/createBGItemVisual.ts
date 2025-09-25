@@ -12,11 +12,18 @@ interface BGItemVisualState {
   isHovered: boolean;
 }
 
-const createSelectionSquare = (color: string, width: number, size: number): PIXI.Graphics => {
+const createSelectionSquare = (
+  color: string,
+  width: number,
+  size: number,
+  { x, y }: { x: number; y: number },
+): PIXI.Graphics => {
   const square = new PIXI.Graphics();
   const halfSize = size / 2;
   // Рисуем квадрат с центром в (0, 0)
   square.rect(-halfSize, -halfSize, size, size);
+  square.x = x;
+  square.y = y;
   square.stroke({ color, width });
   square.visible = false;
   return square;
@@ -65,8 +72,8 @@ export const createBGItemVisual = (item: BackgroundItem, options: BGItemVisualOp
   // --- Создаём квадраты ---
   // Размер квадрата берем чуть больше размера спрайта для обводки
   const squareSize = Math.max(sprite.width, sprite.height) + BORDER_THICKNESS * 2;
-  const hoverSquare = createSelectionSquare(SELECT_COLOR, BORDER_THICKNESS, squareSize - 8);
-  const activeSquare = createSelectionSquare(ACTIVE_COLOR, BORDER_THICKNESS, squareSize);
+  const hoverSquare = createSelectionSquare(SELECT_COLOR, BORDER_THICKNESS, squareSize - 8, item);
+  const activeSquare = createSelectionSquare(ACTIVE_COLOR, BORDER_THICKNESS, squareSize, item);
 
   sprite.label = item.id;
   container.visible = !item.hidden;
@@ -104,7 +111,7 @@ export const createBGItemVisual = (item: BackgroundItem, options: BGItemVisualOp
 
   container.on('pointerover', () => {
     state.isHovered = true;
-    container.addChild(hoverSquare);
+    container.parent.addChild(hoverSquare);
     updateVisualState();
   });
 
@@ -117,13 +124,12 @@ export const createBGItemVisual = (item: BackgroundItem, options: BGItemVisualOp
 
   const setEditableMode = (mode: MapEditableMode) => {
     state.editableMode = mode;
-    console.log('setEditableMode', container.interactive);
     updateVisualState();
   };
 
   const setActive = (active: boolean) => {
     state.isActive = active;
-    container.addChild(activeSquare);
+    container.parent.addChild(activeSquare);
     updateVisualState();
   };
 
