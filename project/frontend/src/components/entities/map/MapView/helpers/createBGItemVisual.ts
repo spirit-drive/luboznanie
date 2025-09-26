@@ -20,13 +20,52 @@ const createSelectionSquare = (
 ): PIXI.Graphics => {
   const square = new PIXI.Graphics();
   const halfSize = size / 2;
-  // Рисуем квадрат с центром в (0, 0)
   square.rect(-halfSize, -halfSize, size, size);
   square.x = x;
   square.y = y;
   square.stroke({ color, width });
   square.visible = false;
   return square;
+};
+
+// --- Вспомогательные функции для превью ---
+
+let previewCanvas: HTMLCanvasElement | null = null;
+
+const showPreview = (texture: PIXI.Texture, cursorX: number, cursorY: number) => {
+  if (previewCanvas) hidePreview();
+
+  // Создаём canvas
+  previewCanvas = document.createElement('canvas');
+  previewCanvas.style.pointerEvents = 'none';
+  previewCanvas.style.zIndex = '9999';
+  previewCanvas.style.border = '2px solid rgba(0,0,0,0.3)';
+  previewCanvas.style.background = '#fff';
+  previewCanvas.width = texture.width / 2;
+  previewCanvas.height = texture.height / 2;
+
+  document.body.appendChild(previewCanvas);
+
+  // Отрисовываем текстуру в canvas
+  const ctx = previewCanvas.getContext('2d');
+  if (!ctx) return;
+
+  const img = new Image();
+  img.src = texture.source.label;
+  console.log(img.src);
+
+  img.onload = () => {
+    // Определим область спрайта
+    const frame = texture.frame;
+    ctx.drawImage(img, frame.x, frame.y, frame.width, frame.height, 0, 0, previewCanvas!.width, previewCanvas!.height);
+  };
+};
+
+const hidePreview = () => {
+  if (previewCanvas) {
+    previewCanvas.remove();
+    previewCanvas = null;
+  }
 };
 
 /**
@@ -41,7 +80,6 @@ export const createBGItemVisual = (item: BackgroundItem, options: BGItemVisualOp
 
   const { backgroundAssets } = options;
 
-  // Получаем загруженный ассет и определяем область обрезки
   const [alias, indexStr] = item.type.split('/');
   const index = parseInt(indexStr);
 
@@ -51,26 +89,19 @@ export const createBGItemVisual = (item: BackgroundItem, options: BGItemVisualOp
   const asset = backgroundAssets[alias];
   if (!(asset instanceof PIXI.Texture)) throw `Asset for item with id ${item.id} is not a valid Texture.`;
 
-  const assetFrameSize = asset.frame.height; // Предполагаем, что иконки в спрайте квадратные
-  // Определяем область обрезки для нужной иконки
+  const assetFrameSize = asset.frame.height;
   const frame = new PIXI.Rectangle(assetFrameSize * index, 0, assetFrameSize, assetFrameSize);
-
-  // Создаем новую текстуру с обрезанной областью
   const croppedTexture = new PIXI.Texture({ source: asset.source, frame });
 
   const sprite = new PIXI.Sprite(croppedTexture);
   const container = new PIXI.Container();
 
-  // Масштабируем спрайт
   sprite.height = sprite.height / 2;
   sprite.width = sprite.width / 2;
-  sprite.anchor.set(0.5); // Центрируем спрайт
+  sprite.anchor.set(0.5);
 
-  // Позиционируем контейнер
   container.position.set(item.x, item.y);
 
-  // --- Создаём квадраты ---
-  // Размер квадрата берем чуть больше размера спрайта для обводки
   const squareSize = Math.max(sprite.width, sprite.height) + BORDER_THICKNESS * 2;
   const hoverSquare = createSelectionSquare(SELECT_COLOR, BORDER_THICKNESS, squareSize - 8, item);
   const activeSquare = createSelectionSquare(ACTIVE_COLOR, BORDER_THICKNESS, squareSize, item);
@@ -79,14 +110,9 @@ export const createBGItemVisual = (item: BackgroundItem, options: BGItemVisualOp
   container.visible = !item.hidden;
   container.interactive = true;
 
-  // Добавляем элементы в контейнер: сначала квадраты, потом спрайт
   container.addChild(hoverSquare, activeSquare, sprite);
 
-  /**
-   * Обновляет визуальное состояние элемента в зависимости от mode, hover и active.
-   */
   const updateVisualState = () => {
-    // В режиме редактирования фоновых элементов
     if (state.editableMode === 'backgrounds') {
       hoverSquare.visible = state.isHovered;
       activeSquare.visible = state.isActive;
@@ -97,30 +123,38 @@ export const createBGItemVisual = (item: BackgroundItem, options: BGItemVisualOp
     }
   };
 
-  /**
-   * --- ОБРАБОТЧИКИ СОБЫТИЙ ---
-   */
   container.on('pointertap', (event) => {
-    container.parent.addChild(container); // Поднимаем наверх
-    options.onBGItemClick?.(item, event); // Используем onBGItemClick из опций
+    container.parent.addChild(container);
+    options.onBGItemClick?.(item, event);
   });
 
   container.on('pointerdown', (event) => {
-    options.onBGItemDown?.(item, event); // Используем onBGItemDown из опций
+    options.onBGItemDown?.(item, event);
   });
 
-  container.on('pointerover', () => {
+  container.on('pointerover', (event) => {
     state.isHovered = true;
     container.parent.addChild(hoverSquare);
     updateVisualState();
+
+    // Показываем canvas с превью
+    const { clientX, clientY } = event.data.originalEvent as PointerEvent;
+    showPreview(croppedTexture, clientX, clientY);
+  });
+
+  container.on('pointermove', (event) => {
+    if (previewCanvas) {
+      const { clientX, clientY } = event.data.originalEvent as PointerEvent;
+      previewCanvas.style.left = `${clientX + 20}px`;
+      previewCanvas.style.top = `${clientY + 20}px`;
+    }
   });
 
   container.on('pointerout', () => {
     state.isHovered = false;
     updateVisualState();
+    hidePreview();
   });
-
-  // --- МЕТОДЫ УПРАВЛЕНИЯ ---
 
   const setEditableMode = (mode: MapEditableMode) => {
     state.editableMode = mode;
