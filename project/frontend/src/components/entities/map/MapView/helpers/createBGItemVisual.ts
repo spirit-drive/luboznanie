@@ -32,7 +32,7 @@ const createSelectionSquare = (
 
 let previewCanvas: HTMLCanvasElement | null = null;
 
-const showPreview = (texture: PIXI.Texture, cursorX: number, cursorY: number) => {
+const showPreview = (texture: PIXI.Texture, x: number, y: number) => {
   if (previewCanvas) hidePreview();
 
   // Создаём canvas
@@ -133,7 +133,6 @@ export const createBGItemVisual = (item: BackgroundItem, options: BGItemVisualOp
   });
 
   container.on('pointerover', (event) => {
-    state.isHovered = true;
     container.parent.addChild(hoverSquare);
     updateVisualState();
 
@@ -144,9 +143,14 @@ export const createBGItemVisual = (item: BackgroundItem, options: BGItemVisualOp
 
   container.on('pointermove', (event) => {
     if (previewCanvas) {
-      const { clientX, clientY } = event.data.originalEvent as PointerEvent;
-      previewCanvas.style.left = `${clientX + 20}px`;
-      previewCanvas.style.top = `${clientY + 20}px`;
+      const { clientX: x, clientY: y } = event.data.originalEvent as PointerEvent;
+      const ctx = previewCanvas.getContext('2d');
+      const rect = container.getBounds();
+      const pixelData = ctx.getImageData(x - rect.x, y - rect.y, 1, 1);
+      state.isHovered = pixelData.data[3] !== 0;
+      updateVisualState();
+
+      console.log(pixelData, pixelData.data[3]);
     }
   });
 
