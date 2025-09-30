@@ -1,20 +1,5 @@
-import { createUpdateConnections } from '@/components/entities/map/MapView/helpers/createUpdateConnections';
 import * as PIXI from 'pixi.js';
-import { isAnyPointerEvent } from '@/components/entities/map/MapView/helpers/isAnyPointerEvent';
-import {
-  BGItemVisuals,
-  MapEditableMode,
-  OnSelectedSpace,
-  Point,
-  PointsManagerOptions,
-  PointVisuals,
-} from '@/components/entities/map/MapView/MapView.types';
-import { AddingPoint } from '@/types/entities/point/point.types';
-import { createAddingPoint } from '@/components/entities/map/MapView/helpers/createAddingPoint';
-import { deepCopy } from '@/utils/deepCopy';
-import { createSingleDoubleAction } from '@/utils/createSingleDoubleAction';
-import { getAllChildren } from '@/components/entities/map/MapView/helpers/helpers';
-import { createPointVisual } from '@/components/entities/map/MapView/helpers/createPointVisual';
+import { BGItemVisuals, PointsManagerOptions } from '@/components/entities/map/MapView/MapView.types';
 import { PointsAndBackgroundsManagerState } from '@/components/entities/map/MapView/helpers/types';
 import { ContainerChild } from 'pixi.js/lib/scene/container/Container';
 import { MapBackgroundItem } from '@/types/entities/map/map.types';
@@ -65,10 +50,10 @@ export const createBackgroundItemsManager = ({
               if (!canvas) return;
 
               canvasesMap.set(_item.bgItem.id, canvas);
-              const ctx = canvas.getContext('2d');
+              const ctx = canvas.getContext('2d', { willReadFrequently: true });
               if (!ctx) return;
 
-              const pixelData = ctx.getImageData((x - rect.x) * world.scale.x, (y - rect.y) * world.scale.y, 1, 1);
+              const pixelData = ctx.getImageData((x - rect.x) / world.scale.x, (y - rect.y) / world.scale.y, 1, 1);
               const isHovered = pixelData.data[3] !== 0;
               _item.setIsHover(isHovered);
               if (isHovered) {
