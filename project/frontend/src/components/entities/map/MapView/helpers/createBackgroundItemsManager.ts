@@ -35,6 +35,7 @@ export const createBackgroundItemsManager = ({
             canvasesMap.clear();
           },
           onBGItemMove: (bgItem, event) => {
+            if (state.editableMode !== 'backgrounds') return;
             let foundHover = false;
             items.forEach((_item) => {
               if (foundHover) {
