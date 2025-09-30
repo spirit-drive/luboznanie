@@ -35,6 +35,7 @@ export const createBackgroundItemsManager = ({
 
   const backgroundContainer = new PIXI.Container();
   const backgroundItemsMap = new Map<string, MapBackgroundItem>();
+  const canvasesMap = new Map<string, PIXI.ICanvas>();
   let items: BGItemVisuals[] = [];
   if (backgroundItems) {
     backgroundItems.forEach((item) => {
@@ -45,6 +46,9 @@ export const createBackgroundItemsManager = ({
           state,
           onBGItemClick: () => {},
           onBGItemDown: () => {},
+          onBGItemOut: () => {
+            canvasesMap.clear();
+          },
           onBGItemMove: (bgItem, event) => {
             let foundHover = false;
             items.forEach((_item) => {
@@ -54,10 +58,17 @@ export const createBackgroundItemsManager = ({
               }
               const { clientX: x, clientY: y } = event.data.originalEvent as PointerEvent;
               const rect = _item.container.getBounds();
-              const ctx = _item.canvas.getContext('2d');
+              if (x < rect.minX || x > rect.maxX) return;
+              if (y < rect.minY || y > rect.maxY) return;
+
+              const canvas = canvasesMap.get(_item.bgItem.id) || app.renderer.extract.canvas(_item.container);
+              if (!canvas) return;
+
+              canvasesMap.set(_item.bgItem.id, canvas);
+              const ctx = canvas.getContext('2d');
               if (!ctx) return;
 
-              const pixelData = ctx.getImageData(x - rect.x, y - rect.y, 1, 1);
+              const pixelData = ctx.getImageData((x - rect.x) * world.scale.x, (y - rect.y) * world.scale.y, 1, 1);
               const isHovered = pixelData.data[3] !== 0;
               _item.setIsHover(isHovered);
               if (isHovered) {

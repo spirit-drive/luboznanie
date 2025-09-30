@@ -92,18 +92,14 @@ export const createBGItemVisual = (item: BackgroundItem, options: BGItemVisualOp
     options.onBGItemDown?.(item, event);
   });
 
-  container.on('pointerover', (event) => {
-    container.parent.addChild(hoverSquare);
-    updateVisualState();
-  });
+  container.on('pointerover', () => {});
 
-  container.on('pointermove', async (event) => {
+  container.on('pointermove', (event) => {
     options.onBGItemMove?.(item, event);
   });
 
-  container.on('pointerout', async () => {
-    state.isHovered = false;
-    updateVisualState();
+  container.on('pointerout', async (event) => {
+    options.onBGItemOut?.(item, event);
   });
 
   const setEditableMode = (mode: MapEditableMode) => {
@@ -129,7 +125,6 @@ export const createBGItemVisual = (item: BackgroundItem, options: BGItemVisualOp
     container,
     sprite,
     setIsHover,
-    canvas: app.renderer.extract.canvas(container),
     bgItem: item,
   };
 };

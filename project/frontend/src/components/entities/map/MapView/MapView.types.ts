@@ -62,7 +62,6 @@ export type BGItemVisuals = {
   container: PIXI.Container<ContainerChild>;
   sprite: PIXI.Sprite;
   bgItem: BackgroundItem;
-  canvas: PIXI.ICanvas;
   setEditableMode: (editableMode: MapEditableMode) => void;
   setActive: (active: boolean) => void;
   setIsHover: (isHover: boolean) => void;
@@ -96,6 +95,7 @@ export type BGItemVisualOptions = {
   state: PointsAndBackgroundsManagerState;
   onBGItemClick?: (bgItem: BackgroundItem, event: PIXI.FederatedPointerEvent) => void;
   onBGItemMove?: (bgItem: BackgroundItem, event: PIXI.FederatedPointerEvent) => void;
+  onBGItemOut?: (bgItem: BackgroundItem, event: PIXI.FederatedPointerEvent) => void;
   onBGItemDown?: (bgItem: BackgroundItem, event: PIXI.FederatedPointerEvent) => void;
 } & Pick<PointsManagerOptions, 'backgroundAssets'>;
 
