@@ -30,7 +30,7 @@ export const createBackgroundItemsManager = ({
   world: PIXI.Container<ContainerChild>;
   options: PointsManagerOptions;
 }) => {
-  const { shouldUnselectByRect, onChangePoints, shouldConnectPoints, backgroundItems, backgroundAssets } = options;
+  const { backgroundItems, backgroundAssets } = options;
 
   const backgroundContainer = new PIXI.Container();
   const backgroundItemsMap = new Map<string, MapBackgroundItem>();
@@ -39,8 +39,19 @@ export const createBackgroundItemsManager = ({
       try {
         const bgItemVisual = createBGItemVisual(item, {
           backgroundAssets,
+          app,
+          state,
           onBGItemClick: () => {},
           onBGItemDown: () => {},
+          onBGItemMove: (bgItem, event) => {
+            const { clientX: x, clientY: y } = event.data.originalEvent as PointerEvent;
+            const rect = bgItemVisual.container.getBounds();
+            const ctx = bgItemVisual.canvas.getContext('2d');
+            if (!ctx) return;
+
+            const pixelData = ctx.getImageData(x - rect.x, y - rect.y, 1, 1);
+            bgItemVisual.setIsHover(pixelData.data[3] !== 0);
+          },
         });
         backgroundContainer.addChild(bgItemVisual.container);
         backgroundItemsMap.set(item.id, { container: bgItemVisual.container, backgroundItem: item });
@@ -53,7 +64,10 @@ export const createBackgroundItemsManager = ({
 
   world.addChild(backgroundContainer);
 
+  const destroyBackgroundItemsManager = () => {};
+
   return {
+    destroyBackgroundItemsManager,
     backgroundItemsMap,
     backgroundContainer,
   };

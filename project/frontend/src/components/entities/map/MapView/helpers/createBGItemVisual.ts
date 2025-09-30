@@ -28,46 +28,6 @@ const createSelectionSquare = (
   return square;
 };
 
-// --- Вспомогательные функции для превью ---
-
-let previewCanvas: HTMLCanvasElement | null = null;
-
-const showPreview = (texture: PIXI.Texture, x: number, y: number) => {
-  if (previewCanvas) hidePreview();
-
-  // Создаём canvas
-  previewCanvas = document.createElement('canvas');
-  previewCanvas.style.pointerEvents = 'none';
-  previewCanvas.style.zIndex = '9999';
-  previewCanvas.style.border = '2px solid rgba(0,0,0,0.3)';
-  previewCanvas.style.background = '#fff';
-  previewCanvas.width = texture.width / 2;
-  previewCanvas.height = texture.height / 2;
-
-  document.body.appendChild(previewCanvas);
-
-  // Отрисовываем текстуру в canvas
-  const ctx = previewCanvas.getContext('2d');
-  if (!ctx) return;
-
-  const img = new Image();
-  img.src = texture.source.label;
-  console.log(img.src);
-
-  img.onload = () => {
-    // Определим область спрайта
-    const frame = texture.frame;
-    ctx.drawImage(img, frame.x, frame.y, frame.width, frame.height, 0, 0, previewCanvas!.width, previewCanvas!.height);
-  };
-};
-
-const hidePreview = () => {
-  if (previewCanvas) {
-    previewCanvas.remove();
-    previewCanvas = null;
-  }
-};
-
 /**
  * Создает визуальное представление для одного фонового элемента.
  */
@@ -78,7 +38,7 @@ export const createBGItemVisual = (item: BackgroundItem, options: BGItemVisualOp
     isHovered: false,
   };
 
-  const { backgroundAssets } = options;
+  const { backgroundAssets, app } = options;
 
   const [alias, indexStr] = item.type.split('/');
   const index = parseInt(indexStr);
@@ -135,29 +95,15 @@ export const createBGItemVisual = (item: BackgroundItem, options: BGItemVisualOp
   container.on('pointerover', (event) => {
     container.parent.addChild(hoverSquare);
     updateVisualState();
-
-    // Показываем canvas с превью
-    const { clientX, clientY } = event.data.originalEvent as PointerEvent;
-    showPreview(croppedTexture, clientX, clientY);
   });
 
-  container.on('pointermove', (event) => {
-    if (previewCanvas) {
-      const { clientX: x, clientY: y } = event.data.originalEvent as PointerEvent;
-      const ctx = previewCanvas.getContext('2d');
-      const rect = container.getBounds();
-      const pixelData = ctx.getImageData(x - rect.x, y - rect.y, 1, 1);
-      state.isHovered = pixelData.data[3] !== 0;
-      updateVisualState();
-
-      console.log(pixelData, pixelData.data[3]);
-    }
+  container.on('pointermove', async (event) => {
+    options.onBGItemMove?.(item, event);
   });
 
-  container.on('pointerout', () => {
+  container.on('pointerout', async () => {
     state.isHovered = false;
     updateVisualState();
-    hidePreview();
   });
 
   const setEditableMode = (mode: MapEditableMode) => {
@@ -171,11 +117,19 @@ export const createBGItemVisual = (item: BackgroundItem, options: BGItemVisualOp
     updateVisualState();
   };
 
+  const setIsHover = (isHovered: boolean) => {
+    state.isHovered = isHovered;
+    container.parent.addChild(hoverSquare);
+    updateVisualState();
+  };
+
   return {
     setEditableMode,
     setActive,
     container,
     sprite,
+    setIsHover,
+    canvas: app.renderer.extract.canvas(container),
     bgItem: item,
   };
 };

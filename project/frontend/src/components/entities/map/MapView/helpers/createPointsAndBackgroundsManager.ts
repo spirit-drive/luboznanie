@@ -38,7 +38,12 @@ export const createPointsAndBackgroundsManager = (
     selectedBGItems: new Map<PointID, BGItemVisuals>(),
   };
 
-  const { backgroundItemsMap, backgroundContainer } = createBackgroundItemsManager({ state, world, options, app });
+  const { backgroundItemsMap, backgroundContainer, destroyBackgroundItemsManager } = createBackgroundItemsManager({
+    state,
+    world,
+    options,
+    app,
+  });
 
   options.drawFog();
 
@@ -130,6 +135,7 @@ export const createPointsAndBackgroundsManager = (
   });
 
   const destroy = () => {
+    destroyBackgroundItemsManager();
     destroyPoints();
     app.stage.off('pointerup', onAppPointerUp);
     document.removeEventListener('keydown', onKeyDown);
