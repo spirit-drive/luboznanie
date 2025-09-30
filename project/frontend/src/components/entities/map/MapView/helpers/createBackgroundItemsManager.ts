@@ -2,6 +2,7 @@ import { createUpdateConnections } from '@/components/entities/map/MapView/helpe
 import * as PIXI from 'pixi.js';
 import { isAnyPointerEvent } from '@/components/entities/map/MapView/helpers/isAnyPointerEvent';
 import {
+  BGItemVisuals,
   MapEditableMode,
   OnSelectedSpace,
   Point,
@@ -34,6 +35,7 @@ export const createBackgroundItemsManager = ({
 
   const backgroundContainer = new PIXI.Container();
   const backgroundItemsMap = new Map<string, MapBackgroundItem>();
+  let items: BGItemVisuals[] = [];
   if (backgroundItems) {
     backgroundItems.forEach((item) => {
       try {
@@ -44,13 +46,24 @@ export const createBackgroundItemsManager = ({
           onBGItemClick: () => {},
           onBGItemDown: () => {},
           onBGItemMove: (bgItem, event) => {
-            const { clientX: x, clientY: y } = event.data.originalEvent as PointerEvent;
-            const rect = bgItemVisual.container.getBounds();
-            const ctx = bgItemVisual.canvas.getContext('2d');
-            if (!ctx) return;
+            let foundHover = false;
+            items.forEach((_item) => {
+              if (foundHover) {
+                _item.setIsHover(false);
+                return;
+              }
+              const { clientX: x, clientY: y } = event.data.originalEvent as PointerEvent;
+              const rect = _item.container.getBounds();
+              const ctx = _item.canvas.getContext('2d');
+              if (!ctx) return;
 
-            const pixelData = ctx.getImageData(x - rect.x, y - rect.y, 1, 1);
-            bgItemVisual.setIsHover(pixelData.data[3] !== 0);
+              const pixelData = ctx.getImageData(x - rect.x, y - rect.y, 1, 1);
+              const isHovered = pixelData.data[3] !== 0;
+              _item.setIsHover(isHovered);
+              if (isHovered) {
+                foundHover = true;
+              }
+            });
           },
         });
         backgroundContainer.addChild(bgItemVisual.container);
@@ -60,6 +73,7 @@ export const createBackgroundItemsManager = ({
         console.warn(e);
       }
     });
+    items = [...state.renderedBGItems.values()].reverse();
   }
 
   world.addChild(backgroundContainer);
