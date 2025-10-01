@@ -2,7 +2,7 @@ import * as PIXI from 'pixi.js';
 import { BGItemVisuals, PointsManagerOptions } from '@/components/entities/map/MapView/MapView.types';
 import { PointsAndBackgroundsManagerState } from '@/components/entities/map/MapView/helpers/types';
 import { ContainerChild } from 'pixi.js/lib/scene/container/Container';
-import { MapBackgroundItem } from '@/types/entities/map/map.types';
+import { BackgroundItem, MapBackgroundItem } from '@/types/entities/map/map.types';
 import { createBGItemVisual } from '@/components/entities/map/MapView/helpers/createBGItemVisual';
 
 export const createBackgroundItemsManager = ({
@@ -21,8 +21,10 @@ export const createBackgroundItemsManager = ({
   const backgroundContainer = new PIXI.Container();
   const backgroundItemsMap = new Map<string, MapBackgroundItem>();
   const canvasesMap = new Map<string, PIXI.ICanvas>();
-  let items: BGItemVisuals[] = [];
-  if (backgroundItems) {
+
+  const updateBGITems = (backgroundItems: BackgroundItem[] | undefined) => {
+    if (!backgroundItems) return;
+    let items: BGItemVisuals[] = [];
     backgroundItems.forEach((item) => {
       try {
         const bgItemVisual = createBGItemVisual(item, {
@@ -71,7 +73,9 @@ export const createBackgroundItemsManager = ({
       }
     });
     items = [...state.renderedBGItems.values()].reverse();
-  }
+  };
+
+  updateBGITems(backgroundItems);
 
   world.addChild(backgroundContainer);
 
