@@ -1,17 +1,11 @@
 import * as PIXI from 'pixi.js';
-import {
-  BGItemVisuals,
-  MapEditableMode,
-  OnSelectedSpace,
-  PointsManagerOptions,
-} from '@/components/entities/map/MapView/MapView.types';
+import { BGItemVisuals, PointsManagerOptions } from '@/components/entities/map/MapView/MapView.types';
 import { PointsAndBackgroundsManagerState } from '@/components/entities/map/MapView/helpers/types';
 import { ContainerChild } from 'pixi.js/lib/scene/container/Container';
 import { BackgroundItem, MapBackgroundItem } from '@/types/entities/map/map.types';
 import { createBGItemVisual } from '@/components/entities/map/MapView/helpers/createBGItemVisual';
 import { deepCopy } from '@/utils/deepCopy';
 import { createSingleDoubleAction } from '@/utils/createSingleDoubleAction';
-import { createPointVisual } from '@/components/entities/map/MapView/helpers/createPointVisual';
 
 export const createBackgroundItemsManager = ({
   app,
