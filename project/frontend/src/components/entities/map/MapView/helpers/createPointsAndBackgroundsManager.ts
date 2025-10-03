@@ -36,14 +36,18 @@ export const createPointsAndBackgroundsManager = (
     selectedPoints: new Map<PointID, PointVisuals>(),
     renderedBGItems: new Map<PointID, BGItemVisuals>(),
     selectedBGItems: new Map<PointID, BGItemVisuals>(),
+    movableBGItem: null,
+    addingBGItemVisible: false,
+    addingBGItem: null,
   };
 
-  const { backgroundItemsMap, backgroundContainer, destroyBackgroundItemsManager } = createBackgroundItemsManager({
-    state,
-    world,
-    options,
-    app,
-  });
+  const { backgroundItemsMap, backgroundContainer, destroyBackgroundItemsManager, updateBGITems } =
+    createBackgroundItemsManager({
+      state,
+      world,
+      options,
+      app,
+    });
 
   options.drawFog();
 
@@ -147,6 +151,7 @@ export const createPointsAndBackgroundsManager = (
   app.stage.on('pointerup', onAppPointerUp);
 
   return {
+    updateBGITems,
     updatePoints,
     destroy,
     setEditableMode: (mode: MapEditableMode) => {

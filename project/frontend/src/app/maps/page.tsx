@@ -122,15 +122,19 @@ export const backgroundItems: BackgroundItem[] = [
   {
     id: 'item1',
     type: 'map-set-3/0',
-    x: 100,
-    y: 150,
+    position: {
+      x: 100,
+      y: 150,
+    },
   },
   // Элемент, который изначально скрыт и имеет звук
   {
     id: 'item2',
     type: 'map-set-3/3',
-    x: 100,
-    y: 300,
+    position: {
+      x: 100,
+      y: 300,
+    },
     hidden: false,
     sound: true,
   },
@@ -138,8 +142,10 @@ export const backgroundItems: BackgroundItem[] = [
   {
     id: 'item3',
     type: 'map-set-1/2',
-    x: 400,
-    y: 300,
+    position: {
+      x: 400,
+      y: 300,
+    },
     deps: [
       {
         id: 'dep1',
@@ -168,8 +174,10 @@ export const backgroundItems: BackgroundItem[] = [
   {
     id: 'item4',
     type: 'map-set-1/3',
-    x: 500,
-    y: 400,
+    position: {
+      x: 500,
+      y: 400,
+    },
     deps: [
       // Условие 1: Срабатывает, если у "point2" `hidden: true` и у игрока 100+ монет
       {
@@ -214,8 +222,10 @@ export const backgroundItems: BackgroundItem[] = [
   {
     id: 'item5',
     type: 'map-set-1/5',
-    x: 600,
-    y: 500,
+    position: {
+      x: 600,
+      y: 500,
+    },
     deps: [
       {
         id: 'dep4',
@@ -270,6 +280,7 @@ const HIDE_ADDING_KEYS = [
 
 export default function Page() {
   const [editableMode, setEditableMode] = useState<MapEditableMode>('none');
+  const [bgItems, setBgItems] = useState(backgroundItems);
   const [points, setPoints] = useState(items);
   const [addingElement, setAddingElement] = useState<AddingElement | null>(null);
 
@@ -313,7 +324,8 @@ export default function Page() {
           editableMode={editableMode}
           width={1000}
           height={1000}
-          backgroundItems={backgroundItems}
+          backgroundItems={bgItems}
+          onChangeBGItems={setBgItems}
           points={points}
           onChangePoints={setPoints}
           onPointClick={onPointClick}

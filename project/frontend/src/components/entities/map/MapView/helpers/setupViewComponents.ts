@@ -30,6 +30,8 @@ export const setupViewComponents = async ({ app, world, options }: MapDependenci
     onAddedElement,
     shouldUnselectByRect,
     shouldConnectPoints,
+    onBGItemClick,
+    onChangeBGItems,
   } = options;
 
   // Центрируем мир
@@ -64,6 +66,8 @@ export const setupViewComponents = async ({ app, world, options }: MapDependenci
     shouldConnectPoints,
     backgroundItems,
     backgroundAssets,
+    onBGItemClick,
+    onChangeBGItems,
   });
 
   pointsAndBackgroundsManager.updatePoints(points);

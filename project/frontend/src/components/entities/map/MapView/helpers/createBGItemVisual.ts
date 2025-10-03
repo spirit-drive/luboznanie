@@ -60,11 +60,11 @@ export const createBGItemVisual = (item: BackgroundItem, options: BGItemVisualOp
   sprite.width = sprite.width / 2;
   sprite.anchor.set(0.5);
 
-  container.position.set(item.x, item.y);
+  container.position.set(item.position.x, item.position.y);
 
   const squareSize = Math.max(sprite.width, sprite.height) + BORDER_THICKNESS * 2;
-  const hoverSquare = createSelectionSquare(SELECT_COLOR, BORDER_THICKNESS, squareSize - 8, item);
-  const activeSquare = createSelectionSquare(ACTIVE_COLOR, BORDER_THICKNESS, squareSize, item);
+  const hoverSquare = createSelectionSquare(SELECT_COLOR, BORDER_THICKNESS, squareSize - 8, item.position);
+  const activeSquare = createSelectionSquare(ACTIVE_COLOR, BORDER_THICKNESS, squareSize, item.position);
 
   sprite.label = item.id;
   container.visible = !item.hidden;

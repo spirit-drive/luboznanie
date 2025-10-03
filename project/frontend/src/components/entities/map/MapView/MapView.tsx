@@ -21,6 +21,8 @@ export const MapView = ({
   onAddedElement,
   shouldUnselectByRect,
   shouldConnectPoints,
+  onBGItemClick,
+  onChangeBGItems,
 }: MapViewProps) => {
   const { containerRef, ...mapViewController } = useMapView({
     addingElement,
@@ -36,6 +38,8 @@ export const MapView = ({
     onSelectPoints,
     shouldUnselectByRect,
     shouldConnectPoints,
+    onBGItemClick,
+    onChangeBGItems,
   });
 
   useImperativeHandle(ref, () => mapViewController);

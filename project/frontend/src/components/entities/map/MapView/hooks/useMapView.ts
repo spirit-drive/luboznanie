@@ -18,6 +18,8 @@ export const useMapView = ({
   onAddedElement,
   shouldUnselectByRect,
   shouldConnectPoints,
+  onChangeBGItems,
+  onBGItemClick,
 }: UseMapViewOptions): TMapView => {
   const containerRef = useRef<HTMLDivElement>(null);
   const appRef = useRef<PIXI.Application | null>(null);
@@ -37,6 +39,8 @@ export const useMapView = ({
         shouldUnselectByRect,
         shouldConnectPoints,
         container,
+        onBGItemClick,
+        onChangeBGItems,
         backgroundItems,
         onAddedElement: (args) => {
           onAddedElement?.(args);
@@ -83,10 +87,15 @@ export const useMapView = ({
   // --- useEffect для обновления точек ---
   useEffect(() => {
     if (mapController.current && points) {
-      console.log(points);
       mapController.current?.updatePoints(points);
     }
   }, [points]);
+
+  useEffect(() => {
+    if (mapController.current && backgroundItems) {
+      mapController.current?.updateBGITems(backgroundItems);
+    }
+  }, [backgroundItems]);
 
   useEffect(() => {
     mapController.current?.setEditableMode(editableMode!);

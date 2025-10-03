@@ -7,8 +7,10 @@ export type MapBackground = {
 export type LoadedAsset = PIXI.Texture | PIXI.Spritesheet;
 
 export type BackgroundItemBase = {
-  x: number;
-  y: number;
+  position: {
+    x: number;
+    y: number;
+  };
   hidden?: boolean;
   sound?: boolean;
 };

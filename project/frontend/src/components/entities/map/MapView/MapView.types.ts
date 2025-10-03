@@ -42,9 +42,11 @@ export type MapViewProps = {
   width: number;
   height: number;
   onPointClick: (point: Point) => void;
+  onBGItemClick: (bgItem: BackgroundItem) => void;
   editableMode?: MapEditableMode;
   onSelectPoints?: (selectedPoints: Point[]) => void;
   onChangePoints?: (points: Point[]) => void;
+  onChangeBGItems?: (bgItems: BackgroundItem[]) => void;
 };
 
 export type { Point, PointID, MapBackground, Connection };
@@ -75,6 +77,8 @@ export type PointsManagerOptions = {
   drawFog: () => void;
 } & Pick<
   MapViewProps,
+  | 'onBGItemClick'
+  | 'onChangeBGItems'
   | 'shouldUnselectByRect'
   | 'onAddedElement'
   | 'onPointClick'
@@ -110,11 +114,14 @@ export type PointsManager = {
   setEditableMode: (editableMode: MapEditableMode) => void;
   destroy: () => void;
   updatePoints: (points: Point[]) => void;
+  updateBGITems: (bgItems: BackgroundItem[]) => void;
   resetPointsSelecting: () => void;
 };
 
 export type UseMapViewOptions = Pick<
   MapViewProps,
+  | 'onBGItemClick'
+  | 'onChangeBGItems'
   | 'shouldConnectPoints'
   | 'shouldUnselectByRect'
   | 'background'
@@ -148,7 +155,10 @@ export type MapApp = {
   cleanup: () => void;
   setEditableMode: (editableMode: MapEditableMode) => void;
   setAddingElement: (addingElement: AddingElement | null) => void;
-} & Pick<PointsManager, 'updatePoints' | 'selectAllPoints' | 'selectPoints' | 'setVisibleOfAddingElement'>;
+} & Pick<
+  PointsManager,
+  'updatePoints' | 'updateBGITems' | 'selectAllPoints' | 'selectPoints' | 'setVisibleOfAddingElement'
+>;
 
 export type AddingPointType = {
   type: 'point';

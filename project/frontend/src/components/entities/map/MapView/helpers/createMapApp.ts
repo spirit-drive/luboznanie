@@ -42,6 +42,9 @@ export const createMapApp = async ({ container, appRef, ...options }: MapViewOpt
     updatePoints: (points) => {
       pointsAndBackgroundsManager.updatePoints(points);
     },
+    updateBGITems: (bgItems) => {
+      pointsAndBackgroundsManager.updateBGITems(bgItems);
+    },
     cleanup: () => {
       pointsAndBackgroundsManager.destroy();
       mapController.destroy();
