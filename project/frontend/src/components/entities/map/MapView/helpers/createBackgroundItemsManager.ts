@@ -267,7 +267,6 @@ export const createBackgroundItemsManager = ({
             },
           });
           backgroundItemsMap.set(item.id, { container: bgItemVisual.container, backgroundItem: item });
-          state.renderedBGItems.set(item.id, bgItemVisual);
           bgItemVisual.setEditableMode(state.editableMode);
           state.renderedBGItems.set(item.id, bgItemVisual);
           backgroundContainer.addChild(bgItemVisual.container);
