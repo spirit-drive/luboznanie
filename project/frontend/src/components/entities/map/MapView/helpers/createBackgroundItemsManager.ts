@@ -11,6 +11,7 @@ import { BackgroundItem, MapBackgroundItem } from '@/types/entities/map/map.type
 import { createBGItemVisual } from '@/components/entities/map/MapView/helpers/createBGItemVisual';
 import { deepCopy } from '@/utils/deepCopy';
 import { createSingleDoubleAction } from '@/utils/createSingleDoubleAction';
+import { createPointVisual } from '@/components/entities/map/MapView/helpers/createPointVisual';
 
 export const createBackgroundItemsManager = ({
   app,
@@ -197,57 +198,85 @@ export const createBackgroundItemsManager = ({
   const updateBGITems = (backgroundItems: BackgroundItem[] | undefined) => {
     if (!backgroundItems) return;
     let items: BGItemVisuals[] = [];
-    backgroundItems.forEach((item) => {
-      try {
-        const bgItemVisual = createBGItemVisual(item, {
-          backgroundAssets,
-          app,
-          state,
-          onBGItemClick: (bgItem, event) => {
-            onBGItemClick(event, bgItem);
-          },
-          onBGItemDown: (bgItem, event) => {
-            onPointerDown(bgItemVisual, event);
-          },
-          onBGItemOut: () => {
-            canvasesMap.clear();
-          },
-          onBGItemMove: (bgItem, event) => {
-            if (state.editableMode !== 'backgrounds' || state.moved) return;
-            let foundHover = false;
-            items.forEach((_item) => {
-              if (foundHover) {
-                _item.setIsHover(false);
-                return;
-              }
-              const { clientX: x, clientY: y } = event.data.originalEvent as PointerEvent;
-              const rect = _item.container.getBounds();
-              if (x < rect.minX || x > rect.maxX) return;
-              if (y < rect.minY || y > rect.maxY) return;
 
-              const canvas = canvasesMap.get(_item.bgItem.id) || app.renderer.extract.canvas(_item.container);
-              if (!canvas) return;
+    const currentIds = new Set(state.renderedBGItems.keys());
+    const newIds = new Set(backgroundItems.map((item) => item.id));
 
-              canvasesMap.set(_item.bgItem.id, canvas);
-              const ctx = canvas.getContext('2d', { willReadFrequently: true });
-              if (!ctx) return;
-
-              const pixelData = ctx.getImageData((x - rect.x) / world.scale.x, (y - rect.y) / world.scale.y, 1, 1);
-              const isHovered = pixelData.data[3] !== 0;
-              _item.setIsHover(isHovered);
-              if (isHovered) {
-                foundHover = true;
-              }
-            });
-          },
-        });
-        backgroundContainer.addChild(bgItemVisual.container);
-        backgroundItemsMap.set(item.id, { container: bgItemVisual.container, backgroundItem: item });
-        state.renderedBGItems.set(item.id, bgItemVisual);
-      } catch (e) {
-        console.warn(e);
+    // 1. Удаление старых точек
+    for (const id of currentIds) {
+      if (!newIds.has(id)) {
+        const pointVisual = state.renderedBGItems.get(id);
+        if (pointVisual) {
+          backgroundContainer.removeChild(pointVisual.container);
+          pointVisual.container.destroy({ children: true });
+        }
+        state.renderedBGItems.delete(id);
+        state.selectedBGItems.delete(id); // Важно: удаляем из selected
       }
-    });
+    }
+
+    // 2. Добавление и обновление существующих точек
+    for (const item of backgroundItems) {
+      const existingVisual = state.renderedBGItems.get(item.id);
+
+      if (existingVisual) {
+        existingVisual.container.position.set(item.position.x, item.position.y);
+        existingVisual.bgItem.position = item.position;
+      } else {
+        try {
+          const bgItemVisual = createBGItemVisual(item, {
+            backgroundAssets,
+            app,
+            state,
+            onBGItemClick: (bgItem, event) => {
+              onBGItemClick(event, bgItem);
+            },
+            onBGItemDown: (bgItem, event) => {
+              onPointerDown(bgItemVisual, event);
+            },
+            onBGItemOut: () => {
+              canvasesMap.clear();
+            },
+            onBGItemMove: (bgItem, event) => {
+              if (state.editableMode !== 'backgrounds' || state.moved) return;
+              let foundHover = false;
+              items.forEach((_item) => {
+                if (foundHover) {
+                  _item.setIsHover(false);
+                  return;
+                }
+                const { clientX: x, clientY: y } = event.data.originalEvent as PointerEvent;
+                const rect = _item.container.getBounds();
+                if (x < rect.minX || x > rect.maxX) return;
+                if (y < rect.minY || y > rect.maxY) return;
+
+                const canvas = canvasesMap.get(_item.bgItem.id) || app.renderer.extract.canvas(_item.container);
+                if (!canvas) return;
+
+                canvasesMap.set(_item.bgItem.id, canvas);
+                const ctx = canvas.getContext('2d', { willReadFrequently: true });
+                if (!ctx) return;
+
+                const pixelData = ctx.getImageData((x - rect.x) / world.scale.x, (y - rect.y) / world.scale.y, 1, 1);
+                const isHovered = pixelData.data[3] !== 0;
+                _item.setIsHover(isHovered);
+                if (isHovered) {
+                  foundHover = true;
+                }
+              });
+            },
+          });
+          backgroundItemsMap.set(item.id, { container: bgItemVisual.container, backgroundItem: item });
+          state.renderedBGItems.set(item.id, bgItemVisual);
+          bgItemVisual.setEditableMode(state.editableMode);
+          state.renderedBGItems.set(item.id, bgItemVisual);
+          backgroundContainer.addChild(bgItemVisual.container);
+        } catch (e) {
+          console.warn(e);
+        }
+      }
+    }
+
     items = [...state.renderedBGItems.values()].reverse();
   };
 
