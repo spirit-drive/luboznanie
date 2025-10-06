@@ -65,6 +65,7 @@ export type BGItemVisuals = {
   sprite: PIXI.Sprite;
   bgItem: BackgroundItem;
   setEditableMode: (editableMode: MapEditableMode) => void;
+  setPosition: (position: { x: number; y: number }) => void;
   setActive: (active: boolean) => void;
   setIsHover: (isHover: boolean) => void;
 };

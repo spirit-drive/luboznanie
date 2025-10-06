@@ -90,8 +90,7 @@ export const createBackgroundItemsManager = ({
     const deltaY = newLocalPosition.y - state.dragOffset.y - state.movableBGItem.container.position.y;
 
     state.selectedBGItems.forEach((visual) => {
-      visual.container.position.x += deltaX;
-      visual.container.position.y += deltaY;
+      visual.setPosition({ x: visual.container.position.x + deltaX, y: visual.container.position.y + deltaY });
     });
 
     applyBGItemChanges();

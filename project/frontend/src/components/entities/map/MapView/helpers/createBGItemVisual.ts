@@ -126,5 +126,13 @@ export const createBGItemVisual = (item: BackgroundItem, options: BGItemVisualOp
     sprite,
     setIsHover,
     bgItem: item,
+    setPosition: ({ x, y }) => {
+      container.position.x = x;
+      container.position.y = y;
+      hoverSquare.position.x = x;
+      hoverSquare.position.y = y;
+      activeSquare.position.x = x;
+      activeSquare.position.y = y;
+    },
   };
 };
