@@ -23,6 +23,7 @@ export const createBackgroundItemsManager = ({
   const backgroundContainer = new PIXI.Container();
   const backgroundItemsMap = new Map<string, MapBackgroundItem>();
   const canvasesMap = new Map<string, PIXI.ICanvas>();
+  let items: BGItemVisuals[] = [];
 
   // const onMoveAddingBGItem = (event: PIXI.FederatedPointerEvent) => {
   //   if (state.addingBGItem) {
@@ -188,12 +189,60 @@ export const createBackgroundItemsManager = ({
   //   }
   // };
 
+  const onInsideElem =
+    ({
+      beforeFound,
+      afterFound,
+      onFound,
+    }: {
+      beforeFound?: (item: BGItemVisuals, isInside: boolean) => void;
+      onFound?: (item: BGItemVisuals) => void;
+      afterFound?: (item: BGItemVisuals) => void;
+    }) =>
+    ({ x, y }: { x: number; y: number }) => {
+      let found = false;
+      items.forEach((item) => {
+        if (found) {
+          afterFound?.(item);
+          return;
+        }
+
+        const rect = item.container.getBounds();
+        if (x < rect.minX || x > rect.maxX) return;
+        if (y < rect.minY || y > rect.maxY) return;
+
+        const canvas = canvasesMap.get(item.bgItem.id) || app.renderer.extract.canvas(item.container);
+        if (!canvas) return;
+
+        canvasesMap.set(item.bgItem.id, canvas);
+        const ctx = canvas.getContext('2d', { willReadFrequently: true });
+        if (!ctx) return;
+
+        const pixelData = ctx.getImageData((x - rect.x) / world.scale.x, (y - rect.y) / world.scale.y, 1, 1);
+        const isInside = pixelData.data[3] !== 0;
+        beforeFound?.(item, isInside);
+
+        if (isInside) {
+          onFound?.(item);
+          found = true;
+        }
+      });
+    };
+
   const updateBGITems = (backgroundItems: BackgroundItem[] | undefined) => {
     if (!backgroundItems) return;
-    let items: BGItemVisuals[] = [];
 
     const currentIds = new Set(state.renderedBGItems.keys());
     const newIds = new Set(backgroundItems.map((item) => item.id));
+
+    const onMove = onInsideElem({
+      beforeFound: (item, isInside) => {
+        item.setIsHover(isInside);
+      },
+      afterFound: (item) => {
+        item.setIsHover(false);
+      },
+    });
 
     // 1. Удаление старых точек
     for (const id of currentIds) {
@@ -222,41 +271,32 @@ export const createBackgroundItemsManager = ({
             app,
             state,
             onBGItemClick: (bgItem, event) => {
-              onBGItemClick(event, bgItem);
+              const { clientX: x, clientY: y } = event.data.originalEvent as PointerEvent;
+
+              onInsideElem({
+                onFound: (item) => {
+                  onBGItemClick(event, item.bgItem);
+                },
+              })({ x, y });
             },
             onBGItemDown: (bgItem, event) => {
-              onPointerDown(bgItemVisual, event);
+              const { clientX: x, clientY: y } = event.data.originalEvent as PointerEvent;
+
+              onInsideElem({
+                onFound: (item) => {
+                  onPointerDown(item, event);
+                },
+              })({ x, y });
             },
             onBGItemOut: () => {
               canvasesMap.clear();
             },
             onBGItemMove: (bgItem, event) => {
               if (state.editableMode !== 'backgrounds' || state.moved) return;
-              let foundHover = false;
-              items.forEach((_item) => {
-                if (foundHover) {
-                  _item.setIsHover(false);
-                  return;
-                }
-                const { clientX: x, clientY: y } = event.data.originalEvent as PointerEvent;
-                const rect = _item.container.getBounds();
-                if (x < rect.minX || x > rect.maxX) return;
-                if (y < rect.minY || y > rect.maxY) return;
 
-                const canvas = canvasesMap.get(_item.bgItem.id) || app.renderer.extract.canvas(_item.container);
-                if (!canvas) return;
+              const { clientX: x, clientY: y } = event.data.originalEvent as PointerEvent;
 
-                canvasesMap.set(_item.bgItem.id, canvas);
-                const ctx = canvas.getContext('2d', { willReadFrequently: true });
-                if (!ctx) return;
-
-                const pixelData = ctx.getImageData((x - rect.x) / world.scale.x, (y - rect.y) / world.scale.y, 1, 1);
-                const isHovered = pixelData.data[3] !== 0;
-                _item.setIsHover(isHovered);
-                if (isHovered) {
-                  foundHover = true;
-                }
-              });
+              onMove({ x, y });
             },
           });
           backgroundItemsMap.set(item.id, { container: bgItemVisual.container, backgroundItem: item });
