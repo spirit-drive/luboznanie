@@ -8,6 +8,7 @@ import { deepCopy } from '@/utils/deepCopy';
 import { createSingleDoubleAction } from '@/utils/createSingleDoubleAction';
 import { isAnyPointerEvent } from '@/components/entities/map/MapView/helpers/isAnyPointerEvent';
 import { getDeltasByKey } from '@/components/entities/map/MapView/helpers/getDeltasByKey';
+import { getNeighbors } from '@/components/entities/map/MapView/helpers/getNeighbors';
 
 export const createBackgroundItemsManager = ({
   app,
@@ -116,6 +117,7 @@ export const createBackgroundItemsManager = ({
 
   const unselectBGItems = (bgItems: BGItemVisuals[]) => {
     bgItems.forEach((item) => {
+      console.log(item);
       item.setActive(false);
       state.selectedBGItems.delete(item.bgItem.id);
     });
@@ -129,12 +131,12 @@ export const createBackgroundItemsManager = ({
   };
 
   const onBGItemClick = createSingleDoubleAction<PIXI.FederatedPointerEvent>({
-    alwaysHandler: (_, bgItem: BackgroundItem) => {
-      options.onBGItemClick?.(bgItem);
+    alwaysHandler: (_, item: BGItemVisuals) => {
+      options.onBGItemClick?.(item.bgItem);
 
       return false;
     },
-    singleHandler: (event, bgItem: BackgroundItem) => {
+    singleHandler: (event, item: BGItemVisuals) => {
       if (state.moved) {
         state.moved = false;
         return;
@@ -142,21 +144,22 @@ export const createBackgroundItemsManager = ({
 
       if (state.editableMode !== 'backgrounds') return;
 
-      const visual = state.renderedBGItems.get(bgItem.id);
+      const visual = state.renderedBGItems.get(item.bgItem.id);
       if (!visual) return;
 
-      if (state.selectedBGItems.has(bgItem.id)) unselectBGItems([visual]);
+      if (state.selectedBGItems.has(item.bgItem.id)) unselectBGItems([visual]);
       else selectBGItems([visual]);
     },
-    doubleHandler: (event, bgItem: BackgroundItem) => {
+    doubleHandler: (event, item: BGItemVisuals) => {
       if (state.editableMode !== 'backgrounds') return;
 
-      const visual = state.renderedBGItems.get(bgItem.id);
+      const visual = state.renderedBGItems.get(item.bgItem.id);
       if (!visual) return;
 
-      // const neighbors = getAllNearby(bgItem, state.renderedBGItems);
-      // if (state.selectedBGItems.has(bgItem.id)) unselectBGItems([...neighbors, visual]);
-      // else selectBGItems([...neighbors, visual]);
+      const all = [...state.renderedBGItems.values()];
+      const neighbors = getNeighbors(all, [item], (i) => i.container);
+      if (state.selectedBGItems.has(item.bgItem.id)) unselectBGItems(neighbors);
+      else selectBGItems(neighbors);
     },
   });
 
@@ -288,7 +291,7 @@ export const createBackgroundItemsManager = ({
 
               onInsideElem({
                 onFound: (item) => {
-                  onBGItemClick(event, item.bgItem);
+                  onBGItemClick(event, item);
                 },
               })({ x, y });
             },
