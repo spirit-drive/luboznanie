@@ -158,15 +158,15 @@ export const createBackgroundItemsManager = ({
     },
   });
 
-  // const resetBGItemsSelecting = () => {
-  //   unselectBGItems(Array.from(state.selectedBGItems.values()));
-  //   state.selectedBGItems.clear();
-  // };
-  //
-  // const selectAllBGItems = () => {
-  //   selectBGItems(Array.from(state.renderedBGItems.values()));
-  //   state.selectedBGItems = new Map(state.renderedBGItems);
-  // };
+  const resetBGItemsSelecting = () => {
+    unselectBGItems(Array.from(state.selectedBGItems.values()));
+    state.selectedBGItems.clear();
+  };
+
+  const selectAllBGItems = () => {
+    selectBGItems(Array.from(state.renderedBGItems.values()));
+    state.selectedBGItems = new Map(state.renderedBGItems);
+  };
 
   // const selectBGItemsBySpace: OnSelectedSpace = (space, phase, event) => {
   //   if (phase === 'end') {
@@ -323,5 +323,7 @@ export const createBackgroundItemsManager = ({
     backgroundItemsMap,
     backgroundContainer,
     updateBGITems,
+    resetBGItemsSelecting,
+    selectAllBGItems,
   };
 };

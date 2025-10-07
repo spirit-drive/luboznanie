@@ -117,6 +117,8 @@ export type PointsManager = {
   updatePoints: (points: Point[]) => void;
   updateBGITems: (bgItems: BackgroundItem[]) => void;
   resetPointsSelecting: () => void;
+  resetBGItemsSelecting: () => void;
+  selectAllBGItems: () => void;
 };
 
 export type UseMapViewOptions = Pick<

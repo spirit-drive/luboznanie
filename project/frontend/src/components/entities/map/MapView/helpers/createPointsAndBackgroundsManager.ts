@@ -41,13 +41,19 @@ export const createPointsAndBackgroundsManager = (
     addingBGItem: null,
   };
 
-  const { backgroundItemsMap, backgroundContainer, destroyBackgroundItemsManager, updateBGITems } =
-    createBackgroundItemsManager({
-      state,
-      world,
-      options,
-      app,
-    });
+  const {
+    backgroundItemsMap,
+    backgroundContainer,
+    destroyBackgroundItemsManager,
+    updateBGITems,
+    resetBGItemsSelecting,
+    selectAllBGItems,
+  } = createBackgroundItemsManager({
+    state,
+    world,
+    options,
+    app,
+  });
 
   options.drawFog();
 
@@ -210,5 +216,7 @@ export const createPointsAndBackgroundsManager = (
         }
       });
     },
+    resetBGItemsSelecting,
+    selectAllBGItems,
   };
 };
