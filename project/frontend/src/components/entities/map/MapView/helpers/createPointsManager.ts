@@ -28,7 +28,7 @@ export const createPointsManager = ({
   world: PIXI.Container<ContainerChild>;
   options: PointsManagerOptions;
 }) => {
-  const { shouldUnselectByRect, onChangePoints, shouldConnectPoints } = options;
+  const { shouldUnselectByRect, onChangePoints, shouldConnectPoints, onAddedElement } = options;
 
   const connectionsContainer = new PIXI.Container();
   const pointItemsContainer = new PIXI.Container();
@@ -262,6 +262,87 @@ export const createPointsManager = ({
     updateConnections();
   };
 
+  const onKeyDown = (event: KeyboardEvent) => {
+    if (state.editableMode === 'points' && state.selectedPoints.size > 0) {
+      let deltaX = 0;
+      let deltaY = 0;
+      const shift = event.shiftKey ? 10 : 1;
+
+      switch (event.key) {
+        case 'ArrowUp':
+          deltaY = -shift;
+          break;
+        case 'ArrowDown':
+          deltaY = shift;
+          break;
+        case 'ArrowLeft':
+          deltaX = -shift;
+          break;
+        case 'ArrowRight':
+          deltaX = shift;
+          break;
+        default:
+          return;
+      }
+
+      event.preventDefault();
+
+      state.selectedPoints.forEach((pointVisual) => {
+        pointVisual.container.position.x += deltaX;
+        pointVisual.container.position.y += deltaY;
+      });
+
+      applyPointChanges();
+    }
+  };
+
+  const onAppPointerUp = createSingleDoubleAction<PIXI.FederatedPointerEvent>({
+    alwaysHandler: (): boolean => {
+      switch (state.editableMode) {
+        case 'points': {
+          if (!state.addingPoint?.container.visible) return false;
+          const id = Math.random().toString(16);
+          const value: Point = {
+            ...deepCopy(state.addingPoint.point),
+            id,
+            position: {
+              x: state.addingPoint.container.position.x,
+              y: state.addingPoint.container.position.y,
+            },
+          };
+          onAddedElement?.({ type: 'point', value });
+          // Чтобы сработало после добавления
+          setTimeout(applyPointChanges);
+          return true;
+        }
+
+        default:
+          return false;
+      }
+    },
+    doubleHandler: (event) => {
+      switch (state.editableMode) {
+        case 'points': {
+          const isPointerClick = isAnyPointerEvent(event, state.renderedPoints);
+          if (isPointerClick) return;
+
+          if (state.selectedPoints.size) resetPointsSelecting();
+          else selectAllPoints();
+
+          break;
+        }
+
+        default:
+          break;
+      }
+    },
+  });
+
+  // Инициализация: добавляем слушатель клавиатуры
+  document.addEventListener('keydown', onKeyDown);
+
+  app.stage.on('pointerup', onAppPointerUp);
+
   const destroyPoints = () => {
     world.removeChild(connectionsContainer, pointItemsContainer);
     connectionsContainer.destroy({ children: true });
@@ -269,6 +350,8 @@ export const createPointsManager = ({
     state.renderedPoints.clear();
     state.selectedPoints.clear();
     unmountAddingPoint();
+    app.stage.off('pointerup', onAppPointerUp);
+    document.removeEventListener('keydown', onKeyDown);
   };
 
   return {

@@ -2,16 +2,12 @@ import * as PIXI from 'pixi.js';
 import {
   BGItemVisuals,
   MapEditableMode,
-  Point,
   PointID,
   PointsManager,
   PointsManagerOptions,
   PointVisuals,
 } from '../MapView.types';
-import { deepCopy } from '@/utils/deepCopy';
-import { createSingleDoubleAction } from '@/utils/createSingleDoubleAction';
 import { ContainerChild } from 'pixi.js/lib/scene/container/Container';
-import { isAnyPointerEvent } from '@/components/entities/map/MapView/helpers/isAnyPointerEvent';
 import { PointsAndBackgroundsManagerState } from '@/components/entities/map/MapView/helpers/types';
 import { createPointsManager } from '@/components/entities/map/MapView/helpers/createPointsManager';
 import { createBackgroundItemsManager } from '@/components/entities/map/MapView/helpers/createBackgroundItemsManager';
@@ -21,8 +17,6 @@ export const createPointsAndBackgroundsManager = (
   world: PIXI.Container<ContainerChild>,
   options: PointsManagerOptions,
 ): PointsManager => {
-  const { onAddedElement } = options;
-
   const state: PointsAndBackgroundsManagerState = {
     addingPoint: null,
     addingPointVisible: false,
@@ -57,104 +51,13 @@ export const createPointsAndBackgroundsManager = (
 
   options.drawFog();
 
-  const {
-    resetPointsSelecting,
-    selectPointsBySpace,
-    selectAllPoints,
-    mountAddingPoint,
-    pointsContainer,
-    applyPointChanges,
-    updatePoints,
-    destroyPoints,
-  } = createPointsManager({ state, world, options, app });
-
-  const onKeyDown = (event: KeyboardEvent) => {
-    if (state.editableMode === 'points' && state.selectedPoints.size > 0) {
-      let deltaX = 0;
-      let deltaY = 0;
-      const shift = event.shiftKey ? 10 : 1;
-
-      switch (event.key) {
-        case 'ArrowUp':
-          deltaY = -shift;
-          break;
-        case 'ArrowDown':
-          deltaY = shift;
-          break;
-        case 'ArrowLeft':
-          deltaX = -shift;
-          break;
-        case 'ArrowRight':
-          deltaX = shift;
-          break;
-        default:
-          return;
-      }
-
-      event.preventDefault();
-
-      state.selectedPoints.forEach((pointVisual) => {
-        pointVisual.container.position.x += deltaX;
-        pointVisual.container.position.y += deltaY;
-      });
-
-      applyPointChanges();
-    }
-  };
-
-  const onAppPointerUp = createSingleDoubleAction<PIXI.FederatedPointerEvent>({
-    alwaysHandler: (): boolean => {
-      switch (state.editableMode) {
-        case 'points': {
-          if (!state.addingPoint?.container.visible) return false;
-          const id = Math.random().toString(16);
-          const value: Point = {
-            ...deepCopy(state.addingPoint.point),
-            id,
-            position: {
-              x: state.addingPoint.container.position.x,
-              y: state.addingPoint.container.position.y,
-            },
-          };
-          onAddedElement?.({ type: 'point', value });
-          // Чтобы сработало после добавления
-          setTimeout(applyPointChanges);
-          return true;
-        }
-
-        default:
-          return false;
-      }
-    },
-    doubleHandler: (event) => {
-      switch (state.editableMode) {
-        case 'points': {
-          const isPointerClick = isAnyPointerEvent(event, state.renderedPoints);
-          if (isPointerClick) return;
-
-          if (state.selectedPoints.size) resetPointsSelecting();
-          else selectAllPoints();
-
-          break;
-        }
-
-        default:
-          break;
-      }
-    },
-  });
+  const { resetPointsSelecting, selectPointsBySpace, mountAddingPoint, pointsContainer, updatePoints, destroyPoints } =
+    createPointsManager({ state, world, options, app });
 
   const destroy = () => {
     destroyBackgroundItemsManager();
     destroyPoints();
-    app.stage.off('pointerup', onAppPointerUp);
-    document.removeEventListener('keydown', onKeyDown);
   };
-
-  // Инициализация: добавляем слушатель клавиатуры
-  document.addEventListener('keydown', onKeyDown);
-
-  app.stage.on('pointerup', onAppPointerUp);
 
   return {
     updateBGITems,
