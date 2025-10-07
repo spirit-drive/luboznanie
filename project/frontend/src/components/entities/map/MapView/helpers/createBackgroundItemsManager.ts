@@ -117,7 +117,6 @@ export const createBackgroundItemsManager = ({
 
   const unselectBGItems = (bgItems: BGItemVisuals[]) => {
     bgItems.forEach((item) => {
-      console.log(item);
       item.setActive(false);
       state.selectedBGItems.delete(item.bgItem.id);
     });
@@ -157,7 +156,7 @@ export const createBackgroundItemsManager = ({
       if (!visual) return;
 
       const all = [...state.renderedBGItems.values()];
-      const neighbors = getNeighbors(all, [item], (i) => i.container);
+      const neighbors = getNeighbors(all, item, (i) => i.container);
       if (state.selectedBGItems.has(item.bgItem.id)) unselectBGItems(neighbors);
       else selectBGItems(neighbors);
     },

@@ -5,27 +5,42 @@ export type Elem = {
   height: number;
 };
 
-export const getNeighbors = <T, R extends Elem>(all: T[], selected: T[], getData: (item: T) => R): T[] => {
-  all.forEach((_item) => {
-    selected.forEach((_s) => {
-      const item = getData(_item);
-      const s = getData(_s);
-      const iMinX = item.x;
-      const iMaxX = item.x + item.width;
-      const iMinY = item.y;
-      const iMaxY = item.y + item.height;
-      const sMinX = s.x;
-      const sMaxX = s.x + s.width;
-      const sMinY = s.y;
-      const sMaxY = s.y + s.height;
+export const getNeighbors = <T, R extends Elem>(
+  all: T[],
+  target: T,
+  getData: (item: T) => R,
+  map = new Map<T, R>(),
+  founds = new Set<T>(),
+): T[] => {
+  founds.add(target);
 
-      if (iMaxX < sMinX && iMinX < sMinX) return;
-      if (iMinX > sMaxX && iMaxX > sMaxX) return;
-      if (iMaxY < sMinY && iMinY < sMinY) return;
-      if (iMinY > sMaxY && iMaxY > sMaxY) return;
-      selected.push(_item);
+  if (!map.has(target)) map.set(target, getData(target));
+  const s = map.get(target)!;
+
+  const newNeighbors = new Set<T>();
+
+  all
+    .filter((i) => !founds.has(i))
+    .forEach((_item) => {
+      if (!map.has(_item)) map.set(_item, getData(_item));
+      const item = map.get(_item)!;
+
+      const iMinX = item.x,
+        iMaxX = item.x + item.width,
+        iMinY = item.y,
+        iMaxY = item.y + item.height;
+      const sMinX = s.x,
+        sMaxX = s.x + s.width,
+        sMinY = s.y,
+        sMaxY = s.y + s.height;
+
+      if (!(iMaxX < sMinX || iMinX > sMaxX || iMaxY < sMinY || iMinY > sMaxY)) {
+        newNeighbors.add(_item);
+        founds.add(_item);
+      }
     });
-  });
 
-  return selected;
+  Array.from(newNeighbors).forEach((item) => getNeighbors(all, item, getData, map, founds));
+
+  return Array.from(founds);
 };
