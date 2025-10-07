@@ -1,11 +1,13 @@
 import * as PIXI from 'pixi.js';
-import { BGItemVisuals, PointsManagerOptions } from '@/components/entities/map/MapView/MapView.types';
+import { BGItemVisuals, Point, PointsManagerOptions } from '@/components/entities/map/MapView/MapView.types';
 import { PointsAndBackgroundsManagerState } from '@/components/entities/map/MapView/helpers/types';
 import { ContainerChild } from 'pixi.js/lib/scene/container/Container';
 import { BackgroundItem, MapBackgroundItem } from '@/types/entities/map/map.types';
 import { createBGItemVisual } from '@/components/entities/map/MapView/helpers/createBGItemVisual';
 import { deepCopy } from '@/utils/deepCopy';
 import { createSingleDoubleAction } from '@/utils/createSingleDoubleAction';
+import { isAnyPointerEvent } from '@/components/entities/map/MapView/helpers/isAnyPointerEvent';
+import { getDeltasByKey } from '@/components/entities/map/MapView/helpers/getDeltasByKey';
 
 export const createBackgroundItemsManager = ({
   app,
@@ -18,7 +20,7 @@ export const createBackgroundItemsManager = ({
   world: PIXI.Container<ContainerChild>;
   options: PointsManagerOptions;
 }) => {
-  const { backgroundItems, backgroundAssets, onChangeBGItems } = options;
+  const { backgroundItems, backgroundAssets, onChangeBGItems, onAddedElement } = options;
 
   const backgroundContainer = new PIXI.Container();
   const backgroundItemsMap = new Map<string, MapBackgroundItem>();
@@ -229,10 +231,21 @@ export const createBackgroundItemsManager = ({
       });
     };
 
+  const isAnyBGITem = (event: PIXI.FederatedPointerEvent) => {
+    let itIS = false;
+    const { clientX: x, clientY: y } = event;
+    onInsideElem({
+      onFound: () => {
+        itIS = true;
+      },
+    })({ x, y });
+    return itIS;
+  };
+
   const updateBGITems = (backgroundItems: BackgroundItem[] | undefined) => {
     if (!backgroundItems) return;
 
-    const currentIds = new Set(state.renderedBGItems.keys());
+    const currentIds = new Set(state.renderedBGItems.keys().map(String));
     const newIds = new Set(backgroundItems.map((item) => item.id));
 
     const onMove = onInsideElem({
@@ -316,7 +329,74 @@ export const createBackgroundItemsManager = ({
 
   world.addChild(backgroundContainer);
 
-  const destroyBackgroundItemsManager = () => {};
+  const onKeyDown = (event: KeyboardEvent) => {
+    if (state.editableMode === 'backgrounds' && state.selectedBGItems.size > 0) {
+      event.preventDefault();
+
+      const { deltaX, deltaY } = getDeltasByKey(event);
+
+      state.selectedBGItems.forEach((visual) => {
+        visual.setPosition({
+          x: visual.container.position.x + deltaX,
+          y: visual.container.position.y + deltaY,
+        });
+      });
+
+      applyBGItemChanges();
+    }
+  };
+
+  const onAppPointerUp = createSingleDoubleAction<PIXI.FederatedPointerEvent>({
+    // alwaysHandler: (): boolean => {
+    //   switch (state.editableMode) {
+    //     case 'backgrounds': {
+    //       if (!state.addingPoint?.container.visible) return false;
+    //       const id = Math.random().toString(16);
+    //       const value: Point = {
+    //         ...deepCopy(state.addingPoint.point),
+    //         id,
+    //         position: {
+    //           x: state.addingPoint.container.position.x,
+    //           y: state.addingPoint.container.position.y,
+    //         },
+    //       };
+    //       onAddedElement?.({ type: 'background', value });
+    //       // Чтобы сработало после добавления
+    //       setTimeout(applyBGItemChanges);
+    //       return true;
+    //     }
+    //
+    //     default:
+    //       return false;
+    //   }
+    // },
+    doubleHandler: (event) => {
+      switch (state.editableMode) {
+        case 'backgrounds': {
+          const isItemClick = isAnyBGITem(event);
+          if (isItemClick) return;
+
+          if (state.selectedBGItems.size) resetBGItemsSelecting();
+          else selectAllBGItems();
+
+          break;
+        }
+
+        default:
+          break;
+      }
+    },
+  });
+
+  // Инициализация: добавляем слушатель клавиатуры
+  document.addEventListener('keydown', onKeyDown);
+
+  app.stage.on('pointerup', onAppPointerUp);
+
+  const destroyBackgroundItemsManager = () => {
+    app.stage.off('pointerup', onAppPointerUp);
+    document.removeEventListener('keydown', onKeyDown);
+  };
 
   return {
     destroyBackgroundItemsManager,
