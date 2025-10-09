@@ -28,7 +28,7 @@ export const createMapController = (
     onChangeZoom,
     onChangeWorld,
     onSelectedSpace,
-    shouldStartSelecting = (editableMode, event) => editableMode === 'points' && event.shiftKey,
+    shouldStartSelecting = (editableMode, event) => editableMode !== 'none' && event.shiftKey,
   }: MapControllerOptions,
 ): MapController => {
   // --- Объект состояния ---

@@ -1,12 +1,11 @@
 import * as PIXI from 'pixi.js';
-import { BGItemVisuals, Point, PointsManagerOptions } from '@/components/entities/map/MapView/MapView.types';
+import { BGItemVisuals, OnSelectedSpace, PointsManagerOptions } from '@/components/entities/map/MapView/MapView.types';
 import { PointsAndBackgroundsManagerState } from '@/components/entities/map/MapView/helpers/types';
 import { ContainerChild } from 'pixi.js/lib/scene/container/Container';
 import { BackgroundItem, MapBackgroundItem } from '@/types/entities/map/map.types';
 import { createBGItemVisual } from '@/components/entities/map/MapView/helpers/createBGItemVisual';
 import { deepCopy } from '@/utils/deepCopy';
 import { createSingleDoubleAction } from '@/utils/createSingleDoubleAction';
-import { isAnyPointerEvent } from '@/components/entities/map/MapView/helpers/isAnyPointerEvent';
 import { getDeltasByKey } from '@/components/entities/map/MapView/helpers/getDeltasByKey';
 import { getNeighbors } from '@/components/entities/map/MapView/helpers/getNeighbors';
 
@@ -21,7 +20,7 @@ export const createBackgroundItemsManager = ({
   world: PIXI.Container<ContainerChild>;
   options: PointsManagerOptions;
 }) => {
-  const { backgroundItems, backgroundAssets, onChangeBGItems, onAddedElement } = options;
+  const { backgroundItems, shouldUnselectByRect, backgroundAssets, onChangeBGItems, onAddedElement } = options;
 
   const backgroundContainer = new PIXI.Container();
   const backgroundItemsMap = new Map<string, MapBackgroundItem>();
@@ -172,26 +171,33 @@ export const createBackgroundItemsManager = ({
     state.selectedBGItems = new Map(state.renderedBGItems);
   };
 
-  // const selectBGItemsBySpace: OnSelectedSpace = (space, phase, event) => {
-  //   if (phase === 'end') {
-  //     const pointsInSpace = Array.from(state.renderedBGItems.entries()).filter(([, point]) => {
-  //       const { x, y } = point.container.position;
-  //       return x >= space.minX && x <= space.maxX && y >= space.minY && y <= space.maxY;
-  //     });
-  //
-  //     if (shouldUnselectByRect!(event)) {
-  //       pointsInSpace.forEach(([id, point]) => {
-  //         point.setActive(false);
-  //         state.selectedBGItems.delete(id);
-  //       });
-  //     } else {
-  //       pointsInSpace.forEach(([id, point]) => {
-  //         point.setActive(true);
-  //         state.selectedBGItems.set(id, point);
-  //       });
-  //     }
-  //   }
-  // };
+  const selectBGItemsBySpace: OnSelectedSpace = (space, phase, event) => {
+    if (phase === 'end') {
+      const pointsInSpace = Array.from(state.renderedBGItems.entries()).filter(([, point], i) => {
+        const { x, y } = point.container.position;
+        const { width, height } = point.container;
+
+        const minX = x - width / 2;
+        const minY = y - height / 2;
+        const maxX = minX + width;
+        const maxY = minY + height;
+
+        return !(maxX < space.minX || minX > space.maxX || maxY < space.minY || minY > space.maxY);
+      });
+
+      if (shouldUnselectByRect!(event)) {
+        pointsInSpace.forEach(([id, point]) => {
+          point.setActive(false);
+          state.selectedBGItems.delete(id);
+        });
+      } else {
+        pointsInSpace.forEach(([id, point]) => {
+          point.setActive(true);
+          state.selectedBGItems.set(id, point);
+        });
+      }
+    }
+  };
 
   const onInsideElem =
     ({
@@ -407,5 +413,6 @@ export const createBackgroundItemsManager = ({
     updateBGITems,
     resetBGItemsSelecting,
     selectAllBGItems,
+    selectBGItemsBySpace,
   };
 };

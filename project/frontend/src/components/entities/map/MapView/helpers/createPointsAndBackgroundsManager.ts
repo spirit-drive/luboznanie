@@ -42,6 +42,7 @@ export const createPointsAndBackgroundsManager = (
     updateBGITems,
     resetBGItemsSelecting,
     selectAllBGItems,
+    selectBGItemsBySpace,
   } = createBackgroundItemsManager({
     state,
     world,
@@ -76,6 +77,7 @@ export const createPointsAndBackgroundsManager = (
       backgroundContainer.eventMode = mode === 'backgrounds' ? 'auto' : 'none';
     },
     resetPointsSelecting,
+    selectBGItemsBySpace,
     selectPointsBySpace,
     setAddingElement: (addingElement) => {
       if (state.editableMode === 'points') {

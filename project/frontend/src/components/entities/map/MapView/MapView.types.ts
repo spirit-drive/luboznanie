@@ -112,6 +112,7 @@ export type PointsManager = {
   setAddingElement: (addingElement: AddingPoint | null) => void;
   shouldMapPreventScrolling: (event: PIXI.FederatedPointerEvent) => boolean;
   selectPointsBySpace: OnSelectedSpace;
+  selectBGItemsBySpace: OnSelectedSpace;
   setEditableMode: (editableMode: MapEditableMode) => void;
   destroy: () => void;
   updatePoints: (points: Point[]) => void;

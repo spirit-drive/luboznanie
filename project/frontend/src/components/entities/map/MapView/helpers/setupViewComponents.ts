@@ -80,7 +80,10 @@ export const setupViewComponents = async ({ app, world, options }: MapDependenci
       app,
       backgroundItemsMap: pointsAndBackgroundsManager.backgroundItemsMap,
     }),
-    onSelectedSpace: pointsAndBackgroundsManager.selectPointsBySpace,
+    onSelectedSpace: (space, phase, event) => {
+      pointsAndBackgroundsManager.selectPointsBySpace(space, phase, event);
+      pointsAndBackgroundsManager.selectBGItemsBySpace(space, phase, event);
+    },
     shouldPreventScrolling: pointsAndBackgroundsManager.shouldMapPreventScrolling,
   });
 
