@@ -51,7 +51,7 @@ export type BackgroundItem = BackgroundItemBase & {
   deps?: BackgroundItemDep[];
 };
 
-export type AddingBackgroundType = Omit<BackgroundItem, 'x' | 'y'>;
+export type AddingBackgroundType = Omit<BackgroundItem, 'position'>;
 
 export type MapBackgroundItem = { container: Container; backgroundItem: BackgroundItem };
 export type MapVisibleBackgroundItem = MapBackgroundItem & { visibleSpace: number };

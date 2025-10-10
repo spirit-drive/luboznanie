@@ -3,10 +3,9 @@
 import s from './page.module.scss';
 import { MapView } from '@/components/entities/map/MapView/MapView';
 import { AddingPoint, Point } from '@/types/entities/point/point.types';
-import { BackgroundItem } from '@/types/entities/map/map.types';
-import { RefObject, useEffect, useRef, useState } from 'react';
+import { AddingBackgroundType, BackgroundItem } from '@/types/entities/map/map.types';
+import { useEffect, useRef, useState } from 'react';
 import { AddingElement, MapEditableMode, MapViewController } from '@/components/entities/map/MapView/MapView.types';
-import * as PIXI from 'pixi.js';
 
 const onPointClick = () => {};
 
@@ -261,9 +260,19 @@ const addingPoint: AddingPoint = {
   connections: [],
 };
 
-const addingElementOrigin: AddingElement = {
+const addingBgItem: AddingBackgroundType = {
+  id: 'addingBGItem',
+  type: 'map-set-3/0',
+};
+
+const addingPointElement: AddingElement = {
   type: 'point',
   value: addingPoint,
+};
+
+const addingBgItemElement: AddingElement = {
+  type: 'background',
+  value: addingBgItem,
 };
 
 const HIDE_ADDING_KEYS = [
@@ -315,8 +324,13 @@ export default function Page() {
           shouldConnectPoints={(e) => e.metaKey || e.ctrlKey}
           shouldUnselectByRect={(e) => e.metaKey || e.ctrlKey}
           onAddedElement={(added) => {
-            if (added.type === 'point') {
-              setPoints((v) => [...v, added.value]);
+            switch (added.type) {
+              case 'point':
+                setPoints((v) => [...v, added.value]);
+                break;
+              case 'background':
+                setBgItems((v) => [...v, added.value]);
+                break;
             }
           }}
           addingElement={addingElement}
@@ -347,10 +361,17 @@ export default function Page() {
       <div>
         <button
           onClick={() => {
-            setAddingElement(addingElementOrigin);
+            setAddingElement(addingPointElement);
           }}
         >
-          +
+          добавить поинт
+        </button>
+        <button
+          onClick={() => {
+            setAddingElement(addingBgItemElement);
+          }}
+        >
+          добавить ландшафт
         </button>
       </div>
     </div>
