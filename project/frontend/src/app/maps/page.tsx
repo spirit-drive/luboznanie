@@ -8,6 +8,7 @@ import { useEffect, useRef, useState } from 'react';
 import { AddingElement, MapEditableMode, MapViewController } from '@/components/entities/map/MapView/MapView.types';
 
 const onPointClick = () => {};
+const onBGItemClick = () => {};
 
 export const items: Point[] = [
   // 1. Начальная точка - лекция
@@ -343,6 +344,7 @@ export default function Page() {
           points={points}
           onChangePoints={setPoints}
           onPointClick={onPointClick}
+          onBGItemClick={onBGItemClick}
         />
       </div>
       <button onClick={() => setEditableMode('points')}>points</button>
