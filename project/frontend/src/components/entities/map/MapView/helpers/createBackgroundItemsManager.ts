@@ -8,6 +8,7 @@ import { deepCopy } from '@/utils/deepCopy';
 import { createSingleDoubleAction } from '@/utils/createSingleDoubleAction';
 import { getDeltasByKey } from '@/components/entities/map/MapView/helpers/getDeltasByKey';
 import { getNeighbors } from '@/components/entities/map/MapView/helpers/getNeighbors';
+import { FederatedPointerEvent } from 'pixi.js';
 
 export const createBackgroundItemsManager = ({
   app,
@@ -228,7 +229,10 @@ export const createBackgroundItemsManager = ({
         const ctx = canvas.getContext('2d', { willReadFrequently: true });
         if (!ctx) return;
 
-        const pixelData = ctx.getImageData((x - rect.x) / world.scale.x, (y - rect.y) / world.scale.y, 1, 1);
+        const kY = canvas.height / rect.height;
+        const kX = canvas.width / rect.width;
+
+        const pixelData = ctx.getImageData((x - rect.x) * kY, (y - rect.y) * kX, 1, 1);
         const isInside = pixelData.data[3] !== 0;
         beforeFound?.(item, isInside);
 
@@ -250,20 +254,20 @@ export const createBackgroundItemsManager = ({
     return itIS;
   };
 
+  const onMove = onInsideElem({
+    beforeFound: (item, isInside) => {
+      item.setIsHover(isInside);
+    },
+    afterFound: (item) => {
+      item.setIsHover(false);
+    },
+  });
+
   const updateBGITems = (backgroundItems: BackgroundItem[] | undefined) => {
     if (!backgroundItems) return;
 
     const currentIds = new Set(state.renderedBGItems.keys().map(String));
     const newIds = new Set(backgroundItems.map((item) => item.id));
-
-    const onMove = onInsideElem({
-      beforeFound: (item, isInside) => {
-        item.setIsHover(isInside);
-      },
-      afterFound: (item) => {
-        item.setIsHover(false);
-      },
-    });
 
     // 1. Удаление старых точек
     for (const id of currentIds) {
@@ -311,13 +315,6 @@ export const createBackgroundItemsManager = ({
             },
             onBGItemOut: () => {
               canvasesMap.clear();
-            },
-            onBGItemMove: (bgItem, event) => {
-              if (state.editableMode !== 'backgrounds' || state.moved) return;
-
-              const { clientX: x, clientY: y } = event.data.originalEvent as PointerEvent;
-
-              onMove({ x, y });
             },
           });
           backgroundItemsMap.set(item.id, { container: bgItemVisual.container, backgroundItem: item });
@@ -399,10 +396,20 @@ export const createBackgroundItemsManager = ({
   // Инициализация: добавляем слушатель клавиатуры
   document.addEventListener('keydown', onKeyDown);
 
+  const onAppMove = (event: FederatedPointerEvent) => {
+    if (state.editableMode !== 'backgrounds' || state.moved) return;
+
+    const { clientX: x, clientY: y } = event.data.originalEvent as PointerEvent;
+
+    onMove({ x, y });
+  };
+
   app.stage.on('pointerup', onAppPointerUp);
+  app.stage.on('pointermove', onAppMove);
 
   const destroyBackgroundItemsManager = () => {
     app.stage.off('pointerup', onAppPointerUp);
+    app.stage.off('pointermove', onAppMove);
     document.removeEventListener('keydown', onKeyDown);
   };
 
