@@ -1,7 +1,6 @@
 import { MapViewOptions, MapApp, MapEditableMode } from '@/components/entities/map/MapView/MapView.types';
 import { setupPixiApp } from '@/components/entities/map/MapView/helpers/setupPixiApp';
 import { setupViewComponents } from '@/components/entities/map/MapView/helpers/setupViewComponents';
-import { AddingPoint } from '@/types/entities/point/point.types';
 
 export const createMapApp = async ({ container, appRef, ...options }: MapViewOptions): Promise<MapApp> => {
   // 1. Инициализация PIXI App и мира
@@ -24,11 +23,7 @@ export const createMapApp = async ({ container, appRef, ...options }: MapViewOpt
   return {
     setVisibleOfAddingElement: (v) => pointsAndBackgroundsManager.setVisibleOfAddingElement(v),
     setAddingElement: (addingElement) => {
-      if (!addingElement) {
-        pointsAndBackgroundsManager.setAddingElement(null);
-      } else if (addingElement.type === 'point') {
-        pointsAndBackgroundsManager.setAddingElement(addingElement.value as AddingPoint);
-      }
+      pointsAndBackgroundsManager.setAddingElement(addingElement || null);
     },
     selectAllPoints: () => {
       pointsAndBackgroundsManager.selectAllPoints();

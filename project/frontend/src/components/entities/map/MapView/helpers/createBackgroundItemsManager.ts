@@ -1,14 +1,20 @@
 import * as PIXI from 'pixi.js';
-import { BGItemVisuals, OnSelectedSpace, PointsManagerOptions } from '@/components/entities/map/MapView/MapView.types';
+import {
+  BGItemVisuals,
+  MapEditableMode,
+  OnSelectedSpace,
+  PointsManagerOptions,
+} from '@/components/entities/map/MapView/MapView.types';
 import { PointsAndBackgroundsManagerState } from '@/components/entities/map/MapView/helpers/types';
 import { ContainerChild } from 'pixi.js/lib/scene/container/Container';
-import { BackgroundItem, MapBackgroundItem } from '@/types/entities/map/map.types';
+import { AddingBackgroundType, BackgroundItem, MapBackgroundItem } from '@/types/entities/map/map.types';
 import { createBGItemVisual } from '@/components/entities/map/MapView/helpers/createBGItemVisual';
 import { deepCopy } from '@/utils/deepCopy';
 import { createSingleDoubleAction } from '@/utils/createSingleDoubleAction';
 import { getDeltasByKey } from '@/components/entities/map/MapView/helpers/getDeltasByKey';
 import { getNeighbors } from '@/components/entities/map/MapView/helpers/getNeighbors';
 import { FederatedPointerEvent } from 'pixi.js';
+import { createAddingBGItem } from '@/components/entities/map/MapView/helpers/createAddingBGItem';
 
 export const createBackgroundItemsManager = ({
   app,
@@ -28,28 +34,28 @@ export const createBackgroundItemsManager = ({
   const canvasesMap = new Map<string, PIXI.ICanvas>();
   let items: BGItemVisuals[] = [];
 
-  // const onMoveAddingBGItem = (event: PIXI.FederatedPointerEvent) => {
-  //   if (state.addingBGItem) {
-  //     state.addingBGItem.container.visible = state.addingBGItemVisible;
-  //     const localPosition = world.toLocal(event.global);
-  //     state.addingBGItem.container.position.copyFrom(localPosition);
-  //   }
-  // };
-  //
-  // const unmountAddingBGItem = () => {
-  //   if (state.addingBGItem) {
-  //     backgroundContainer.removeChild(state.addingBGItem.container);
-  //     state.addingBGItem.container.destroy({ children: true });
-  //     state.addingBGItem = null;
-  //   }
-  //   app.stage.off('pointermove', onMoveAddingBGItem);
-  // };
-  //
-  // const mountAddingBGItem = (mode: MapEditableMode, addingBGTtem: AddingBGITem) => {
-  //   state.addingBGItem = createAddingBGItem({ x: 0, y: 0 }, addingBGTtem, options); // Начальная позиция
-  //   backgroundContainer.addChild(state.addingBGItem.container);
-  //   app.stage.on('pointermove', onMoveAddingBGItem);
-  // };
+  const onMoveAddingBGItem = (event: PIXI.FederatedPointerEvent) => {
+    if (state.addingBGItem) {
+      state.addingBGItem.container.visible = state.addingBGItemVisible;
+      const localPosition = world.toLocal(event.global);
+      state.addingBGItem.container.position.copyFrom(localPosition);
+    }
+  };
+
+  const unmountAddingBGItem = () => {
+    if (state.addingBGItem) {
+      backgroundContainer.removeChild(state.addingBGItem.container);
+      state.addingBGItem.container.destroy({ children: true });
+      state.addingBGItem = null;
+    }
+    app.stage.off('pointermove', onMoveAddingBGItem);
+  };
+
+  const mountAddingBGItem = (mode: MapEditableMode, addingBGTtem: AddingBackgroundType) => {
+    state.addingBGItem = createAddingBGItem({ x: 0, y: 0 }, addingBGTtem, options); // Начальная позиция
+    backgroundContainer.addChild(state.addingBGItem.container);
+    app.stage.on('pointermove', onMoveAddingBGItem);
+  };
 
   const applyBGItemChanges = () => {
     const newBGITems: BackgroundItem[] = Array.from(state.renderedBGItems.values()).map((visual) => ({
@@ -352,29 +358,29 @@ export const createBackgroundItemsManager = ({
   };
 
   const onAppPointerUp = createSingleDoubleAction<PIXI.FederatedPointerEvent>({
-    // alwaysHandler: (): boolean => {
-    //   switch (state.editableMode) {
-    //     case 'backgrounds': {
-    //       if (!state.addingPoint?.container.visible) return false;
-    //       const id = Math.random().toString(16);
-    //       const value: Point = {
-    //         ...deepCopy(state.addingPoint.point),
-    //         id,
-    //         position: {
-    //           x: state.addingPoint.container.position.x,
-    //           y: state.addingPoint.container.position.y,
-    //         },
-    //       };
-    //       onAddedElement?.({ type: 'background', value });
-    //       // Чтобы сработало после добавления
-    //       setTimeout(applyBGItemChanges);
-    //       return true;
-    //     }
-    //
-    //     default:
-    //       return false;
-    //   }
-    // },
+    alwaysHandler: (): boolean => {
+      switch (state.editableMode) {
+        case 'backgrounds': {
+          if (!state.addingBGItem?.container.visible) return false;
+          const id = Math.random().toString(16);
+          const value: BackgroundItem = {
+            ...deepCopy(state.addingBGItem.bgItem),
+            id,
+            position: {
+              x: state.addingBGItem.container.position.x,
+              y: state.addingBGItem.container.position.y,
+            },
+          };
+          onAddedElement?.({ type: 'background', value });
+          // Чтобы сработало после добавления
+          setTimeout(applyBGItemChanges);
+          return true;
+        }
+
+        default:
+          return false;
+      }
+    },
     doubleHandler: (event) => {
       switch (state.editableMode) {
         case 'backgrounds': {
@@ -411,6 +417,7 @@ export const createBackgroundItemsManager = ({
     app.stage.off('pointerup', onAppPointerUp);
     app.stage.off('pointermove', onAppMove);
     document.removeEventListener('keydown', onKeyDown);
+    unmountAddingBGItem();
   };
 
   return {
@@ -421,5 +428,8 @@ export const createBackgroundItemsManager = ({
     resetBGItemsSelecting,
     selectAllBGItems,
     selectBGItemsBySpace,
+    onMoveAddingBGItem,
+    unmountAddingBGItem,
+    mountAddingBGItem,
   };
 };

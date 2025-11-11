@@ -43,6 +43,7 @@ export const createPointsAndBackgroundsManager = (
     resetBGItemsSelecting,
     selectAllBGItems,
     selectBGItemsBySpace,
+    mountAddingBGItem,
   } = createBackgroundItemsManager({
     state,
     world,
@@ -80,19 +81,39 @@ export const createPointsAndBackgroundsManager = (
     selectBGItemsBySpace,
     selectPointsBySpace,
     setAddingElement: (addingElement) => {
-      if (state.editableMode === 'points') {
-        if (!addingElement) {
-          if (state.addingPoint) {
-            state.addingPoint.container.visible = state.addingPointVisible = false;
+      switch (state.editableMode) {
+        case 'points': {
+          if (!addingElement) {
+            if (state.addingPoint) {
+              state.addingPoint.container.visible = state.addingPointVisible = false;
+            }
+            return;
           }
-          return;
+
+          if (state.addingPoint) {
+            state.addingPoint.container.visible = state.addingPointVisible = true;
+          } else if (addingElement.type === 'point') {
+            state.addingPointVisible = true;
+            mountAddingPoint(state.editableMode, addingElement.value);
+          }
+          break;
         }
 
-        if (state.addingPoint) {
-          state.addingPoint.container.visible = state.addingPointVisible = true;
-        } else {
-          state.addingPointVisible = true;
-          mountAddingPoint(state.editableMode, addingElement);
+        case 'backgrounds': {
+          if (!addingElement) {
+            if (state.addingBGItem) {
+              state.addingBGItem.container.visible = state.addingBGItemVisible = false;
+            }
+            return;
+          }
+
+          if (state.addingBGItem) {
+            state.addingBGItem.container.visible = state.addingBGItemVisible = true;
+          } else if (addingElement.type === 'background') {
+            state.addingBGItemVisible = true;
+            mountAddingBGItem(state.editableMode, addingElement.value);
+          }
+          break;
         }
       }
     },

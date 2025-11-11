@@ -109,7 +109,7 @@ export type PointsManager = {
   selectPoints: (ids: PointID[]) => void;
   selectAllPoints: () => void;
   backgroundItemsMap: Map<string, MapBackgroundItem> | undefined;
-  setAddingElement: (addingElement: AddingPoint | null) => void;
+  setAddingElement: (addingElement: AddingElement | null) => void;
   shouldMapPreventScrolling: (event: PIXI.FederatedPointerEvent) => boolean;
   selectPointsBySpace: OnSelectedSpace;
   selectBGItemsBySpace: OnSelectedSpace;
