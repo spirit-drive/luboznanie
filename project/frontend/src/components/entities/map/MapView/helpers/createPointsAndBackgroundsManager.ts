@@ -130,7 +130,7 @@ export const createPointsAndBackgroundsManager = (
       }
     },
     shouldMapPreventScrolling: () => {
-      return !!state.addingPoint?.container.visible;
+      return !!state.addingPoint?.container.visible || !!state.addingBGItem?.container.visible;
     },
     selectAllPoints: () => {
       if (state.editableMode !== 'points') return;
