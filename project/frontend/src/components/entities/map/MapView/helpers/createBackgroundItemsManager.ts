@@ -1,9 +1,9 @@
 import * as PIXI from 'pixi.js';
 import {
+  BGItemVisualOptions,
   BGItemVisuals,
   MapEditableMode,
   OnSelectedSpace,
-  PointsManagerOptions,
 } from '@/components/entities/map/MapView/MapView.types';
 import { PointsAndBackgroundsManagerState } from '@/components/entities/map/MapView/helpers/types';
 import { ContainerChild } from 'pixi.js/lib/scene/container/Container';
@@ -25,7 +25,7 @@ export const createBackgroundItemsManager = ({
   state: PointsAndBackgroundsManagerState;
   app: PIXI.Application;
   world: PIXI.Container<ContainerChild>;
-  options: PointsManagerOptions;
+  options: BGItemVisualOptions;
 }) => {
   const { backgroundItems, shouldUnselectByRect, backgroundAssets, onChangeBGItems, onAddedElement } = options;
 
@@ -136,8 +136,8 @@ export const createBackgroundItemsManager = ({
   };
 
   const onBGItemClick = createSingleDoubleAction<PIXI.FederatedPointerEvent>({
-    alwaysHandler: (_, item: BGItemVisuals) => {
-      options.onBGItemClick?.(item.bgItem);
+    alwaysHandler: (event, item: BGItemVisuals) => {
+      options.onBGItemClick?.(item.bgItem, event);
 
       return false;
     },
@@ -180,7 +180,7 @@ export const createBackgroundItemsManager = ({
 
   const selectBGItemsBySpace: OnSelectedSpace = (space, phase, event) => {
     if (phase === 'end') {
-      const pointsInSpace = Array.from(state.renderedBGItems.entries()).filter(([, point], i) => {
+      const pointsInSpace = Array.from(state.renderedBGItems.entries()).filter(([, point]) => {
         const { x, y } = point.container.position;
         const { width, height } = point.container;
 
@@ -403,7 +403,7 @@ export const createBackgroundItemsManager = ({
   document.addEventListener('keydown', onKeyDown);
 
   const onAppMove = (event: FederatedPointerEvent) => {
-    if (state.editableMode !== 'backgrounds' || state.moved) return;
+    if (state.editableMode !== 'backgrounds' || state.moved || state.addingBGItem || state.addingPoint) return;
 
     const { clientX: x, clientY: y } = event.data.originalEvent as PointerEvent;
 
