@@ -4,7 +4,7 @@ import s from './page.module.scss';
 import { MapView } from '@/components/entities/map/MapView/MapView';
 import { AddingPoint, Point } from '@/types/entities/point/point.types';
 import { AddingBackgroundType, BackgroundItem } from '@/types/entities/map/map.types';
-import { useEffect, useRef, useState } from 'react';
+import { useRef, useState } from 'react';
 import { AddingElement, MapEditableMode, MapViewController } from '@/components/entities/map/MapView/MapView.types';
 
 const onPointClick = () => {};
@@ -276,18 +276,6 @@ const addingBgItemElement: AddingElement = {
   value: addingBgItem,
 };
 
-const HIDE_ADDING_KEYS = [
-  'ShiftLeft',
-  'ShiftRight',
-  'AltLeft',
-  'AltRight',
-  'ControlLeft',
-  'ControlRight',
-  'MetaRight',
-  'MetaLeft',
-  'Space',
-];
-
 export default function Page() {
   const [editableMode, setEditableMode] = useState<MapEditableMode>('none');
   const [bgItems, setBgItems] = useState(backgroundItems);
@@ -295,28 +283,6 @@ export default function Page() {
   const [addingElement, setAddingElement] = useState<AddingElement | null>(null);
 
   const mapViewController = useRef<MapViewController | null>(null);
-
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (HIDE_ADDING_KEYS.some((i) => e.code === i)) {
-        mapViewController.current?.setVisibleOfAddingElement(false);
-      }
-    };
-
-    const handleKeyUp = (e: KeyboardEvent) => {
-      if (HIDE_ADDING_KEYS.some((i) => e.code === i)) {
-        mapViewController.current?.setVisibleOfAddingElement(true);
-      }
-    };
-
-    document.addEventListener('keydown', handleKeyDown);
-    document.addEventListener('keyup', handleKeyUp);
-
-    return () => {
-      document.removeEventListener('keydown', handleKeyDown);
-      document.removeEventListener('keyup', handleKeyUp);
-    };
-  }, []);
 
   return (
     <div className={s.page}>
