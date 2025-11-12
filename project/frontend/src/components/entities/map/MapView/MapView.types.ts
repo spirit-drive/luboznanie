@@ -120,6 +120,13 @@ export type PointsManager = {
   resetPointsSelecting: () => void;
   resetBGItemsSelecting: () => void;
   selectAllBGItems: () => void;
+
+  onUpZIndexBGItems: (bgItems: BackgroundItem[] | undefined) => void;
+  onDownZIndexActiveBGItems: () => void;
+  onDownZIndexBGItems: (bgItems: BackgroundItem[] | undefined) => void;
+  onUpZIndexActiveBGItems: () => void;
+  unmountAddingBGItem: () => void;
+  onMoveAddingBGItem: (event: PIXI.FederatedPointerEvent) => void;
 };
 
 export type UseMapViewOptions = Pick<

@@ -339,6 +339,45 @@ export const createBackgroundItemsManager = ({
 
   updateBGITems(backgroundItems);
 
+  const onUpZIndex = (backgroundItems: BackgroundItem[] | undefined) => {
+    if (!backgroundItems) return;
+
+    const selectedIds = new Set(backgroundItems.map((i) => i.id));
+
+    // Элементы, которые не выбраны (остаются на своих местах)
+    const unselectedItems = [...state.renderedBGItems.values()].filter((item) => !selectedIds.has(item.bgItem.id));
+
+    // Выбранные элементы (перемещаются в конец)
+    const selectedItems = backgroundItems.filter((item) => selectedIds.has(item.id));
+
+    // Новый порядок: невыбранные, затем выбранные
+    const newBGItems = [...unselectedItems, ...selectedItems];
+
+    // Применяем изменения
+    onChangeBGItems?.(newBGItems);
+  };
+
+  const onUpZIndexActive = () => onUpZIndex(Array.from(state.selectedBGItems.values(), (i) => i.bgItem));
+
+  const onDownZIndex = (backgroundItems: BackgroundItem[] | undefined) => {
+    if (!backgroundItems) return;
+
+    const selectedIds = new Set(backgroundItems.map((i) => i.id));
+
+    // Элементы, которые не выбраны (остаются на своих местах)
+    const unselectedItems = [...state.renderedBGItems.values()].filter((item) => !selectedIds.has(item.bgItem.id));
+
+    // Выбранные элементы (перемещаются в конец)
+    const selectedItems = backgroundItems.filter((item) => selectedIds.has(item.id));
+
+    // Новый порядок: невыбранные, затем выбранные
+    const newBGItems = [...selectedItems, ...unselectedItems];
+
+    // Применяем изменения
+    onChangeBGItems?.(newBGItems);
+  };
+  const onDownZIndexActive = () => onDownZIndex(Array.from(state.selectedBGItems.values(), (i) => i.bgItem));
+
   world.addChild(backgroundContainer);
 
   const onKeyDown = (event: KeyboardEvent) => {
@@ -432,5 +471,9 @@ export const createBackgroundItemsManager = ({
     onMoveAddingBGItem,
     unmountAddingBGItem,
     mountAddingBGItem,
+    onUpZIndex,
+    onUpZIndexActive,
+    onDownZIndex,
+    onDownZIndexActive,
   };
 };

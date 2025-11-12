@@ -44,6 +44,12 @@ export const createPointsAndBackgroundsManager = (
     selectAllBGItems,
     selectBGItemsBySpace,
     mountAddingBGItem,
+    onUpZIndex,
+    onDownZIndexActive,
+    onDownZIndex,
+    onUpZIndexActive,
+    unmountAddingBGItem,
+    onMoveAddingBGItem,
   } = createBackgroundItemsManager({
     state,
     world,
@@ -65,6 +71,12 @@ export const createPointsAndBackgroundsManager = (
     updateBGITems,
     updatePoints,
     destroy,
+    onUpZIndexBGItems: onUpZIndex,
+    onDownZIndexActiveBGItems: onDownZIndexActive,
+    onDownZIndexBGItems: onDownZIndex,
+    onUpZIndexActiveBGItems: onUpZIndexActive,
+    unmountAddingBGItem,
+    onMoveAddingBGItem,
     setEditableMode: (mode: MapEditableMode) => {
       state.renderedPoints.forEach((item) => {
         item.setEditableMode(mode);
@@ -128,8 +140,17 @@ export const createPointsAndBackgroundsManager = (
       });
     },
     setVisibleOfAddingElement: (visible) => {
-      if (state.editableMode !== 'points' && state.editableMode !== 'backgrounds') return;
-      if (state.addingPoint) state.addingPoint.container.visible = state.addingPointVisible = visible;
+      switch (state.editableMode) {
+        case 'points': {
+          if (state.addingPoint) state.addingPoint.container.visible = state.addingPointVisible = visible;
+          break;
+        }
+
+        case 'backgrounds': {
+          if (state.addingBGItem) state.addingBGItem.container.visible = state.addingBGItemVisible = visible;
+          break;
+        }
+      }
     },
     backgroundItemsMap,
     selectPoints: (ids) => {
