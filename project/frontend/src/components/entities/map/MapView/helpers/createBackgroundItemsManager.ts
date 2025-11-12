@@ -147,7 +147,7 @@ export const createBackgroundItemsManager = ({
         return;
       }
 
-      if (state.editableMode !== 'backgrounds') return;
+      if (state.editableMode !== 'backgrounds' || state.addingBGItem || state.addingPoint) return;
 
       const visual = state.renderedBGItems.get(item.bgItem.id);
       if (!visual) return;
