@@ -261,8 +261,11 @@ export const createBackgroundItemsManager = ({
   };
 
   const onMove = onInsideElem({
-    beforeFound: (item, isInside) => {
-      item.setIsHover(isInside);
+    beforeFound: (item) => {
+      item.setIsHover(false);
+    },
+    onFound: (item) => {
+      item.setIsHover(true);
     },
     afterFound: (item) => {
       item.setIsHover(false);
@@ -295,6 +298,14 @@ export const createBackgroundItemsManager = ({
       if (existingVisual) {
         existingVisual.container.position.set(item.position.x, item.position.y);
         existingVisual.bgItem.position = item.position;
+
+        backgroundItemsMap.delete(item.id);
+        state.renderedBGItems.delete(item.id);
+
+        backgroundItemsMap.set(item.id, { container: existingVisual.container, backgroundItem: item });
+        state.renderedBGItems.set(item.id, existingVisual);
+
+        backgroundContainer.addChild(existingVisual.container);
       } else {
         try {
           const bgItemVisual = createBGItemVisual(item, {
@@ -323,8 +334,8 @@ export const createBackgroundItemsManager = ({
               canvasesMap.clear();
             },
           });
-          backgroundItemsMap.set(item.id, { container: bgItemVisual.container, backgroundItem: item });
           bgItemVisual.setEditableMode(state.editableMode);
+          backgroundItemsMap.set(item.id, { container: bgItemVisual.container, backgroundItem: item });
           state.renderedBGItems.set(item.id, bgItemVisual);
           backgroundContainer.addChild(bgItemVisual.container);
           if (state.addingBGItem) backgroundContainer.addChild(state.addingBGItem.container);
