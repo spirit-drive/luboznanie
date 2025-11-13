@@ -102,8 +102,6 @@ export const createBackgroundItemsManager = ({
     state.selectedBGItems.forEach((visual) => {
       visual.setPosition({ x: visual.container.position.x + deltaX, y: visual.container.position.y + deltaY });
     });
-
-    applyBGItemChanges();
   };
 
   const onPointerUp = () => {
@@ -119,6 +117,8 @@ export const createBackgroundItemsManager = ({
 
     app.stage.off('pointermove', onPointerMove);
     app.stage.off('pointerup', onPointerUp);
+
+    applyBGItemChanges();
   };
 
   const unselectBGItems = (bgItems: BGItemVisuals[]) => {
@@ -296,9 +296,6 @@ export const createBackgroundItemsManager = ({
       const existingVisual = state.renderedBGItems.get(item.id);
 
       if (existingVisual) {
-        existingVisual.container.position.set(item.position.x, item.position.y);
-        existingVisual.bgItem.position = item.position;
-
         backgroundItemsMap.delete(item.id);
         state.renderedBGItems.delete(item.id);
 
@@ -306,6 +303,9 @@ export const createBackgroundItemsManager = ({
         state.renderedBGItems.set(item.id, existingVisual);
 
         backgroundContainer.addChild(existingVisual.container);
+
+        existingVisual.setPosition(item.position);
+        existingVisual.bgItem.position = item.position;
       } else {
         try {
           const bgItemVisual = createBGItemVisual(item, {
@@ -400,6 +400,8 @@ export const createBackgroundItemsManager = ({
       event.preventDefault();
 
       const { deltaX, deltaY } = getDeltasByKey(event);
+
+      if (!deltaX && !deltaY) return;
 
       state.selectedBGItems.forEach((visual) => {
         visual.setPosition({

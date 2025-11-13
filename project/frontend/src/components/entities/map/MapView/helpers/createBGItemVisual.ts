@@ -38,7 +38,7 @@ export const createBGItemVisual = (item: BackgroundItem, options: BGItemVisualOp
     isHovered: false,
   };
 
-  const { backgroundAssets, app } = options;
+  const { backgroundAssets } = options;
 
   const [alias, indexStr] = item.type.split('/');
   const index = parseInt(indexStr);
@@ -92,8 +92,6 @@ export const createBGItemVisual = (item: BackgroundItem, options: BGItemVisualOp
     options.onBGItemDown?.(item, event);
   });
 
-  container.on('pointerover', () => {});
-
   container.on('pointermove', (event) => {
     options.onBGItemMove?.(item, event);
   });
@@ -127,6 +125,8 @@ export const createBGItemVisual = (item: BackgroundItem, options: BGItemVisualOp
     setIsHover,
     bgItem: item,
     setPosition: ({ x, y }) => {
+      container.parent.addChild(activeSquare);
+      container.parent.addChild(hoverSquare);
       container.position.x = x;
       container.position.y = y;
       hoverSquare.position.x = x;
