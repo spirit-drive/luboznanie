@@ -106,6 +106,8 @@ export const useMapView = ({
   }, [addingElement]);
 
   return {
+    onDownZIndexActiveBGItems: () => mapController.current?.onDownZIndexActiveBGItems(),
+    onUpZIndexActiveBGItems: () => mapController.current?.onUpZIndexActiveBGItems(),
     containerRef,
     setVolume,
     setVisibleOfAddingElement: (v) => mapController.current?.setVisibleOfAddingElement(v),

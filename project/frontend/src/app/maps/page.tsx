@@ -175,8 +175,8 @@ export const backgroundItems: BackgroundItem[] = [
     id: 'item4',
     type: 'map-set-1/3',
     position: {
-      x: 500,
-      y: 400,
+      x: 400,
+      y: 350,
     },
     deps: [
       // Условие 1: Срабатывает, если у "point2" `hidden: true` и у игрока 100+ монет
@@ -223,8 +223,8 @@ export const backgroundItems: BackgroundItem[] = [
     id: 'item5',
     type: 'map-set-1/5',
     position: {
-      x: 600,
-      y: 500,
+      x: 400,
+      y: 400,
     },
     deps: [
       {
@@ -341,6 +341,10 @@ export default function Page() {
         >
           добавить ландшафт
         </button>
+      </div>
+      <div>
+        <button onClick={() => mapViewController.current?.onUpZIndexActiveBGItems()}>Поднять</button>
+        <button onClick={() => mapViewController.current?.onDownZIndexActiveBGItems()}>Опустить</button>
       </div>
     </div>
   );

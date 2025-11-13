@@ -339,16 +339,26 @@ export const createBackgroundItemsManager = ({
 
   updateBGITems(backgroundItems);
 
-  const onUpZIndex = (backgroundItems: BackgroundItem[] | undefined) => {
+  const getSelectedAndUnselected = (backgroundItems: BackgroundItem[] | undefined) => {
     if (!backgroundItems) return;
 
     const selectedIds = new Set(backgroundItems.map((i) => i.id));
 
     // Элементы, которые не выбраны (остаются на своих местах)
-    const unselectedItems = [...state.renderedBGItems.values()].filter((item) => !selectedIds.has(item.bgItem.id));
+    const unselectedItems = [...state.renderedBGItems.values()]
+      .map((i) => i.bgItem)
+      .filter((item) => !selectedIds.has(item.id));
 
     // Выбранные элементы (перемещаются в конец)
     const selectedItems = backgroundItems.filter((item) => selectedIds.has(item.id));
+
+    return { selectedItems, unselectedItems };
+  };
+
+  const onUpZIndex = (backgroundItems: BackgroundItem[] | undefined) => {
+    if (!backgroundItems) return;
+
+    const { selectedItems, unselectedItems } = getSelectedAndUnselected(backgroundItems);
 
     // Новый порядок: невыбранные, затем выбранные
     const newBGItems = [...unselectedItems, ...selectedItems];
@@ -362,13 +372,7 @@ export const createBackgroundItemsManager = ({
   const onDownZIndex = (backgroundItems: BackgroundItem[] | undefined) => {
     if (!backgroundItems) return;
 
-    const selectedIds = new Set(backgroundItems.map((i) => i.id));
-
-    // Элементы, которые не выбраны (остаются на своих местах)
-    const unselectedItems = [...state.renderedBGItems.values()].filter((item) => !selectedIds.has(item.bgItem.id));
-
-    // Выбранные элементы (перемещаются в конец)
-    const selectedItems = backgroundItems.filter((item) => selectedIds.has(item.id));
+    const { selectedItems, unselectedItems } = getSelectedAndUnselected(backgroundItems);
 
     // Новый порядок: невыбранные, затем выбранные
     const newBGItems = [...selectedItems, ...unselectedItems];

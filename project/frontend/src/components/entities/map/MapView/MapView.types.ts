@@ -150,7 +150,14 @@ export type UseMapViewOptions = Pick<
 
 export type MapViewController = {
   setVolume: (volume: number) => void;
-} & Pick<PointsManager, 'selectAllPoints' | 'selectPoints' | 'setVisibleOfAddingElement'>;
+} & Pick<
+  PointsManager,
+  | 'selectAllPoints'
+  | 'selectPoints'
+  | 'setVisibleOfAddingElement'
+  | 'onUpZIndexActiveBGItems'
+  | 'onDownZIndexActiveBGItems'
+>;
 
 export type TMapView = {
   containerRef: RefObject<HTMLDivElement>;
@@ -168,7 +175,13 @@ export type MapApp = {
   setAddingElement: (addingElement: AddingElement | null) => void;
 } & Pick<
   PointsManager,
-  'updatePoints' | 'updateBGITems' | 'selectAllPoints' | 'selectPoints' | 'setVisibleOfAddingElement'
+  | 'updatePoints'
+  | 'updateBGITems'
+  | 'selectAllPoints'
+  | 'selectPoints'
+  | 'setVisibleOfAddingElement'
+  | 'onDownZIndexActiveBGItems'
+  | 'onUpZIndexActiveBGItems'
 >;
 
 export type AddingPointType = {

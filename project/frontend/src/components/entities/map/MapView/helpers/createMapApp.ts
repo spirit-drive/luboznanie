@@ -21,6 +21,8 @@ export const createMapApp = async ({ container, appRef, ...options }: MapViewOpt
 
   // 4. Возвращаем публичный API
   return {
+    onDownZIndexActiveBGItems: () => pointsAndBackgroundsManager.onDownZIndexActiveBGItems(),
+    onUpZIndexActiveBGItems: () => pointsAndBackgroundsManager.onUpZIndexActiveBGItems(),
     setVisibleOfAddingElement: (v) => pointsAndBackgroundsManager.setVisibleOfAddingElement(v),
     setAddingElement: (addingElement) => {
       pointsAndBackgroundsManager.setAddingElement(addingElement || null);
