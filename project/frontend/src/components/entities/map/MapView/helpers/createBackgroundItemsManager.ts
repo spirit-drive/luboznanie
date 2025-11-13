@@ -338,13 +338,13 @@ export const createBackgroundItemsManager = ({
           backgroundItemsMap.set(item.id, { container: bgItemVisual.container, backgroundItem: item });
           state.renderedBGItems.set(item.id, bgItemVisual);
           backgroundContainer.addChild(bgItemVisual.container);
-          if (state.addingBGItem) backgroundContainer.addChild(state.addingBGItem.container);
         } catch (e) {
           console.warn(e);
         }
       }
     }
 
+    if (state.addingBGItem) backgroundContainer.addChild(state.addingBGItem.container);
     items = [...state.renderedBGItems.values()].reverse();
   };
 
