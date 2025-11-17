@@ -23,8 +23,11 @@ export type Point = {
   bookmarked?: boolean;
   success?: boolean;
   progress?: number;
+  lightRadius?: number;
   entity: {
     id: ID;
     type: EntityType;
   };
 };
+
+export type AddingPoint = Omit<Point, 'position'>;

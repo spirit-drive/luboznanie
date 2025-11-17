@@ -1,17 +1,31 @@
-import { useEffect, useRef } from 'react';
+import { RefObject, useEffect, useRef } from 'react';
 import * as PIXI from 'pixi.js';
-import { MapViewProps } from '../MapView.types';
-import { setupBackground } from '../features/background';
-import { createMapController } from '../features/mapController';
-import { createPointsManager } from '../features/pointsManager';
+import { MapApp, TMapView, UseMapViewOptions } from '../MapView.types';
+import { createMapApp } from '../helpers/createMapApp';
+import { useSounds } from '@/components/entities/map/MapView/helpers/useSounds';
 
-type UseMapViewOptions = Pick<MapViewProps, 'background' | 'width' | 'height' | 'items' | 'onPointClick'>;
-
-export const useMapView = ({ background, width, height, items, onPointClick }: UseMapViewOptions) => {
+export const useMapView = ({
+  background,
+  width,
+  height,
+  points,
+  onPointClick,
+  backgroundItems,
+  editableMode,
+  onSelectPoints,
+  onChangePoints,
+  addingElement,
+  onAddedElement,
+  shouldUnselectByRect,
+  shouldConnectPoints,
+  onChangeBGItems,
+  onBGItemClick,
+}: UseMapViewOptions): TMapView => {
   const containerRef = useRef<HTMLDivElement>(null);
   const appRef = useRef<PIXI.Application | null>(null);
-  // Реф для хранения экземпляра менеджера точек
-  const pointsManagerRef = useRef<ReturnType<typeof createPointsManager> | null>(null);
+  const mapController = useRef<MapApp | null>(null);
+
+  const { playBackgroundMusic, updateBackgroundItemMusic, setVolume, onAddPoint } = useSounds();
 
   // Основной useEffect для инициализации
   useEffect(() => {
@@ -21,69 +35,33 @@ export const useMapView = ({ background, width, height, items, onPointClick }: U
         return;
       }
 
-      // 1. Инициализация PIXI.Application
-      const app = new PIXI.Application();
-      await app.init({
-        resizeTo: container,
-        autoDensity: true,
-        backgroundColor: '#ccc',
-        resolution: window.devicePixelRatio || 1,
+      mapController.current = await createMapApp({
+        shouldUnselectByRect,
+        shouldConnectPoints,
+        container,
+        onBGItemClick,
+        onChangeBGItems,
+        backgroundItems,
+        onAddedElement: (args) => {
+          onAddedElement?.(args);
+          onAddPoint();
+        },
+        height,
+        points,
+        onPointClick,
+        background,
+        width,
+        addingElement,
+        appRef: appRef as RefObject<PIXI.Application>,
+        onChangeWorld: ({ visibleBackgorundItems }) => {
+          updateBackgroundItemMusic(visibleBackgorundItems);
+        },
+        onSelectPoints,
+        onChangePoints,
       });
-      appRef.current = app;
-      container.appendChild(app.canvas);
-
-      // 2. Создание главного контейнера 'world'
-      // Все игровые объекты (карта, точки, персонажи) будут внутри него.
-      const world = new PIXI.Container();
-      world.width = width;
-      world.height = height;
-      app.stage.addChild(world);
-
-      // Начальное центрирование мира на экране
-      world.x = app.screen.width / 2 - width / 2;
-      world.y = app.screen.height / 2 - height / 2;
-
-      // 3. Делегирование создания фона
-      await setupBackground(world, { image: background?.image, width, height });
-
-      // 4. Делегирование создания контроллеров управления
-      const mapController = createMapController(app, world);
-
-      // Создаем и сохраняем экземпляр менеджера точек
-      pointsManagerRef.current = createPointsManager(world, { onPointClick });
-      pointsManagerRef.current.update(items);
-
-      const onBlur = () => {
-        app.ticker.stop();
-      };
-
-      const onFocus = () => {
-        app.ticker.start();
-      };
-
-      if (typeof window !== 'undefined') {
-        window.addEventListener('blur', onBlur);
-        window.addEventListener('focus', onFocus);
-      }
 
       return () => {
-        // Очищаем все менеджеры
-        pointsManagerRef.current?.destroy();
-        mapController.destroy();
-
-        if (typeof window !== 'undefined') {
-          window.removeEventListener('blur', onBlur);
-          window.removeEventListener('focus', onFocus);
-        }
-
-        if (appRef.current) {
-          appRef.current.destroy(true, { children: true, texture: true, baseTexture: true });
-          appRef.current = null;
-        }
-        // Убедимся, что canvas удален из DOM
-        if (container.contains(app.canvas)) {
-          container.removeChild(app.canvas);
-        }
+        mapController.current?.cleanup?.();
       };
     };
 
@@ -95,16 +73,49 @@ export const useMapView = ({ background, width, height, items, onPointClick }: U
     return () => {
       cleanup?.();
     };
-    // onPointClick добавлен в зависимости, чтобы менеджер пересоздался, если изменится коллбэк
-  }, [background?.image, width, height, onPointClick]);
+  }, [
+    background?.image,
+    width,
+    height,
+    onPointClick,
+    playBackgroundMusic,
+    updateBackgroundItemMusic,
+    onSelectPoints,
+    onChangePoints,
+  ]);
 
   // --- useEffect для обновления точек ---
-  // Этот хук будет срабатывать ТОЛЬКО при изменении массива `items`.
   useEffect(() => {
-    if (pointsManagerRef.current && items) {
-      pointsManagerRef.current.update(items);
+    if (mapController.current && points) {
+      mapController.current?.updatePoints(points);
     }
-  }, [items]); // Зависимость - массив `items`
+  }, [points]);
 
-  return { containerRef };
+  useEffect(() => {
+    if (mapController.current && backgroundItems) {
+      mapController.current?.updateBGITems(backgroundItems);
+    }
+  }, [backgroundItems]);
+
+  useEffect(() => {
+    mapController.current?.setEditableMode(editableMode!);
+  }, [editableMode]);
+
+  useEffect(() => {
+    mapController.current?.setAddingElement(addingElement!);
+  }, [addingElement]);
+
+  return {
+    onDownZIndexActiveBGItems: () => mapController.current?.onDownZIndexActiveBGItems(),
+    onUpZIndexActiveBGItems: () => mapController.current?.onUpZIndexActiveBGItems(),
+    containerRef,
+    setVolume,
+    setVisibleOfAddingElement: (v) => mapController.current?.setVisibleOfAddingElement(v),
+    selectAllPoints: () => {
+      mapController.current?.selectAllPoints();
+    },
+    selectPoints: (ids) => {
+      mapController.current?.selectPoints(ids);
+    },
+  };
 };

@@ -2,17 +2,21 @@
 
 import s from './page.module.scss';
 import { MapView } from '@/components/entities/map/MapView/MapView';
-import { Point } from '@/types/entities/point/point.types';
+import { AddingPoint, Point } from '@/types/entities/point/point.types';
+import { AddingBackgroundType, BackgroundItem } from '@/types/entities/map/map.types';
+import { useRef, useState } from 'react';
+import { AddingElement, MapEditableMode, MapViewController } from '@/components/entities/map/MapView/MapView.types';
 
 const onPointClick = () => {};
+const onBGItemClick = () => {};
 
 export const items: Point[] = [
   // 1. Начальная точка - лекция
   {
     id: 'point-1',
     name: 'Введение в курс',
-    position: { x: 0, y: 0 },
-    entity: { id: 'lecture-101', type: 'lecture' },
+    position: { x: 100, y: 100 },
+    entity: { id: 'article-101', type: 'article' },
     required: true,
     color: '#ff8f00',
     progress: 87,
@@ -38,8 +42,9 @@ export const items: Point[] = [
     id: 'point-3',
     name: 'Углубленная тема',
     position: { x: 300, y: 400 },
-    entity: { id: 'lecture-102', type: 'lecture' },
+    entity: { id: 'article-102', type: 'article' },
     locked: false, // Доступна
+    success: true, // Эта точка уже пройдена
     connections: [{ id: 'conn-3-4', pointId: 'point-4' }],
   },
   // 4. Точка слияния - карта
@@ -69,7 +74,7 @@ export const items: Point[] = [
     id: 'point-6',
     name: 'Основная лекция',
     position: { x: 700, y: 400 },
-    entity: { id: 'lecture-103', type: 'lecture' },
+    entity: { id: 'article-103', type: 'article' },
     locked: true,
     connections: [{ id: 'conn-6-7', pointId: 'point-7' }],
   },
@@ -91,7 +96,7 @@ export const items: Point[] = [
     id: 'point-8',
     name: 'Бонусный материал',
     position: { x: 100, y: 550 },
-    entity: { id: 'lecture-104', type: 'lecture' },
+    entity: { id: 'article-104', type: 'article' },
     connections: [], // Нет исходящих соединений
   },
   // 9. Точка, ведущая к изолированной
@@ -108,14 +113,239 @@ export const items: Point[] = [
     name: 'Бесконечный цикл',
     position: { x: 500, y: 100 },
     entity: { id: 'practice-204', type: 'practice' },
-    connections: [{ id: 'conn-10-10', pointId: 'point-10', color: '#ff4081' }],
+    connections: [],
   },
 ];
 
+export const backgroundItems: BackgroundItem[] = [
+  // Простой элемент, без зависимостей
+  {
+    id: 'item1',
+    type: 'map-set-3/0',
+    position: {
+      x: 100,
+      y: 150,
+    },
+  },
+  // Элемент, который изначально скрыт и имеет звук
+  {
+    id: 'item2',
+    type: 'map-set-3/3',
+    position: {
+      x: 100,
+      y: 300,
+    },
+    hidden: false,
+    sound: true,
+  },
+  // Элемент с одной зависимостью
+  {
+    id: 'item3',
+    type: 'map-set-1/2',
+    position: {
+      x: 400,
+      y: 300,
+    },
+    deps: [
+      {
+        id: 'dep1',
+        conditions: [
+          {
+            _id: 'cond1',
+            points: {
+              ids: ['point1'],
+              success: true,
+            },
+            gamer: {
+              experience: 50,
+            },
+          },
+        ],
+        newValue: {
+          x: 450,
+          y: 350,
+          hidden: false, // Элемент станет видимым
+          sound: true,
+        },
+      },
+    ],
+  },
+  // Элемент с несколькими зависимостями (условие ИЛИ)
+  {
+    id: 'item4',
+    type: 'map-set-1/3',
+    position: {
+      x: 400,
+      y: 350,
+    },
+    deps: [
+      // Условие 1: Срабатывает, если у "point2" `hidden: true` и у игрока 100+ монет
+      {
+        id: 'dep2',
+        conditions: [
+          {
+            _id: 'cond2-1',
+            points: {
+              ids: ['point2'],
+              hidden: true,
+            },
+            gamer: {
+              coins: 100,
+            },
+          },
+        ],
+        newValue: {
+          x: 520,
+          y: 420,
+          type: 'image/4',
+        },
+      },
+      // Условие 2: Срабатывает, если у "point3" `progress: 100`
+      {
+        id: 'dep3',
+        conditions: [
+          {
+            _id: 'cond2-2',
+            points: {
+              ids: ['point3'],
+              progress: 100,
+            },
+          },
+        ],
+        newValue: {
+          hidden: true, // Элемент скроется
+        },
+      },
+    ],
+  },
+  // Элемент с зависимостью, которую можно отменить
+  {
+    id: 'item5',
+    type: 'map-set-1/5',
+    position: {
+      x: 400,
+      y: 400,
+    },
+    deps: [
+      {
+        id: 'dep4',
+        conditions: [
+          {
+            _id: 'cond3',
+            points: {
+              ids: ['point4'],
+              locked: true,
+            },
+            gamer: {
+              awardIds: ['award_level1'],
+            },
+            cancelable: true, // Изменения отменятся, если условия перестанут выполняться
+          },
+        ],
+        newValue: {
+          x: 650,
+          y: 550,
+          type: 'image/6',
+        },
+      },
+    ],
+  },
+];
+
+const addingPoint: AddingPoint = {
+  id: 'addingPoint',
+  name: 'Углубленная тема',
+  entity: { id: 'article-102', type: 'article' },
+  locked: false, // Доступна
+  success: true, // Эта точка уже пройдена
+  connections: [],
+};
+
+const addingBgItem: AddingBackgroundType = {
+  id: 'addingBGItem',
+  type: 'map-set-3/0',
+};
+
+const addingPointElement: AddingElement = {
+  type: 'point',
+  value: addingPoint,
+};
+
+const addingBgItemElement: AddingElement = {
+  type: 'background',
+  value: addingBgItem,
+};
+
 export default function Page() {
+  const [editableMode, setEditableMode] = useState<MapEditableMode>('none');
+  const [bgItems, setBgItems] = useState(backgroundItems);
+  const [points, setPoints] = useState(items);
+  const [addingElement, setAddingElement] = useState<AddingElement | null>(null);
+
+  const mapViewController = useRef<MapViewController | null>(null);
+
   return (
-    <div className={s.page} style={{ height: 700 }}>
-      <MapView width={1000} height={1000} items={items} onPointClick={onPointClick} />
+    <div className={s.page}>
+      <div style={{ height: 500 }}>
+        <MapView
+          shouldConnectPoints={(e) => e.metaKey || e.ctrlKey}
+          shouldUnselectByRect={(e) => e.metaKey || e.ctrlKey}
+          onAddedElement={(added) => {
+            switch (added.type) {
+              case 'point':
+                setPoints((v) => [...v, added.value]);
+                break;
+              case 'background':
+                setBgItems((v) => [...v, added.value]);
+                break;
+            }
+          }}
+          addingElement={addingElement}
+          ref={mapViewController}
+          editableMode={editableMode}
+          width={1000}
+          height={1000}
+          backgroundItems={bgItems}
+          onChangeBGItems={setBgItems}
+          points={points}
+          onChangePoints={setPoints}
+          onPointClick={onPointClick}
+          onBGItemClick={onBGItemClick}
+        />
+      </div>
+      <button onClick={() => setEditableMode('points')}>points</button>
+      <button onClick={() => setEditableMode('none')}>none</button>
+      <button onClick={() => setEditableMode('backgrounds')}>backgrounds</button>
+      <div>
+        <button
+          onClick={() => {
+            setEditableMode('points');
+            mapViewController.current?.selectAllPoints();
+          }}
+        >
+          Выделить все
+        </button>
+      </div>
+      <div>
+        <button
+          onClick={() => {
+            setAddingElement(addingPointElement);
+          }}
+        >
+          добавить поинт
+        </button>
+        <button
+          onClick={() => {
+            setAddingElement(addingBgItemElement);
+          }}
+        >
+          добавить ландшафт
+        </button>
+      </div>
+      <div>
+        <button onClick={() => mapViewController.current?.onUpZIndexActiveBGItems()}>Поднять</button>
+        <button onClick={() => mapViewController.current?.onDownZIndexActiveBGItems()}>Опустить</button>
+      </div>
     </div>
   );
 }
