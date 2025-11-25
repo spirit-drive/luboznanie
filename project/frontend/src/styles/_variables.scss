@@ -1,8 +1,35 @@
-$font-katex-math: 'KaTex_Math', sans-serif;
-$font-katex-main: 'KaTex_Main-Regular', sans-serif;
-$font-montserrat-bold: 'Montserrat-Bold', sans-serif;
-$font-montserrat-regular: 'Montserrat-Regular', sans-serif;
+:root {
+  --font-katex-math: 'KaTex_Math', sans-serif;
+  --font-katex-main: 'KaTex_Main-Regular', sans-serif;
+  --font-montserrat-bold: 'Montserrat-Bold', sans-serif;
+  --font-montserrat-regular: 'Montserrat-Regular', sans-serif;
 
-$font_task_color: #999999;
-$font_color_black: #000000;
-$font_color_tag: #5f6369;
+  /* --- Нейтральные / Серые (Neutral / Grey) --- */
+  --color-neutral-white: #FAFAFA; /* Почти белый / Сверхлегкий фон */
+  --color-neutral-lightest: #F3F4F6; /* Самый светлый фон */
+  --color-neutral-lighter: #F0F0F0; /* Очень светлый фон */
+  --color-neutral-light: #DEDEDE; /* Светлый разделитель / Граница */
+  --color-neutral-medium: #B5B5B5; /* Второстепенный текст / Иконки */
+  --color-neutral-dark: #999999; /* Отключенные элементы / Placeholder */
+  --color-neutral-darker: #5F6369; /* Основной текст / Иконки */
+
+  /* --- Успех (Success / Green) --- */
+  --color-success-light: #D3F8D8; /* Легкий фон для уведомлений об успехе */
+  --color-success-base: #109E21; /* Базовый зеленый (иконки, акценты) */
+
+  /* --- Опасность / Предупреждение (Danger / Red) --- */
+  --color-danger-light: #FAD8D6; /* Легкий фон для ошибок/опасности */
+  --color-danger-base: #CC1C14; /* Базовый красный (сообщения об ошибках, удаление) */
+
+  /* --- Предупреждение / Внимание (Warning / Orange) --- */
+  --color-warning-lightest: #FFF7EC; /* Сверхлегкий фон для предупреждений */
+  --color-warning-lighter: #FED5A7; /* Легкий фон для предупреждений */
+  --color-warning-base: #FFA744; /* Базовый оранжевый (предупреждения) */
+
+  /* --- Акцент / Основной (Accent / Primary / Blue) --- */
+  --color-primary-lightest: #EDF5FF; /* Сверхлегкий фон (например, при наведении/активности) */
+  --color-primary-lighter: #E6EEF7; /* Очень легкий фон */
+  --color-primary-light: #9AC9FD; /* Светлый акцент */
+  --color-primary-base: #3C9FCB; /* Базовый синий (кнопки, ссылки) */
+  --color-primary-dark: #497EBE; /* Темный синий (состояние hover/active) */
+}
