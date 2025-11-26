@@ -1,5 +1,7 @@
 'use client';
+
 import s from './Icon.module.scss';
+import clsx from 'clsx';
 
 export type IconProps = React.SVGProps<SVGSVGElement> & {
   name: string;
@@ -7,10 +9,10 @@ export type IconProps = React.SVGProps<SVGSVGElement> & {
   size?: number;
 };
 
-export const Icon = ({ name, ...props }: IconProps) => {
+export const Icon = ({ name, className, ...props }: IconProps) => {
   return (
-    <i className={s.i}>
-      <svg className={s.icon_svg} aria-hidden="true" focusable="false" {...props}>
+    <i className={clsx(s.root, className)}>
+      <svg aria-hidden="true" focusable="false" {...props}>
         <use href={`/icons/sprite.svg#${name}`} />
       </svg>
     </i>
