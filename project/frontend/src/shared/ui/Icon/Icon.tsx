@@ -6,7 +6,6 @@ import clsx from 'clsx';
 export type IconProps = React.SVGProps<SVGSVGElement> & {
   name: string;
   className?: string;
-  size?: number;
 };
 
 export const Icon = ({ name, className, ...props }: IconProps) => {
