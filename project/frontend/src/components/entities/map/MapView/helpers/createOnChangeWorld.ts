@@ -14,7 +14,7 @@ export const createOnChangeWorld = ({
     const visibleBackgorundItems: Array<MapVisibleBackgroundItem> = [];
     const screenBounds = app.screen;
 
-    backgroundItemsMap?.entries().forEach(([_, item]) => {
+    backgroundItemsMap?.entries().forEach(([, item]) => {
       const { container } = item;
       const containerBounds = container.getBounds();
 

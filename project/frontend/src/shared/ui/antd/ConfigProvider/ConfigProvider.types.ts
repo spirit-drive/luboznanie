@@ -1,5 +1,5 @@
-import { ReactNode } from "react";
-import { ConfigProviderProps as AntConfigProviderProps} from 'antd';
+import { ReactNode } from 'react';
+import { ConfigProviderProps as AntConfigProviderProps } from 'antd';
 
 export type ConfigProviderProps = {
   children: ReactNode;

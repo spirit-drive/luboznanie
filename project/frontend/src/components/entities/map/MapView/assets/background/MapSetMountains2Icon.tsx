@@ -30,7 +30,7 @@ export const MapSetMountains2Icon = forwardRef<HTMLImageElement, MapSetMountains
       width={width}
       height={height}
     />
-  )
+  ),
 );
 
 MapSetMountains2Icon.displayName = 'MapSetMountains2Icon';

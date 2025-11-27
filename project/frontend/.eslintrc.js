@@ -8,7 +8,11 @@ module.exports = {
   },
 
   // Наборы правил
-  extends: ['eslint:recommended', 'plugin:@typescript-eslint/recommended', 'plugin:prettier/recommended', 'plugin:storybook/recommended'],
+  extends: [
+    'eslint:recommended', // Базовые правила ESLint
+    'plugin:@typescript-eslint/recommended', // Рекомендованные правила для TypeScript
+    'plugin:prettier/recommended', // Включает eslint-plugin-prettier и eslint-config-prettier. **Должен быть последним!**
+  ],
 
   // Парсер для TypeScript
   parser: '@typescript-eslint/parser',
