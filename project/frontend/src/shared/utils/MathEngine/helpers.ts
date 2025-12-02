@@ -8,18 +8,23 @@ export const escapeSpecialSymbolsString = (value: string): string =>
 
 const HIDDEN_SYMBOL = "'@@@'";
 
-export const createExpressionFinder = (openToken: string, closeToken: string) => {
+export const createExpressionFinder = (
+  openToken: string,
+  closeToken: string,
+  params?: { beforeRegExpSymbol?: string },
+) => {
   const uniqOpenToken = [...new Set(openToken.split('')).values()].join('');
   const uniqCloseToken = [...new Set(closeToken.split('')).values()].join('');
+  const before = params?.beforeRegExpSymbol ? params.beforeRegExpSymbol : '';
 
   const mainRegexp = new RegExp(
-    `${escapeSpecialSymbolsString(openToken)}[^${openToken}${closeToken}]*${escapeSpecialSymbolsString(closeToken)}`,
+    `${before}${escapeSpecialSymbolsString(openToken)}[^${openToken}${closeToken}]*${escapeSpecialSymbolsString(closeToken)}`,
   );
   const controllRegexp = new RegExp(
-    `${escapeSpecialSymbolsString(openToken)}.*${escapeSpecialSymbolsString(closeToken)}`,
+    `${before}${escapeSpecialSymbolsString(openToken)}.*${escapeSpecialSymbolsString(closeToken)}`,
   );
   const singleRegexp = new RegExp(
-    `${escapeSpecialSymbolsString(uniqOpenToken)}[^${uniqOpenToken}${uniqCloseToken}]*${escapeSpecialSymbolsString(uniqCloseToken)}`,
+    `${before}${escapeSpecialSymbolsString(uniqOpenToken)}[^${uniqOpenToken}${uniqCloseToken}]*${escapeSpecialSymbolsString(uniqCloseToken)}`,
   );
 
   const clear = (text: string): string => {
@@ -64,3 +69,4 @@ export const createExpressionFinder = (openToken: string, closeToken: string) =>
 
 // Экспортируем готовую функцию для использования
 export const findFirstExpression = createExpressionFinder('{{', '}}');
+export const findFirstBrackets = createExpressionFinder('(', ')', { beforeRegExpSymbol: '\\B' });
