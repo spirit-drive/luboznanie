@@ -262,8 +262,3 @@ export const der: CalcOperation = {
     return 'Unsolved'; // Если слишком сложно для наших регулярок
   },
 };
-
-export type CalcConfigLevel = CalcOperation[];
-export type CalcConfig = CalcConfigLevel[];
-
-export const createCalc = (config: CalcConfig) => (expression: Expression) => {};
