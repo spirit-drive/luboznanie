@@ -1,5 +1,6 @@
 import { findFirstBrackets } from './helpers';
 import { applyOperation, CalcOperation, Expression, DIGIT_REGEXP_STRING } from './operators';
+import * as ops from './operators';
 
 // Типы конфигурации
 export type CalcConfigLevel = CalcOperation[];
@@ -16,11 +17,14 @@ export class CalculatorError extends Error {
   }
 }
 
-// Регулярка для проверки, является ли строка конечным числом (например "5", "-5", "5,5")
-// Используем якоря ^ и $, чтобы убедиться, что вся строка — это число
+// Регулярка для проверки, является ли строка конечным числом
 const IS_NUMBER_REGEXP = new RegExp(`^${DIGIT_REGEXP_STRING}$`);
 
-const isNumber = (exp: Expression): boolean => IS_NUMBER_REGEXP.test(exp.trim());
+// Дополнительная проверка, чтобы не считать "NaN" числом
+const isNumber = (exp: Expression): boolean => {
+  const trimmed = exp.trim();
+  return IS_NUMBER_REGEXP.test(trimmed) && trimmed !== 'NaN';
+};
 
 export const createCalc = (config: CalcConfig) => {
   // Основная функция калькулятора
@@ -28,7 +32,7 @@ export const createCalc = (config: CalcConfig) => {
     let currentExpression = expression;
     const history: string[] = [currentExpression];
 
-    // Защита от бесконечных циклов (например, если правило замены создает само себя)
+    // Защита от бесконечных циклов
     const MAX_STEPS = 1000;
     let stepCount = 0;
 
@@ -43,9 +47,7 @@ export const createCalc = (config: CalcConfig) => {
 
       let expressionChangedInThisLoop = false;
 
-      // 2. Приоритет №0: Скобки (Группировка)
-      // findFirstBrackets (с флагом \B) находит только группирующие скобки (1+2),
-      // игнорируя вызовы функций sin(30).
+      // 2. Приоритет №0: Скобки
       const brackets = findFirstBrackets(currentExpression);
 
       if (brackets) {
@@ -60,12 +62,9 @@ export const createCalc = (config: CalcConfig) => {
           currentExpression = nextExpression;
           history.push(currentExpression);
 
-          // Начинаем главный цикл заново (возможно открылись новые операции)
+          // Начинаем цикл заново
           continue;
         } catch (error) {
-          // Если внутри скобок ошибка, прокидываем её наверх,
-          // добавляя текущий контекст, если нужно.
-          // В данной реализации просто прерываем.
           if (error instanceof CalculatorError) {
             throw error;
           }
@@ -79,12 +78,14 @@ export const createCalc = (config: CalcConfig) => {
         let bestMatch: { index: number; op: CalcOperation } | null = null;
 
         for (const op of level) {
-          // Сбрасываем lastIndex, если регулярка глобальная (на всякий случай)
+          // Сбрасываем lastIndex, это обязательно для exec с флагом /g
           if (op.regexp.global) op.regexp.lastIndex = 0;
 
-          const match = currentExpression.match(op.regexp);
+          // ИСПРАВЛЕНИЕ ЗДЕСЬ: используем exec вместо match
+          // exec возвращает полноценный объект с index даже для глобальных регулярок
+          const match = op.regexp.exec(currentExpression);
 
-          if (match && match.index !== undefined) {
+          if (match) {
             // Если мы еще ничего не нашли ИЛИ нашли совпадение левее текущего лучшего
             if (bestMatch === null || match.index < bestMatch.index) {
               bestMatch = { index: match.index, op };
@@ -94,16 +95,16 @@ export const createCalc = (config: CalcConfig) => {
 
         // Если в этом уровне нашлась операция
         if (bestMatch) {
+          // Применяем операцию
           const nextExpression = applyOperation(currentExpression, bestMatch.op);
 
-          // Проверяем, действительно ли что-то изменилось (защита от холостых срабатываний)
+          // Проверяем, действительно ли что-то изменилось
           if (nextExpression !== currentExpression) {
             currentExpression = nextExpression;
             history.push(currentExpression);
             expressionChangedInThisLoop = true;
 
-            // ВАЖНО: Прерываем перебор уровней и начинаем с самого верха (loop while),
-            // так как результат операции мог открыть более приоритетные действия (например, скобки)
+            // Прерываем перебор уровней и начинаем с самого верха
             break;
           }
         }
@@ -111,11 +112,9 @@ export const createCalc = (config: CalcConfig) => {
 
       // Если мы прошли скобки и все уровни, но выражение не изменилось
       if (!expressionChangedInThisLoop) {
-        // Тупик. Либо это число (проверено в начале), либо неразрешимое выражение.
         if (isNumber(currentExpression)) {
           return currentExpression;
         }
-        // Если остались буквы/символы, кидаем ошибку с историей
         throw new CalculatorError(`Cannot resolve expression: "${currentExpression}"`, history);
       }
     }
@@ -125,3 +124,46 @@ export const createCalc = (config: CalcConfig) => {
 
   return calc;
 };
+
+// Уровень 0: Высокоуровневые действия над функциями (Symbolic / Calculus)
+// Сюда входит производная. Она должна сработать раньше, чем 'x' заменится на число (если бы x был переменной),
+// или раньше, чем функции начнут считаться.
+const level0_Calculus = [ops.der];
+
+// Уровень 1: Переменные и Константы
+// Здесь происходит подстановка значений. pi -> 3.14.
+// Если бы у нас была переменная x = 10, она была бы здесь.
+const level1_Variables = [ops.pi, ops.e];
+
+// Уровень 2: Функции (Тригонометрия, Факториал, Модуль)
+// Вычисляются от уже подставленных чисел.
+const level2_Functions = [
+  ops.sin,
+  ops.cos,
+  ops.tan,
+  ops.cot,
+  ops.sec,
+  ops.csc,
+  ops.fact, // 5!
+  ops.abs, // abs(-5)
+];
+
+// Уровень 3: Степени, Корни, Логарифмы
+// Связанные математические операции.
+const level3_ExpRootLog = [
+  ops.pow, // ^
+  ops.sqrt, // sqrt
+  ops.log,
+  ops.lg,
+];
+
+// Уровень 4: Умножение, Деление, Остаток
+const level4_MulDiv = [ops.mul, ops.div, ops.mod];
+
+// Уровень 5: Сложение, Вычитание
+const level5_SumSub = [ops.sum, ops.sub];
+
+// Собираем итоговый конфиг
+const config = [level0_Calculus, level1_Variables, level2_Functions, level3_ExpRootLog, level4_MulDiv, level5_SumSub];
+
+export const calc = createCalc(config);
