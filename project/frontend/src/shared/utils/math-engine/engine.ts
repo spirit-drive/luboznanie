@@ -1,10 +1,9 @@
-import { findFirstBrackets } from './helpers';
-import { applyOperation, CalcOperation, Expression, DIGIT_REGEXP_STRING } from './operators';
+import { findFirstBrackets } from '../expression/helpers';
+import { applyOperation, DIGIT_REGEXP_STRING } from './operators';
 import * as ops from './operators';
-
-// Типы конфигурации
-export type CalcConfigLevel = CalcOperation[];
-export type CalcConfig = CalcConfigLevel[];
+import type { CalcOperation } from './operators.types';
+import type { Expression } from '../expression/expression.types';
+import type { CalcConfig } from './engine.types';
 
 // Класс ошибки, который хранит историю вычислений для отладки
 export class CalculatorError extends Error {

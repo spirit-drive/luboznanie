@@ -1,15 +1,6 @@
 // --- Types ---
-export type Expression = string;
-
-export type CalcOperation = {
-  // RegExp должен иметь захватывающие группы (...) для аргументов
-  regexp: RegExp;
-  // Теперь функция может принимать и числа, и строки (для производных)
-  fn: (...args: (number | string)[]) => string;
-  // Флаг, указывающий, нужно ли пытаться парсить аргументы как числа
-  // По умолчанию true. Для производной будет false.
-  parseArgs?: boolean;
-};
+import { Expression } from '../expression/expression.types';
+import { CalcOperation } from '@/shared/utils/math-engine/operators.types';
 
 // --- Constants ---
 // Регулярка для числа: целое или дробное с запятой, может быть отрицательным
@@ -194,8 +185,12 @@ export const fact: CalcOperation = {
   // RegExp: число, за которым следует восклицательный знак
   regexp: new RegExp(`(${D})!`),
   fn: (a: number) => {
-    if (a < 0) return 'Error'; // Факториал отрицательного не считаем
-    if (!Number.isInteger(a)) return format(Math.gamma(a + 1)); // Гамма-функция для дробных (опционально) или Error
+    if (a < 0) throw new Error(`${a} меньше нуля, невозможно вычислить факториал`); // Факториал отрицательного не считаем
+    if (!Number.isInteger(a)) {
+      throw new Error(
+        `${a} - не является целым числом, факториал дробного числа в данной версии калькулятора не вычисляется`,
+      ); // Гамма-функция для дробных (опционально) или Error
+    }
 
     let result = 1;
     for (let i = 2; i <= a; i++) result *= i;

@@ -1,4 +1,4 @@
-import { findFirstExpression, findFirstBrackets } from '@/shared/utils/MathEngine/helpers';
+import { findFirstExpression, findFirstBrackets } from '@/shared/utils/expression/helpers';
 
 describe('helpers', () => {
   describe('findFirstExpression', () => {
