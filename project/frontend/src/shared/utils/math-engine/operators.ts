@@ -8,10 +8,34 @@ export const DIGIT_REGEXP_STRING = '-?\\d+(?:,\\d*)?';
 
 // Helper для экранирования
 const D = DIGIT_REGEXP_STRING;
-// Helper для создания стандартной бинарной операции: A op B
-const binaryOpRegexp = (op: string) => new RegExp(`(${D})\\s*\\${op}\\s*(${D})`);
+/**
+ * Создает регулярку для бинарной операции с защитой приоритетов.
+ * @param op Символ операции (+, -, *, /)
+ * @param forbiddenContext Строка символов, которых НЕ должно быть рядом.
+ * Например, для сложения нельзя, чтобы рядом были * или /.
+ */
+const binaryOpRegexp = (op: string, forbiddenContext: string = '') => {
+  // Экранируем спецсимволы для RegExp (например + превращаем в \+)
+  const escapedOp = `\\${op}`;
+
+  // Если контекст передан, создаем проверки.
+  // (?<![...]) - Negative Lookbehind: "Слева не должно быть этих символов"
+  // (?![...])  - Negative Lookahead: "Справа не должно быть этих символов"
+  // Мы также добавляем \s* внутри проверок, чтобы игнорировать пробелы между числом и "запрещенным" знаком.
+
+  // (?<![...]\s*) - Negative Lookbehind: Слева не должно быть [Запрещенный символ] + [Пробелы]
+  const lookBehind = forbiddenContext ? `(?<![${forbiddenContext}]\\s*)` : '';
+
+  // (?!\s*[...])  - Negative Lookahead: Справа не должно быть [Пробелы] + [Запрещенный символ]
+  const lookAhead = forbiddenContext ? `(?!\\s*[${forbiddenContext}])` : '';
+
+  // Итоговый паттерн:
+  // [Проверка слева] (Число A) [Оператор] (Число B) [Проверка справа]
+  return new RegExp(`${lookBehind}(${D})\\s*${escapedOp}\\s*(${D})${lookAhead}`);
+};
+
 // Helper: Создание регулярки для функции "name(args...)"
-const funcOpRegexp = (name: string) => new RegExp(`${name}\\((.*?)\\)`);
+const funcOpRegexp = (name: string) => new RegExp(`${name}\\s*\\(\\s*(${D})\\s*\\)`);
 // Примечание: (.*?) захватывает всё внутри скобок, разбор аргументов делаем внутри applyOperation
 
 // Helper для форматирования результата (возвращаем запятую, убираем лишние нули если нужно)
@@ -72,24 +96,32 @@ export const applyOperation = (expression: Expression, operation: CalcOperation)
 
 // --- Operations Definitions ---
 
+// Группа символов высокого приоритета: Умножение, Деление, Степень, Остаток
+const HIGH_PRIORITY = '\\*\\/\\%';
+// Группа для Умножения (только Степень выше)
+const POW_PRIORITY = '\\^';
+
 // 1. Арифметика (Низкий уровень)
+// Сложение и Вычитание НЕ должны срабатывать, если рядом *, /, ^, %
 export const sum: CalcOperation = {
-  regexp: binaryOpRegexp('+'),
+  regexp: binaryOpRegexp('+', HIGH_PRIORITY),
   fn: (a: number, b: number) => format(a + b),
 };
 
 export const sub: CalcOperation = {
-  regexp: binaryOpRegexp('-'),
+  regexp: binaryOpRegexp('-', HIGH_PRIORITY),
   fn: (a: number, b: number) => format(a - b),
 };
 
+// 2. Умножение и Деление
+// Они НЕ должны срабатывать, если рядом ^ (Степень)
 export const mul: CalcOperation = {
-  regexp: binaryOpRegexp('*'),
+  regexp: binaryOpRegexp('*', POW_PRIORITY),
   fn: (a: number, b: number) => format(a * b),
 };
 
 export const div: CalcOperation = {
-  regexp: binaryOpRegexp('/'),
+  regexp: binaryOpRegexp('/', POW_PRIORITY),
   fn: (a: number, b: number) => {
     if (b === 0) throw new Error('Division by zero');
     return format(a / b);
@@ -97,12 +129,11 @@ export const div: CalcOperation = {
 };
 
 export const mod: CalcOperation = {
-  regexp: binaryOpRegexp('%'),
+  regexp: binaryOpRegexp('%', POW_PRIORITY),
   fn: (a: number, b: number) => format(a % b),
 };
 
-// 2. Функции, Степени, Корни (Средний уровень)
-
+// 3. Степень (Самый высокий бинарный приоритет, ограничений нет)
 export const pow: CalcOperation = {
   regexp: binaryOpRegexp('^'),
   fn: (a: number, b: number) => format(Math.pow(a, b)),

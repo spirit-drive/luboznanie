@@ -207,4 +207,260 @@ describe('Calculator Engine (createCalc)', () => {
       });
     });
   });
+
+  describe('Calculator Error History & Debugging', () => {
+    // Хелпер для проверки точного совпадения массива истории
+    const expectHistory = (expression: string, expectedSteps: string[]) => {
+      try {
+        calc(expression);
+        throw new Error('Test expected CalculatorError, but it succeeded.');
+      } catch (e) {
+        if (e instanceof CalculatorError) {
+          // Мы проверяем массив целиком
+          expect(e.history).toEqual(expectedSteps);
+        } else {
+          throw e;
+        }
+      }
+    };
+
+    describe('Linear Arithmetic Failures', () => {
+      test('Should record steps before failing on unknown symbol', () => {
+        // Сценарий:
+        // 1. Исходное выражение
+        // 2. Выполняется умножение (Level 4)
+        // 3. Выполняется сложение (Level 5)
+        // 4. Остановка из-за "oops"
+        const expr = '10 + 2 * 5 + oops';
+
+        expectHistory(expr, [
+          '10 + 2 * 5 + oops', // Start
+          '10 + 10 + oops', // 2 * 5 -> 10
+          '20 + oops', // 10 + 10 -> 20
+        ]);
+      });
+
+      test('Should fail immediately if no operation matches', () => {
+        const expr = 'invalid expression';
+        expectHistory(expr, ['invalid expression']);
+      });
+
+      test('Should show partial evaluation of a long chain', () => {
+        // Слева направо: 100 / 2 -> 50, затем 50 / 5 -> 10, потом тупик
+        const expr = '100 / 2 / 5 / zero';
+
+        expectHistory(expr, ['100 / 2 / 5 / zero', '50 / 5 / zero', '10 / zero']);
+      });
+    });
+
+    describe('Priority & Variable Substitution History', () => {
+      test('Should substitute constants first, then fail if syntax is bad', () => {
+        // 1. pi -> 3,14...
+        // 2. 2 * 3,14... -> 6,28...
+        // 3. Ошибка
+        const expr = '2 * pi + unknown';
+
+        // Поскольку мы не можем гарантировать точное число знаков в тестах без хардкода,
+        // проверим, что в истории есть шаг с раскрытым PI.
+        try {
+          calc(expr);
+        } catch (e) {
+          if (e instanceof CalculatorError) {
+            expect(e.history).toHaveLength(3);
+            expect(e.history[0]).toBe('2 * pi + unknown');
+            // Проверяем, что во втором шаге pi заменилось на число с запятой
+            expect(e.history[1]).toMatch(/2 \* 3,14\d+ \+ unknown/);
+            // Проверяем, что в третьем шаге произошло умножение
+            expect(e.history[2]).toMatch(/6,28\d+ \+ unknown/);
+          }
+        }
+      });
+
+      test('Should substitute derivative, then fail on variable', () => {
+        // 1. der(x^2, x) -> 2*x
+        // 2. Ошибка, так как x не определен
+        const expr = '1 + der(x^2, x)';
+
+        // Тут нужно знать точно, как format() форматирует "2".
+        // Если format(2) -> "2", то строка будет "1 + 2*x"
+        expectHistory(expr, ['1 + der(x^2, x)', '1 + 2*x']);
+      });
+    });
+
+    describe('Function Evaluation History', () => {
+      test('Should show function simplification steps', () => {
+        // 1. sin(0) -> 0
+        // 2. 0 + 5 -> 5
+        // 3. 5 + error -> fail
+        const expr = 'sin(0) + 5 + error';
+
+        expectHistory(expr, ['sin(0) + 5 + error', '0 + 5 + error', '5 + error']);
+      });
+
+      test('Should handle nested functions (via repeated passes)', () => {
+        // abs(sin(0)) + err
+        // 1. sin(0) -> 0 (но так как скобок нет, ищем слева направо)
+        //    Движок видит abs(sin(0)).
+        //    abs ожидает число. sin(0) - не число.
+        //    Движок идет дальше по уровням. sin(0) срабатывает.
+        // 2. Получаем abs(0) + err.
+        // 3. abs(0) -> 0.
+        // 4. 0 + err.
+
+        const expr = 'abs(sin(0)) + err';
+
+        expectHistory(expr, ['abs(sin(0)) + err', 'abs(0) + err', '0 + err']);
+      });
+    });
+
+    describe('Recursive Bracket Failures', () => {
+      test('Should return history of the INNER expression when failing inside brackets', () => {
+        // Важно: Текущая архитектура прокидывает ошибку из рекурсии.
+        // Поэтому история будет содержать шаги ТОЛЬКО внутри скобок.
+
+        // Внешнее: 10 + (...)
+        // Внутреннее: 2 * 3 + err
+        const expr = '10 + (2 * 3 + err)';
+
+        expectHistory(expr, [
+          '2 * 3 + err', // Начало внутренней обработки
+          '6 + err', // После умножения
+        ]);
+      });
+
+      test('Should handle deep nesting failure', () => {
+        // Внешнее: ( ... )
+        // Среднее: 5 + ( ... )
+        // Внутреннее: error
+        const expr = '((5 + error))';
+
+        // 1. Находит внешние скобки -> вызывает calc на "(5 + error)"
+        // 2. Внутри "(5 + error)" находит скобки -> вызывает calc на "5 + error"
+        // 3. "5 + error" падает.
+
+        expectHistory(expr, ['5 + error']);
+      });
+    });
+
+    describe('Syntax Errors', () => {
+      test('Missing second operand', () => {
+        // 2 +
+        const expr = '2 +';
+        expectHistory(expr, ['2 +']);
+      });
+
+      test('Two operators in a row', () => {
+        // 2 ++ 2 (если регуляка это не поддерживает)
+        // Наша регулярка (\d+) \+ (\d+). "2 ++ 2" не подойдет.
+        const expr = '2 ++ 2';
+        expectHistory(expr, ['2 ++ 2']);
+      });
+
+      test('Unclosed function parenthesis (syntax error for regex)', () => {
+        // sin(0
+        // Регулярка sin\((.*?)\) не сработает
+        const expr = 'sin(0';
+        expectHistory(expr, ['sin(0']);
+      });
+    });
+  });
+
+  describe('Safety Checks: Variables & Operator Precedence', () => {
+    const expectErrorHistory = (expression: string, expectedHistory: string[]) => {
+      try {
+        calc(expression);
+        throw new Error(`Expression "${expression}" resolved unexpectedly!`);
+      } catch (e) {
+        if (e instanceof CalculatorError) {
+          expect(e.history).toEqual(expectedHistory);
+        } else {
+          throw e;
+        }
+      }
+    };
+
+    describe('Prevent Addition/Subtraction breaking Multiplication', () => {
+      test('Should NOT add numbers if followed by multiplication (Right side)', () => {
+        // 1 + 2 * x
+        // Правильно: сначала 2*x (невозможно, т.к. x не число).
+        // Потом 1 + (2*x). Сложение видит "2", но за ним "*". Должно проигнорировать.
+        // Итог: выражение остается "1 + 2*x" (или падает с ошибкой, показав это в истории).
+
+        const expr = '1 + 2 * x';
+
+        // В истории должно быть:
+        // 1. "1 + 2 * x"
+        // Никаких "3 * x" быть не должно!
+        expectErrorHistory(expr, ['1 + 2 * x']);
+      });
+
+      test('Should NOT add numbers if preceded by multiplication (Left side)', () => {
+        // x * 2 + 1
+        // Сложение видит "2", но перед ним "*". Должно проигнорировать.
+
+        const expr = 'x * 2 + 1';
+        expectErrorHistory(expr, ['x * 2 + 1']);
+      });
+
+      test('Should NOT subtract if followed by division', () => {
+        // 10 - 4 / y
+        // Не должно быть "6 / y"
+        const expr = '10 - 4 / y';
+        expectErrorHistory(expr, ['10 - 4 / y']);
+      });
+    });
+
+    describe('Prevent Multiplication breaking Powers', () => {
+      test('Should NOT multiply if followed by power', () => {
+        // 2 * 3 ^ x
+        // Правильно: 2 * (3^x).
+        // Неправильно: 6 ^ x.
+
+        const expr = '2 * 3 ^ x';
+        expectErrorHistory(expr, ['2 * 3 ^ x']);
+      });
+
+      test('Should NOT multiply if preceded by power', () => {
+        // x ^ 2 * 3
+        // Неправильно: x ^ 6 (если бы степень схлопнулась с умножением, хотя это маловероятно из-за порядка записи, но проверка не помешает)
+        // Здесь regex умножения увидит "2". Перед ним "^". Должен пропустить.
+
+        const expr = 'x ^ 2 * 3';
+        expectErrorHistory(expr, ['x ^ 2 * 3']);
+      });
+    });
+
+    describe('Integration with Derivative (The original bug)', () => {
+      test('1 + der(x^2, x) should resolve to 1 + 2*x and STOP', () => {
+        // 1. der(x^2, x) -> 2*x
+        // 2. Строка: "1 + 2*x"
+        // 3. Сложение (Level 5) видит "1 + 2".
+        //    Но справа от "2" стоит "*".
+        //    Сложение ОТМЕНЯЕТСЯ.
+        // 4. Тупик.
+
+        const expr = '1 + der(x^2, x)';
+
+        expectErrorHistory(expr, [
+          '1 + der(x^2, x)',
+          '1 + 2*x',
+          // Больше шагов быть не должно. "3*x" - это ошибка.
+        ]);
+      });
+
+      test('Complex chain: 5 + 2 * 3 + 4 * x', () => {
+        // 1. Умножение (Level 4): 2 * 3 -> 6.
+        //    4 * x -> пропускаем (x не число).
+        // 2. Строка: "5 + 6 + 4 * x".
+        // 3. Сложение (Level 5):
+        //    "5 + 6" -> 11. (Справа от 6 стоит "+", это ок).
+        //    "11 + 4" -> Пропускаем! Справа от 4 стоит "*".
+        // 4. Итог: "11 + 4 * x".
+
+        const expr = '5 + 2 * 3 + 4 * x';
+
+        expectErrorHistory(expr, ['5 + 2 * 3 + 4 * x', '5 + 6 + 4 * x', '11 + 4 * x']);
+      });
+    });
+  });
 });
