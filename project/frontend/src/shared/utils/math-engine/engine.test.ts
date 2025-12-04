@@ -1,4 +1,19 @@
 import { calc, CalculatorError } from './engine';
+import { HistoryItem } from '@/shared/utils/math-engine/engine.types';
+
+const expectHistory = (expression: string, expectedSteps: HistoryItem[]) => {
+  try {
+    calc(expression);
+    throw new Error('Test expected CalculatorError, but it succeeded.');
+  } catch (e) {
+    if (e instanceof CalculatorError) {
+      // Мы проверяем массив целиком
+      expect(e.history).toEqual(expectedSteps);
+    } else {
+      throw e;
+    }
+  }
+};
 
 describe('Calculator Engine (createCalc)', () => {
   test('should solve simple addition', () => {
@@ -58,7 +73,7 @@ describe('Calculator Engine (createCalc)', () => {
       if (e instanceof CalculatorError) {
         expect(e.message).toContain('Cannot resolve');
         // История должна содержать начальное состояние
-        expect(e.history[0]).toBe('2 + unknown');
+        expect(e.history[0]).toBeUndefined();
       }
     }
   });
@@ -104,7 +119,15 @@ describe('Calculator Engine (createCalc)', () => {
             // Проверяем, что первым шагом производная раскрылась
             // History[0] = "der(x^2, x)"
             // History[1] = "2*x" (примерно, зависит от реализации format)
-            expect(e.history[1]).toMatch(/2\s*\*\s*x/);
+            expect(e.history).toEqual([
+              {
+                args: ['x^2', 'x'],
+                expression: 'der(x^2, x)',
+                newExpression: '2*x',
+                index: 0,
+                operation: 'Производная',
+              },
+            ]);
           }
         }
       });
@@ -210,19 +233,6 @@ describe('Calculator Engine (createCalc)', () => {
 
   describe('Calculator Error History & Debugging', () => {
     // Хелпер для проверки точного совпадения массива истории
-    const expectHistory = (expression: string, expectedSteps: string[]) => {
-      try {
-        calc(expression);
-        throw new Error('Test expected CalculatorError, but it succeeded.');
-      } catch (e) {
-        if (e instanceof CalculatorError) {
-          // Мы проверяем массив целиком
-          expect(e.history).toEqual(expectedSteps);
-        } else {
-          throw e;
-        }
-      }
-    };
 
     describe('Linear Arithmetic Failures', () => {
       test('Should record steps before failing on unknown symbol', () => {
@@ -234,22 +244,48 @@ describe('Calculator Engine (createCalc)', () => {
         const expr = '10 + 2 * 5 + oops';
 
         expectHistory(expr, [
-          '10 + 2 * 5 + oops', // Start
-          '10 + 10 + oops', // 2 * 5 -> 10
-          '20 + oops', // 10 + 10 -> 20
+          {
+            args: [2, 5],
+            expression: '10 + 2 * 5 + oops',
+            index: 5,
+            newExpression: '10 + 10 + oops',
+            operation: 'Умножение',
+          },
+          {
+            args: [10, 10],
+            expression: '10 + 10 + oops',
+            index: 0,
+            newExpression: '20 + oops',
+            operation: 'Сумма',
+          },
         ]);
       });
 
       test('Should fail immediately if no operation matches', () => {
         const expr = 'invalid expression';
-        expectHistory(expr, ['invalid expression']);
+        expectHistory(expr, []);
       });
 
       test('Should show partial evaluation of a long chain', () => {
         // Слева направо: 100 / 2 -> 50, затем 50 / 5 -> 10, потом тупик
         const expr = '100 / 2 / 5 / zero';
 
-        expectHistory(expr, ['100 / 2 / 5 / zero', '50 / 5 / zero', '10 / zero']);
+        expectHistory(expr, [
+          {
+            args: [100, 2],
+            expression: '100 / 2 / 5 / zero',
+            index: 0,
+            newExpression: '50 / 5 / zero',
+            operation: 'Деление',
+          },
+          {
+            args: [50, 5],
+            expression: '50 / 5 / zero',
+            index: 0,
+            newExpression: '10 / zero',
+            operation: 'Деление',
+          },
+        ]);
       });
     });
 
@@ -266,12 +302,22 @@ describe('Calculator Engine (createCalc)', () => {
           calc(expr);
         } catch (e) {
           if (e instanceof CalculatorError) {
-            expect(e.history).toHaveLength(3);
-            expect(e.history[0]).toBe('2 * pi + unknown');
-            // Проверяем, что во втором шаге pi заменилось на число с запятой
-            expect(e.history[1]).toMatch(/2 \* 3,14\d+ \+ unknown/);
-            // Проверяем, что в третьем шаге произошло умножение
-            expect(e.history[2]).toMatch(/6,28\d+ \+ unknown/);
+            expectHistory(expr, [
+              {
+                args: [],
+                expression: '2 * pi + unknown',
+                index: 4,
+                newExpression: '2 * 3,1415926535 + unknown',
+                operation: 'Число ПИ',
+              },
+              {
+                args: [2, 3.1415926535],
+                expression: '2 * 3,1415926535 + unknown',
+                index: 0,
+                newExpression: '6,283185307 + unknown',
+                operation: 'Умножение',
+              },
+            ]);
           }
         }
       });
@@ -283,7 +329,15 @@ describe('Calculator Engine (createCalc)', () => {
 
         // Тут нужно знать точно, как format() форматирует "2".
         // Если format(2) -> "2", то строка будет "1 + 2*x"
-        expectHistory(expr, ['1 + der(x^2, x)', '1 + 2*x']);
+        expectHistory(expr, [
+          {
+            args: ['x^2', 'x'],
+            expression: '1 + der(x^2, x)',
+            index: 4,
+            newExpression: '1 + 2*x',
+            operation: 'Производная',
+          },
+        ]);
       });
     });
 
@@ -294,7 +348,22 @@ describe('Calculator Engine (createCalc)', () => {
         // 3. 5 + error -> fail
         const expr = 'sin(0) + 5 + error';
 
-        expectHistory(expr, ['sin(0) + 5 + error', '0 + 5 + error', '5 + error']);
+        expectHistory(expr, [
+          {
+            args: [0],
+            expression: 'sin(0) + 5 + error',
+            index: 0,
+            newExpression: '0 + 5 + error',
+            operation: 'Синус',
+          },
+          {
+            args: [0, 5],
+            expression: '0 + 5 + error',
+            index: 0,
+            newExpression: '5 + error',
+            operation: 'Сумма',
+          },
+        ]);
       });
 
       test('Should handle nested functions (via repeated passes)', () => {
@@ -309,7 +378,22 @@ describe('Calculator Engine (createCalc)', () => {
 
         const expr = 'abs(sin(0)) + err';
 
-        expectHistory(expr, ['abs(sin(0)) + err', 'abs(0) + err', '0 + err']);
+        expectHistory(expr, [
+          {
+            args: [0],
+            expression: 'abs(sin(0)) + err',
+            index: 4,
+            newExpression: 'abs(0) + err',
+            operation: 'Синус',
+          },
+          {
+            args: [0],
+            expression: 'abs(0) + err',
+            index: 0,
+            newExpression: '0 + err',
+            operation: 'Модуль',
+          },
+        ]);
       });
     });
 
@@ -323,8 +407,13 @@ describe('Calculator Engine (createCalc)', () => {
         const expr = '10 + (2 * 3 + err)';
 
         expectHistory(expr, [
-          '2 * 3 + err', // Начало внутренней обработки
-          '6 + err', // После умножения
+          {
+            args: [2, 3],
+            expression: '2 * 3 + err',
+            index: 0,
+            newExpression: '6 + err',
+            operation: 'Умножение',
+          },
         ]);
       });
 
@@ -338,7 +427,7 @@ describe('Calculator Engine (createCalc)', () => {
         // 2. Внутри "(5 + error)" находит скобки -> вызывает calc на "5 + error"
         // 3. "5 + error" падает.
 
-        expectHistory(expr, ['5 + error']);
+        expectHistory(expr, []);
       });
     });
 
@@ -346,21 +435,21 @@ describe('Calculator Engine (createCalc)', () => {
       test('Missing second operand', () => {
         // 2 +
         const expr = '2 +';
-        expectHistory(expr, ['2 +']);
+        expectHistory(expr, []);
       });
 
       test('Two operators in a row', () => {
         // 2 ++ 2 (если регуляка это не поддерживает)
         // Наша регулярка (\d+) \+ (\d+). "2 ++ 2" не подойдет.
         const expr = '2 ++ 2';
-        expectHistory(expr, ['2 ++ 2']);
+        expectHistory(expr, []);
       });
 
       test('Unclosed function parenthesis (syntax error for regex)', () => {
         // sin(0
         // Регулярка sin\((.*?)\) не сработает
         const expr = 'sin(0';
-        expectHistory(expr, ['sin(0']);
+        expectHistory(expr, []);
       });
     });
   });
@@ -391,7 +480,7 @@ describe('Calculator Engine (createCalc)', () => {
         // В истории должно быть:
         // 1. "1 + 2 * x"
         // Никаких "3 * x" быть не должно!
-        expectErrorHistory(expr, ['1 + 2 * x']);
+        expectErrorHistory(expr, []);
       });
 
       test('Should NOT add numbers if preceded by multiplication (Left side)', () => {
@@ -399,14 +488,14 @@ describe('Calculator Engine (createCalc)', () => {
         // Сложение видит "2", но перед ним "*". Должно проигнорировать.
 
         const expr = 'x * 2 + 1';
-        expectErrorHistory(expr, ['x * 2 + 1']);
+        expectErrorHistory(expr, []);
       });
 
       test('Should NOT subtract if followed by division', () => {
         // 10 - 4 / y
         // Не должно быть "6 / y"
         const expr = '10 - 4 / y';
-        expectErrorHistory(expr, ['10 - 4 / y']);
+        expectErrorHistory(expr, []);
       });
     });
 
@@ -417,7 +506,7 @@ describe('Calculator Engine (createCalc)', () => {
         // Неправильно: 6 ^ x.
 
         const expr = '2 * 3 ^ x';
-        expectErrorHistory(expr, ['2 * 3 ^ x']);
+        expectErrorHistory(expr, []);
       });
 
       test('Should NOT multiply if preceded by power', () => {
@@ -426,7 +515,7 @@ describe('Calculator Engine (createCalc)', () => {
         // Здесь regex умножения увидит "2". Перед ним "^". Должен пропустить.
 
         const expr = 'x ^ 2 * 3';
-        expectErrorHistory(expr, ['x ^ 2 * 3']);
+        expectErrorHistory(expr, []);
       });
     });
 
@@ -442,9 +531,13 @@ describe('Calculator Engine (createCalc)', () => {
         const expr = '1 + der(x^2, x)';
 
         expectErrorHistory(expr, [
-          '1 + der(x^2, x)',
-          '1 + 2*x',
-          // Больше шагов быть не должно. "3*x" - это ошибка.
+          {
+            args: ['x^2', 'x'],
+            expression: '1 + der(x^2, x)',
+            index: 4,
+            newExpression: '1 + 2*x',
+            operation: 'Производная',
+          },
         ]);
       });
 
@@ -459,7 +552,22 @@ describe('Calculator Engine (createCalc)', () => {
 
         const expr = '5 + 2 * 3 + 4 * x';
 
-        expectErrorHistory(expr, ['5 + 2 * 3 + 4 * x', '5 + 6 + 4 * x', '11 + 4 * x']);
+        expectErrorHistory(expr, [
+          {
+            args: [2, 3],
+            expression: '5 + 2 * 3 + 4 * x',
+            index: 4,
+            newExpression: '5 + 6 + 4 * x',
+            operation: 'Умножение',
+          },
+          {
+            args: [5, 6],
+            expression: '5 + 6 + 4 * x',
+            index: 0,
+            newExpression: '11 + 4 * x',
+            operation: 'Сумма',
+          },
+        ]);
       });
     });
   });

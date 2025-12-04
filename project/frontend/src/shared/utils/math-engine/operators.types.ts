@@ -6,4 +6,5 @@ export type CalcOperation = {
   // Флаг, указывающий, нужно ли пытаться парсить аргументы как числа
   // По умолчанию true. Для производной будет false.
   parseArgs?: boolean;
+  name: string;
 };

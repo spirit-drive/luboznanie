@@ -4,12 +4,13 @@ import * as ops from './operators';
 import type { CalcOperation } from './operators.types';
 import type { Expression } from '../expression/expression.types';
 import type { CalcConfig } from './engine.types';
+import { HistoryItem } from './engine.types';
 
 // Класс ошибки, который хранит историю вычислений для отладки
 export class CalculatorError extends Error {
   constructor(
     public message: string,
-    public history: string[],
+    public history: HistoryItem[],
   ) {
     super(message);
     this.name = 'CalculatorError';
@@ -29,7 +30,7 @@ export const createCalc = (config: CalcConfig) => {
   // Основная функция калькулятора
   const calc = (expression: Expression): string => {
     let currentExpression = expression;
-    const history: string[] = [currentExpression];
+    const history: HistoryItem[] = [];
 
     // Защита от бесконечных циклов
     const MAX_STEPS = 1000;
@@ -58,8 +59,14 @@ export const createCalc = (config: CalcConfig) => {
           const nextExpression =
             currentExpression.slice(0, brackets.start) + innerResult + currentExpression.slice(brackets.end);
 
+          history.push({
+            index: brackets.start,
+            expression: currentExpression,
+            newExpression: nextExpression,
+            operation: 'Скобки',
+            args: [nextExpression],
+          });
           currentExpression = nextExpression;
-          history.push(currentExpression);
 
           // Начинаем цикл заново
           continue;
@@ -94,13 +101,26 @@ export const createCalc = (config: CalcConfig) => {
 
         // Если в этом уровне нашлась операция
         if (bestMatch) {
+          let opArgs: string[];
           // Применяем операцию
-          const nextExpression = applyOperation(currentExpression, bestMatch.op);
+          const nextExpression = applyOperation(currentExpression, {
+            ...bestMatch.op,
+            fn: (...args: string[]) => {
+              opArgs = args;
+              return bestMatch!.op.fn(...args) || '';
+            },
+          });
 
           // Проверяем, действительно ли что-то изменилось
           if (nextExpression !== currentExpression) {
+            history.push({
+              newExpression: nextExpression,
+              expression: currentExpression,
+              args: opArgs,
+              index: bestMatch.index,
+              operation: bestMatch.op.name,
+            });
             currentExpression = nextExpression;
-            history.push(currentExpression);
             expressionChangedInThisLoop = true;
 
             // Прерываем перебор уровней и начинаем с самого верха

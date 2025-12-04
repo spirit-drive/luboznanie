@@ -104,11 +104,13 @@ const POW_PRIORITY = '\\^';
 // 1. Арифметика (Низкий уровень)
 // Сложение и Вычитание НЕ должны срабатывать, если рядом *, /, ^, %
 export const sum: CalcOperation = {
+  name: 'Сумма',
   regexp: binaryOpRegexp('+', HIGH_PRIORITY),
   fn: (a: number, b: number) => format(a + b),
 };
 
 export const sub: CalcOperation = {
+  name: 'Разность',
   regexp: binaryOpRegexp('-', HIGH_PRIORITY),
   fn: (a: number, b: number) => format(a - b),
 };
@@ -116,11 +118,13 @@ export const sub: CalcOperation = {
 // 2. Умножение и Деление
 // Они НЕ должны срабатывать, если рядом ^ (Степень)
 export const mul: CalcOperation = {
+  name: 'Умножение',
   regexp: binaryOpRegexp('*', POW_PRIORITY),
   fn: (a: number, b: number) => format(a * b),
 };
 
 export const div: CalcOperation = {
+  name: 'Деление',
   regexp: binaryOpRegexp('/', POW_PRIORITY),
   fn: (a: number, b: number) => {
     if (b === 0) throw new Error('Division by zero');
@@ -129,52 +133,61 @@ export const div: CalcOperation = {
 };
 
 export const mod: CalcOperation = {
+  name: 'Остаток от деления',
   regexp: binaryOpRegexp('%', POW_PRIORITY),
   fn: (a: number, b: number) => format(a % b),
 };
 
 // 3. Степень (Самый высокий бинарный приоритет, ограничений нет)
 export const pow: CalcOperation = {
+  name: 'Степень',
   regexp: binaryOpRegexp('^'),
   fn: (a: number, b: number) => format(Math.pow(a, b)),
 };
 
 // Логарифм натуральный: log(x)
 export const log: CalcOperation = {
+  name: 'Логарифм',
   regexp: funcOpRegexp('log'),
   fn: (a: number) => format(Math.log(a)), // База e
 };
 
 // Логарифм по основанию 10: lg(x)
 export const lg: CalcOperation = {
+  name: 'Десятичный логарифм',
   regexp: funcOpRegexp('lg'),
   fn: (a: number) => format(Math.log10(a)),
 };
 
 // Квадратный корень: sqrt(x)
 export const sqrt: CalcOperation = {
+  name: 'Корень',
   regexp: funcOpRegexp('sqrt'),
   fn: (a: number) => format(Math.sqrt(a)),
 };
 
 // Тригонометрия
 export const sin: CalcOperation = {
+  name: 'Синус',
   regexp: funcOpRegexp('sin'),
   fn: (a: number) => format(Math.sin(a)), // Принимает радианы
 };
 
 export const cos: CalcOperation = {
+  name: 'Косинус',
   regexp: funcOpRegexp('cos'),
   fn: (a: number) => format(Math.cos(a)),
 };
 
 export const tan: CalcOperation = {
+  name: 'Тангенс',
   regexp: funcOpRegexp('tan'), // tan(x)
   fn: (a: number) => format(Math.tan(a)),
 };
 
 // Котангенс: cot(x) = 1 / tan(x)
 export const cot: CalcOperation = {
+  name: 'Котангенс',
   regexp: funcOpRegexp('cot'),
   fn: (a: number) => {
     const t = Math.tan(a);
@@ -185,6 +198,7 @@ export const cot: CalcOperation = {
 
 // Секанс: sec(x) = 1 / cos(x)
 export const sec: CalcOperation = {
+  name: 'Секанс',
   regexp: funcOpRegexp('sec'),
   fn: (a: number) => {
     const c = Math.cos(a);
@@ -195,6 +209,7 @@ export const sec: CalcOperation = {
 
 // Косеканс: csc(x) = 1 / sin(x)
 export const csc: CalcOperation = {
+  name: 'Косеканс',
   regexp: funcOpRegexp('csc'),
   fn: (a: number) => {
     const s = Math.sin(a);
@@ -207,12 +222,14 @@ export const csc: CalcOperation = {
 
 // Модуль: abs(-5) -> 5
 export const abs: CalcOperation = {
+  name: 'Модуль',
   regexp: funcOpRegexp('abs'),
   fn: (a: number) => format(Math.abs(a)),
 };
 
 // Факториал: 5! -> 120 (Постфиксная операция)
 export const fact: CalcOperation = {
+  name: 'Факториал',
   // RegExp: число, за которым следует восклицательный знак
   regexp: new RegExp(`(${D})!`),
   fn: (a: number) => {
@@ -232,11 +249,13 @@ export const fact: CalcOperation = {
 // === 4. Константы (Variables) ===
 
 export const pi: CalcOperation = {
+  name: 'Число ПИ',
   regexp: /pi/g, // Просто замена слова
   fn: () => '3,1415926535',
 };
 
 export const e: CalcOperation = {
+  name: 'Экспонента',
   regexp: /\be\b/g, // \b чтобы не заменять 'e' внутри слов (tExt -> t3.14xt - плохо)
   fn: () => '2,7182818284',
 };
@@ -248,6 +267,7 @@ export const e: CalcOperation = {
 // Пример: der(x, x) -> 1
 // Пример: der(5, x) -> 0
 export const der: CalcOperation = {
+  name: 'Производная',
   // Сложная регулярка: der( что-то, переменная )
   // Мы предполагаем, что внутри нет скобок (или они уже решены).
   // Группа 1: выражение, Группа 2: переменная
